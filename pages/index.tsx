@@ -1,5 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, PersonIcon, CodeBranch, PlusIcon } from "@/core/utilities/svgIcons";
 import DataGrid from "@/core/common/data-grid";
+import Logo from "@/public/logo.png";
+import Image from "next/image";
 
 const IconWrapper = (props: any) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width={props.width} height={props.height} fill={props.color}>
@@ -21,7 +25,7 @@ export default function Home() {
       <div className="flex flex-wrap -mx-4 h-full">
         {/* Left Side */}
         <div className="w-full md:w-2/12 ps-4 h-full">
-          <img src={"https://apps.iqonic.design/frezka/img/logo/logo.png"} alt="Logo" width={"70%"} className="mx-3 my-6 pb-3" />
+          <Image src={Logo} alt="Logo" width={150} height={100} className="mx-3 my-6 pb-3" />
 
           <ListboxWrapper Icon={DashboardIcon} title="Dashboard"/>
           <ListboxWrapper Icon={CodeBranch} title="Branches" active={true} />

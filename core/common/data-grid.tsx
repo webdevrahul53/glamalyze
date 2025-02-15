@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React from "react";
 import {
   Table,
@@ -7,7 +9,6 @@ import {
   TableRow,
   TableCell,
   User,
-  Chip,
   Tooltip,
 } from "@heroui/react";
 
@@ -199,7 +200,7 @@ const statusColorMap = {
 };
 
 export default function DataGrid() {
-  const renderCell = React.useCallback((user:any, columnKey:any) => {
+  const renderCell = React.useCallback((user: any, columnKey: any) => {
     const cellValue = user[columnKey];
 
     switch (columnKey) {
@@ -223,9 +224,6 @@ export default function DataGrid() {
       case "status":
         return (
             <></>
-        //   <Chip className="capitalize" color={statusColorMap[user.status]} size="sm" variant="flat">
-        //     {cellValue}
-        //   </Chip>
         );
       case "actions":
         return (
