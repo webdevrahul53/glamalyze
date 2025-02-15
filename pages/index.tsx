@@ -1,114 +1,66 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, PersonIcon, CodeBranch, PlusIcon } from "@/core/utilities/svgIcons";
+import DataGrid from "@/core/common/data-grid";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const IconWrapper = (props: any) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width={props.width} height={props.height} fill={props.color}>
+    {props.children}
+  </svg>
+)
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+export const ListboxWrapper = ({ Icon, title, active = false }: { Icon: any; title: string; active?: boolean; }) => (
+  <div className={`${active ? "border-s-5 border-blue-400 text-blue-400 bg-blue-100":""} flex items-center gap-3 p-2 px-3 hover:bg-gray-200 cursor-pointer`}>
+    <IconWrapper width={30} height={20} color={active ? "#60a5fa":"black"}> <Icon /> </IconWrapper>
+    <div>{title}</div>
+  </div>
+);
+
 
 export default function Home() {
   return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              pages/index.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="container mx-auto h-screen overflow-hidden">
+      <div className="flex flex-wrap -mx-4 h-full">
+        {/* Left Side */}
+        <div className="w-full md:w-2/12 ps-4 h-full">
+          <img src={"https://apps.iqonic.design/frezka/img/logo/logo.png"} alt="Logo" width={"70%"} className="mx-3 my-6 pb-3" />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          <ListboxWrapper Icon={DashboardIcon} title="Dashboard"/>
+          <ListboxWrapper Icon={CodeBranch} title="Branches" active={true} />
+          <ListboxWrapper Icon={CalendarIcon} title="Bookings" />
+          <ListboxWrapper Icon={ServicesIcon} title="Services" />
+          <ListboxWrapper Icon={PeopleIcon} title="Staffs" />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Right Side */}
+        <div className="w-full md:w-10/12 bg-gray-100 h-full">
+
+          {/* Navbar */}
+          <section className="flex items-center bg-white px-5 pt-3">
+            <div className="p-2 px-4 hover:bg-gray-200 cursor-pointer border-b-4 border-blue-400 bg-blue-100">Main</div>
+            <div className="p-2 px-4 hover:bg-gray-200 cursor-pointer">Shop</div>
+            <div className="p-2 px-4 hover:bg-gray-200 cursor-pointer">Company</div>
+            <div className="p-2 px-4 hover:bg-gray-200 cursor-pointer">Users</div>
+
+            <div className="ms-auto px-4">
+              <IconWrapper width={40} height={30} > <PersonIcon /> </IconWrapper>
+            </div>
+          </section>
+
+          {/* Body */}
+          <section className="">
+            <div className="flex bg-pink-500 text-white" style={{padding: "40px"}}>
+              <h1 className="text-4xl">Branches</h1>
+              <div className="flex items-center bg-blue-800 gap-2 p-2 px-3 ms-auto me-4 rounded">
+                <IconWrapper width={15} height={15} color="white" > <PlusIcon /> </IconWrapper>
+                <div>Assignment</div>
+              </div>
+            </div>
+            <div className="pe-4" style={{width: "96%", margin: "-30px auto"}}>
+              <DataGrid />
+            </div>
+          </section>
+
+        </div>
+      </div>
     </div>
   );
 }
