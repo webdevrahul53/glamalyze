@@ -10,6 +10,7 @@ import {
   TableCell,
   User,
   Tooltip,
+  Chip,
 } from "@heroui/react";
 
 export const columns = [
@@ -193,7 +194,7 @@ export const EditIcon = (props:any) => {
   );
 };
 
-const statusColorMap = {
+const statusColorMap:any = {
   active: "success",
   paused: "danger",
   vacation: "warning",
@@ -223,7 +224,9 @@ export default function DataGrid() {
         );
       case "status":
         return (
-            <></>
+          <Chip className="capitalize" color={statusColorMap[user.status]} size="sm" variant="flat">
+            {cellValue}
+          </Chip>
         );
       case "actions":
         return (
@@ -251,7 +254,7 @@ export default function DataGrid() {
   }, []);
 
   return (
-    <Table aria-label="Example table with custom cells">
+    <Table isStriped selectionMode="multiple" aria-label="Example table with custom cells">
       <TableHeader columns={columns}>
         {(column) => (
           <TableColumn key={column.uid} align={column.uid === "actions" ? "center" : "start"}>
