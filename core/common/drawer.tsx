@@ -6,7 +6,6 @@ import {
   DrawerBody,
   DrawerFooter,
   Button,
-  useDisclosure,
 } from "@heroui/react";
 
 export default function HeroUIDrawer(props:any) {
