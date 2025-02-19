@@ -8,7 +8,7 @@ export const PageTitle = ({title}: any) => {
     const handleOpen = () => { onOpen(); };
 
   return ( 
-    <div className="flex bg-primary text-white" style={{padding: "40px"}}>
+    <div className="flex bg-primary text-white" style={{padding: "40px", borderBottomLeftRadius: "8px", borderBottomRightRadius: "8px"}}>
         <h1 className="text-4xl">{title}</h1>
         <div className="flex items-center bg-secondary gap-2 p-3 px-6 ms-auto rounded cursor-pointer" onClick={() => handleOpen()}>
             <PlusIcon  width={15} height={15} color="white" />
