@@ -7,6 +7,7 @@ import {
   DrawerFooter,
   Button,
 } from "@heroui/react";
+import { SaveIcon } from "../utilities/svgIcons";
 
 export default function HeroUIDrawer(props:any) {
   return (
@@ -15,26 +16,13 @@ export default function HeroUIDrawer(props:any) {
         <DrawerContent>
           {(onClose) => (
             <>
-              <DrawerHeader className="flex flex-col gap-1">New Appointment</DrawerHeader>
-              <DrawerBody>
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam pulvinar risus non
-                  risus hendrerit venenatis. Pellentesque sit amet hendrerit risus, sed porttitor
-                  quam.
-                </p>
-                <p>
-                  Magna exercitation reprehenderit magna aute tempor cupidatat consequat elit dolor
-                  adipisicing. Mollit dolor eiusmod sunt ex incididunt cillum quis. Velit duis sit
-                  officia eiusmod Lorem aliqua enim laboris do dolor eiusmod.
-                </p>
-              </DrawerBody>
-              <DrawerFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Close
+              <DrawerHeader className="flex flex-col gap-1">{props.title}</DrawerHeader>
+              <DrawerBody> {props.body} </DrawerBody>
+              <DrawerFooter style={{justifyContent: "start"}}>
+                <Button color="primary" onPress={() => props.saveClicked()}> 
+                  <SaveIcon width="15" color="white" />  {props.loading ? "Saving":"Save"} 
                 </Button>
-                <Button color="primary" onPress={onClose}>
-                  Action
-                </Button>
+                <Button color="danger" variant="bordered" onPress={onClose}> Close </Button>
               </DrawerFooter>
             </>
           )}

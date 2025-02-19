@@ -53,7 +53,7 @@ export default function Login() {
                 {errors.password && <div>Password is required</div>}
             </div>
 
-            <Button type="submit" color="primary" disabled={isLoading}>{isLoading ? "Loading ..." : "Sign In"}</Button>
+            <Button type="submit" color="primary" className={`${isLoading ? "bg-light text-dark":""}`} disabled={isLoading}>{isLoading ? "Loading ..." : "Sign In"}</Button>
 
             <Link href={"/auth/register"}> <Button className="ms-3" variant="bordered" color="primary">Register</Button> </Link>
             

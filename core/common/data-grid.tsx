@@ -12,7 +12,8 @@ import {
   Tooltip,
   Chip,
 } from "@heroui/react";
-import { DeleteIcon, EditIcon, EyeIcon } from "../utilities/svgIcons";
+import { DeleteIcon, EditIcon } from "../utilities/svgIcons";
+import { AvatarType } from "../utilities/table-types";
 
 export const columns = [
   {name: "NAME", uid: "name"},
@@ -76,76 +77,79 @@ export const users = [
 
 
 const statusColorMap:any = {
-  active: "success",
+  Active: "success",
+  Inactive: "warning",
   paused: "danger",
   vacation: "warning",
 };
 
-export default function DataGrid() {
+
+export default function DataGrid(props:any) {
+  
   const renderCell = React.useCallback((user: any, columnKey: any) => {
     const cellValue = user[columnKey];
+    
+    if(AvatarType.includes(columnKey)){
+      return (
+        <User
+          avatarProps={{radius: "lg", src: user.image || user.avatar}}
+          description={user.email}
+          name={cellValue}
+        >
+          {cellValue} - hello
+        </User>
+      );
+    }else if(columnKey === "role"){
+      return (
+        <div className="flex flex-col">
+          <p className="text-bold text-sm capitalize">{cellValue}</p>
+          <p className="text-bold text-sm capitalize text-default-400">{user.team}</p>
+        </div>
+      );
+    }else if(columnKey === "status"){
+      return (
+        <Chip className="capitalize" color={statusColorMap[user.status ? "Active": "Inactive"]} size="sm" variant="flat">
+          {cellValue ? "Active": "Inactive"}
+        </Chip>
+      );
+    }else if(columnKey === "actions"){
+      return (
+        <div className="relative flex items-center justify-center gap-2">
+          {/* <Tooltip content="Details">
+            <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+              <EyeIcon width={30} height={20} />
+            </span>
+          </Tooltip> */}
+          <Tooltip content="Edit user">
+            <span className="text-lg text-default-400 cursor-pointer active:opacity-50" onClick={() => props.onEdit(user)}>
+              <EditIcon width={30} height={20} color={"darkblue"} />
+            </span>
+          </Tooltip>
+          <Tooltip color="danger" content="Delete user">
+            <span className="text-lg text-danger cursor-pointer active:opacity-50" onClick={() => props.onDelete(user._id)}>
+              <DeleteIcon width={30} height={20} color={"darkred"} />
+            </span>
+          </Tooltip>
+        </div>
+      );
 
-    switch (columnKey) {
-      case "name":
-        return (
-          <User
-            avatarProps={{radius: "lg", src: user.avatar}}
-            description={user.email}
-            name={cellValue}
-          >
-            {user.email}
-          </User>
-        );
-      case "role":
-        return (
-          <div className="flex flex-col">
-            <p className="text-bold text-sm capitalize">{cellValue}</p>
-            <p className="text-bold text-sm capitalize text-default-400">{user.team}</p>
-          </div>
-        );
-      case "status":
-        return (
-          <Chip className="capitalize" color={statusColorMap[user.status]} size="sm" variant="flat">
-            {cellValue}
-          </Chip>
-        );
-      case "actions":
-        return (
-          <div className="relative flex items-center justify-center gap-2">
-            <Tooltip content="Details">
-              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-                <EyeIcon width={30} height={20} />
-              </span>
-            </Tooltip>
-            <Tooltip content="Edit user">
-              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-                <EditIcon width={30} height={20} color={"darkblue"} />
-              </span>
-            </Tooltip>
-            <Tooltip color="danger" content="Delete user">
-              <span className="text-lg text-danger cursor-pointer active:opacity-50">
-                <DeleteIcon width={30} height={20} color={"darkred"} />
-              </span>
-            </Tooltip>
-          </div>
-        );
-      default:
-        return cellValue;
+    }else {
+      return cellValue;
     }
   }, []);
 
   return (
     <Table isStriped selectionMode="multiple" aria-label="Example table with custom cells">
-      <TableHeader columns={columns}>
-        {(column) => (
+      <TableHeader columns={props.columns || columns}>
+        {(column:any) => (
           <TableColumn key={column.uid} align={column.uid === "actions" ? "center" : "start"}>
             {column.name}
           </TableColumn>
         )}
       </TableHeader>
-      <TableBody items={users}>
-        {(item) => (
-          <TableRow key={item.id}>
+      <TableBody items={props.data || users}>
+        {(item:any) => (
+          <TableRow key={item._id}>
             {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
           </TableRow>
         )}

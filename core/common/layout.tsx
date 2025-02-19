@@ -85,7 +85,7 @@ export default function Layout(props:any) {
                     </DropdownItem>
                     <DropdownItem key="profile" startContent={<UserIcon width={20} height={15} />}>Profile</DropdownItem>
                     <DropdownItem key="settings" startContent={<SettingIcon width={20} height={15} />}>My Settings</DropdownItem>
-                    <DropdownItem key="logout" color="danger" onPress={() => {dispatch(setUser(null)); router.reload()}}>
+                    <DropdownItem key="logout" color="danger" onPress={() => {dispatch(setUser(null)); router.push("/auth/login")}}>
                       Log Out
                     </DropdownItem>
                   </DropdownMenu>
