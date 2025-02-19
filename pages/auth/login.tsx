@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { setUser } from '@/core/redux/userSlice/userSlice';
 import { Button, Input } from '@heroui/react'
 import Link from 'next/link'
@@ -23,7 +24,7 @@ export default function Login() {
                 body: JSON.stringify(data),
                 headers: { "Content-Type": "application/json" }
             })
-            let parsedUser = await user.json();
+            const parsedUser = await user.json();
             console.log(parsedUser);
             
             setLoading(false)
@@ -52,7 +53,7 @@ export default function Login() {
                 {errors.password && <div>Password is required</div>}
             </div>
 
-            <Button type="submit" color="primary">Sign In</Button>
+            <Button type="submit" color="primary" disabled={isLoading}>{isLoading ? "Loading ..." : "Sign In"}</Button>
 
             <Link href={"/auth/register"}> <Button className="ms-3" variant="bordered" color="primary">Register</Button> </Link>
             

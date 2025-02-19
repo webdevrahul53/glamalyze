@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button, Input } from '@heroui/react'
 import Link from 'next/link'
 import { useRouter } from 'next/router';
@@ -19,7 +20,7 @@ export default function Register() {
             body: JSON.stringify(data),
             headers: { "Content-Type": "application/json" }
         })
-        let parsedUser = await user.json();
+        const parsedUser = await user.json();
         if(parsedUser.status){
             router.push('/auth/login')
         }else setError(parsedUser.message)
@@ -39,6 +40,7 @@ export default function Register() {
         <Input className="my-4" {...register("password", {required: true})} label="Password" placeholder="Enter your password" type="password" variant="bordered" />
 
         <div className="pb-2 text-red-700">
+            {errors && <div>{error}</div>}
             {errors.name && <div>Name is required</div>}
             {errors.email && <div>Email is required</div>}
             {errors.password && <div>Password is required</div>}
