@@ -27,7 +27,7 @@ export const AddEditEmployee = (props:any) => {
             getBranchList()
         }
         else {
-          reset({image: null, firstname: null, lastname: null, email: null, phonenumber: null, gender: null, servicesId: null, 
+          reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: null, servicesId: null, 
             aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, isVisibleInCalendar: null, isManager: null, status: null})
           getServiceList();
           getBranchList();
@@ -192,17 +192,17 @@ export const AddEditEmployee = (props:any) => {
 
                   <div style={{display: "grid", gridTemplateColumns: "2fr 2fr 4fr", rowGap: 10, gap: 10}}>
                     <div>
-                      <Input {...register("phonenumber", {required: false})} label="Phone Number" placeholder="Enter Phone Number" type="text" variant="flat" />
+                      <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="text" variant="flat" />
                       {errors.phonenumber && <div className="text-danger text-sm ms-3">Phone Number is required</div>}
                     </div>
                     <div>
                       <Input {...register("email", {required: true})} label="Email" placeholder="Enter Email" type="text" variant="flat" />
                       {errors.email && <div className="text-danger text-sm ms-3">Email is required</div>}
                     </div>
-                    <div>
-                      <Input label="Password" placeholder="Enter Password" type={isVisible ? "text" : "password"} 
-                        {...register("password", {required: false})} variant="flat" endContent={
-                        <button aria-label="toggle password visibility" className="focus:outline-none" type="button" onClick={toggleVisibility} >
+                    <div style={{pointerEvents: props?.employees ? "none":"all"}}>
+                      <Input label="Password" placeholder="Enter Password" type={isVisible ? "text" : "password"} tabIndex={-1}
+                        {...register("password", {required: true})} variant="flat" disabled={props.employees} endContent={
+                        <button tabIndex={-1} aria-label="toggle password visibility" className="focus:outline-none" type="button" onClick={toggleVisibility} >
                           {isVisible ? ( <EyeSlashFilledIcon className="text-2xl text-red-400 pointer-events-none" /> ) : ( <EyeFilledIcon className="text-2xl text-default-400 pointer-events-none " /> )}
                         </button>
                       } />

@@ -7,8 +7,12 @@ const EmployeesSchema = mongoose.Schema({
     image:{type:String,required:true},
     firstname:{type:String,required:true},
     lastname:{type:String,required:true},
-    email:{type:String,required:true},
     phonenumber:{type:String,required:true},
+    email:{
+        type:String, required:true, unique:true,
+        match:/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    },
+    password:{type:String,required:true},
     gender:{type:String,required:true},
     branchId: {type: mongoose.Schema.Types.ObjectId, required:true, ref: "Branches"},
     servicesId:[{type:mongoose.Schema.Types.ObjectId, required:true, ref: "Services"}],
@@ -23,5 +27,6 @@ const EmployeesSchema = mongoose.Schema({
     status:{type:Boolean},
 },{ timestamps: true })
 
+EmployeesSchema.index({ email: 1 }, { unique: true });
 
 export const Employees = mongoose.models.Employees || mongoose.model("Employees", EmployeesSchema);

@@ -76,7 +76,7 @@ export default function Layout(props:any) {
                 <Dropdown placement="bottom-end">
                   <DropdownTrigger>
                     <Avatar isBordered as="button" className="transition-transform" size="sm"
-                    src="https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png" />
+                    src={user?.image || "https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png"} />
                   </DropdownTrigger>
                   <DropdownMenu aria-label="Profile Actions" variant="flat">
                     <DropdownItem key="auth" className="h-14 gap-2">

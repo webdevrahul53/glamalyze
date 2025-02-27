@@ -1,6 +1,7 @@
 import { connectDB } from "@/core/db";
 import { Employees } from "../../../core/model/employees";
 import { Branches } from "../../../core/model/branches";
+import { Users } from "@/core/model/users";
 
 export default async function handler(req, res) {
   await connectDB();
@@ -22,6 +23,8 @@ export default async function handler(req, res) {
   }
 
   if(req.method === "PATCH") {
+    const existingUser = await Users.findOne({ email: req.body.email });
+    if (existingUser) return res.status(400).json({ status: 0, message: "Email address is already taken. Please use another one.", });
     var updateOps = {};
     if (Array.isArray(req.body)) {
       for (let ops of req.body) {
@@ -37,8 +40,11 @@ export default async function handler(req, res) {
         }) 
     }).catch(err=>{ 
       console.log(err);
-      
-        res.status(500).json(err) 
+      if (err.code === 11000) {
+        // Duplicate key err
+        res.status(400).json({ status: false, message: "Email already exists" });
+      }
+      res.status(500).json(err) 
 
     }) 
   }
