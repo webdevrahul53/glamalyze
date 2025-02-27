@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import DataGrid from '@/core/common/data-grid'
 import { PageTitle } from '@/core/common/page-title'
 import { AddEditSubCategory } from '@/core/drawer/add-edit-sub-category';
