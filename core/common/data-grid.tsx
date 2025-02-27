@@ -11,9 +11,10 @@ import {
   User,
   Tooltip,
   Chip,
+  Button,
 } from "@heroui/react";
 import { DeleteIcon, EditIcon } from "../utilities/svgIcons";
-import { AvatarType } from "../utilities/table-types";
+import { AvatarType, AvatarType2, BoxButtonType, DateType, RoleType } from "../utilities/table-types";
 
 export const columns = [
   {name: "NAME", uid: "name"},
@@ -83,6 +84,18 @@ const statusColorMap:any = {
   vacation: "warning",
 };
 
+const roleCSS: any = {
+  Manager: "bg-blue-100 text-blue-500",
+  Staff: "bg-red-100 text-red-800"
+}
+
+
+const formatDateTime = (date:string) => {
+  if (!date) return "";
+  const d = new Date(date);
+  return d.toISOString().replace("T", " ").substring(0, 19); 
+};
+
 
 export default function DataGrid(props:any) {
   
@@ -96,9 +109,26 @@ export default function DataGrid(props:any) {
           description={user.email}
           name={cellValue}
         >
-          {cellValue} - hello
+          {cellValue}
         </User>
       );
+    }else if(AvatarType2.includes(columnKey)){
+      return cellValue == null ? <></> : (
+        <User
+          avatarProps={{radius: "lg", src: user.image2 || user.avatar2}}
+          description={user.email2}
+          name={cellValue}
+        >
+          {cellValue}
+        </User>
+      );
+    }else if(DateType.includes(columnKey)){
+      const formattedDateTime = formatDateTime(cellValue);
+      return formattedDateTime
+    }else if(RoleType.includes(columnKey)){
+      return <span className={`p-1 px-2 rounded ${roleCSS[cellValue]}`}>{cellValue}</span>
+    }else if(BoxButtonType.includes(columnKey)){
+      return <span className="p-1 px-2 bg-primary text-white rounded">{cellValue}</span>
     }else if(columnKey === "role"){
       return (
         <div className="flex flex-col">

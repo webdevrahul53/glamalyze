@@ -1,0 +1,111 @@
+import mongoose from "mongoose";
+import { connectDB } from "@/core/db";
+import { Branches } from "../../../core/model/branches";
+
+export default async function handler(req, res) {
+  await connectDB();
+  
+  if (req.method === "GET") {
+    
+    try {
+      let result = await Branches.aggregate([
+        { $lookup: {
+            from: "employees", // Name of the Categories collection in MongoDB
+            localField: "managerId", // Field in SubCategories
+            foreignField: "_id", // Matching field in Categories
+            as: "manager", // Output field
+          }, 
+        },
+        {
+          $unwind: {
+            path: "$manager",
+            preserveNullAndEmptyArrays: true, // Keeps subcategories even if no matching category exists
+          },
+        },
+        { $project: { _id: 1, image: 1, branchname:1, gender: 1, managerId: 1, employeesCount: {$size: "$employees"},
+          managerName:  {$concat: ["$manager.firstname", " ", "$manager.lastname"] }, email2: "$manager.email", image2: "$manager.image", 
+          servicesId: 1, contactnumber: 1, email: 1, address: 1, landmark: 1, country: 1, city: 1, state: 1, 
+          postalcode:1, latitude: 1, longitude: 1, paymentmethods: 1, description: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+      ])
+      res.status(200).json(result) 
+    }catch(err) {
+      console.log(err)
+      res.status(500).json(err) 
+
+    }    
+  }
+
+  if(req.method === "POST") {
+    const branch = new Branches({
+      _id:new mongoose.Types.ObjectId(),
+      image: req.body.image,
+      branchname: req.body.branchname,
+      gender: req.body.gender,
+      managerId: req.body.managerId,
+      servicesId: req.body.servicesId,
+      contactnumber: req.body.contactnumber,
+      email: req.body.email,
+      address: req.body.address,
+      landmark: req.body.landmark,
+      country: req.body.country,
+      city: req.body.city,
+      state: req.body.state,
+      postalcode: req.body.postalcode,
+      latitude: req.body.latitude,
+      longitude: req.body.longitude,
+      paymentmethods: req.body.paymentmethods,
+      description: req.body.description,
+      status: req.body.status
+    })
+    branch.save().then(()=>{ 
+        res.status(200).json({
+            message:'New branch added',
+            status: 1,
+            branch:{
+                _id:branch._id, 
+                image: branch.image,
+                branchname: branch.branchname,
+                gender: branch.gender,
+                managerId: branch.managerId,
+                servicesId: branch.servicesId,
+                contactnumber: branch.contactnumber,
+                email: branch.email,
+                address: branch.address,
+                landmark: branch.landmark,
+                country: branch.country,
+                city: branch.city,
+                state: branch.state,
+                postalcode: branch.postalcode,
+                latitude: branch.latitude,
+                longitude: branch.longitude,
+                paymentmethods: branch.paymentmethods,
+                description: branch.description,
+                status: branch.status
+            }
+        })
+    }).catch(err=>{
+        if (err.code === 11000) {
+          // Duplicate key err
+          res.status(400).json({ status: false, message: "Branch Name already exists" });
+        } else {
+          res.status(500).json({ status: false, message: err.message });
+        }
+        res.status(500).json(err)
+    }) 
+  }
+  
+  
+  // if(req.method === "DELETE") {
+  //   Branches.deleteMany().exec()
+  //   .then(docs=>{ 
+  //       res.status(200).json({
+  //           message:"Sub Category data updated",
+  //           _id:req.params['id']
+  //       }) 
+  //   }).catch(err=>{ 
+  //       res.status(500).json(err) 
+
+  //   }) 
+  // }
+
+}

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import DataGrid from '@/core/common/data-grid'
 import { PageTitle } from '@/core/common/page-title'
-import { NewCategory } from '@/core/drawer/new-category'
+import { AddEditCategory } from '@/core/drawer/add-edit-category'
 import { DownloadIcon, PlusIcon, SearchIcon } from '@/core/utilities/svgIcons'
-import { Button, Input, useDisclosure } from '@heroui/react'
+import { Button, Input, Progress, useDisclosure } from '@heroui/react'
 import React from 'react'
 
 export const columns = [
@@ -19,6 +19,8 @@ export default function Categories() {
   const handleOpen = () => { onOpen(); };
   const [categories, setCategories] = React.useState([])
   const [selectedCategory, setSelectedCategory] = React.useState(null)
+  const [isLoading, setLoading] = React.useState(false)
+
 
   React.useEffect(() => {
     getCategories();
@@ -27,11 +29,14 @@ export default function Categories() {
 
   const getCategories = async () => {
     try {
+      setLoading(true)
       const category = await fetch("/api/categories");
       const parsed = await category.json();
       setCategories(parsed)
+      setLoading(false)
     } catch (error) {
       console.log(error);
+      setLoading(false)
       
     }
   }
@@ -65,9 +70,10 @@ export default function Categories() {
             </div>
           </div>
 
-          <NewCategory category={selectedCategory} isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
+          <AddEditCategory category={selectedCategory} isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
 
           {/* {categories.length && } */}
+          {isLoading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
           <DataGrid columns={columns} data={categories} 
           onEdit={(item:any)=> {setSelectedCategory(item); handleOpen()}} 
           onDelete={(id:string) => deleteCategory(id)} />

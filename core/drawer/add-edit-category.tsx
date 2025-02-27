@@ -6,7 +6,7 @@ import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
 import { useForm } from "react-hook-form";
 import { v4 } from "uuid";
 
-export const NewCategory = (props:any) => {
+export const AddEditCategory = (props:any) => {
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
     const [error, setError] = React.useState(null)
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
@@ -81,7 +81,7 @@ export const NewCategory = (props:any) => {
   
     return (
       <Drawer isOpen={props.isOpen} placement={"right"} onOpenChange={props.onOpenChange}>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)} onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}>
           <DrawerContent>
             {(onClose) => (
               <>
@@ -102,11 +102,16 @@ export const NewCategory = (props:any) => {
                     <Checkbox {...register("status")} color="primary"> Active </Checkbox>
   
   
+                    <div className="text-danger">
+                      {errors.image && <div>Image is required</div>}
+                      {errors.categoryname && <div>Category name is required</div>}
+                    </div>
+  
                 </DrawerBody>
                 <DrawerFooter style={{justifyContent: "start"}}>
                   <Button color="primary" type="submit" className={`${loading ? "bg-light text-dark":""}`} disabled={loading}> 
                     <SaveIcon width="15" color="white" />  
-                    {loading ? "Loading": props.category ? "Update" : "Save"} 
+                    {loading ? "Loading...": props.category ? "Update" : "Save"} 
                   </Button>
                   <Button color="danger" variant="bordered" onPress={() => onDrawerClose()}> Close </Button>
                 </DrawerFooter>
