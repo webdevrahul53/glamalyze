@@ -9,7 +9,7 @@ import { AddEditBranch } from '@/core/drawer/add-edit-branch';
 export const columns = [
   {name: "Branch NAME", uid: "branchname"},
   {name: "CONTACT NUMBER", uid: "contactnumber"},
-  {name: "MANAGER", uid: "managerName"},
+  {name: "MANAGER", uid: "manager:firstname"},
   {name: "CITY", uid: "city"},
   {name: "ASSIGN STAFF", uid: "employeesCount"},
   {name: "POSTAL CODE", uid: "postalcode"},

@@ -100,7 +100,7 @@ const formatDateTime = (date:string) => {
 export default function DataGrid(props:any) {
   
   const renderCell = React.useCallback((user: any, columnKey: any) => {
-    const cellValue = user[columnKey];
+    let cellValue = user[columnKey];
     
     if(AvatarType.includes(columnKey)){
       return (
@@ -113,10 +113,12 @@ export default function DataGrid(props:any) {
         </User>
       );
     }else if(AvatarType2.includes(columnKey)){
+      const keys = columnKey.split(":")
+      cellValue = user?.[keys[0]]?.[keys[1]]
       return cellValue == null ? <></> : (
         <User
-          avatarProps={{radius: "lg", src: user.image2 || user.avatar2}}
-          description={user.email2}
+          avatarProps={{radius: "lg", src: user[keys[0]].image || user[keys[0]].avatar}}
+          description={user[keys[0]].email}
           name={cellValue}
         >
           {cellValue}
@@ -150,16 +152,17 @@ export default function DataGrid(props:any) {
               <EyeIcon width={30} height={20} />
             </span>
           </Tooltip> */}
-          <Tooltip content="Edit user">
+          {props.onEdit != undefined && <Tooltip content="Edit user">
             <span className="text-lg text-default-400 cursor-pointer active:opacity-50" onClick={() => props.onEdit(user)}>
               <EditIcon width={30} height={20} color={"darkblue"} />
             </span>
-          </Tooltip>
-          <Tooltip color="danger" content="Delete user">
+          </Tooltip>}
+          {props.onDelete != undefined && <Tooltip color="danger" content="Delete user">
             <span className="text-lg text-danger cursor-pointer active:opacity-50" onClick={() => props.onDelete(user._id)}>
               <DeleteIcon width={30} height={20} color={"darkred"} />
             </span>
-          </Tooltip>
+          </Tooltip>}
+          
         </div>
       );
 

@@ -1,6 +1,6 @@
-const AvatarType = ["name", "categoryname", "subcategoryname", "branchname", "employeeName", "manager.name"]
-const AvatarType2 = ["managerName"]
-const DateType = ["createdAt", "updatedAt"]
+const AvatarType = ["name", "categoryname", "subcategoryname", "branchname", "employeeName"]
+const AvatarType2 = ["manager:firstname", "customer:firstname", "employee:firstname"]
+const DateType = ["createdAt", "updatedAt", "datetime"]
 const BoxButtonType = ["totalServices", "employeesCount"]
 const RoleType = ["role"]
 

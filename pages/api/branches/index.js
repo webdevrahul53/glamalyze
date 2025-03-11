@@ -22,8 +22,7 @@ export default async function handler(req, res) {
             preserveNullAndEmptyArrays: true, // Keeps subcategories even if no matching category exists
           },
         },
-        { $project: { _id: 1, image: 1, branchname:1, gender: 1, managerId: 1, employeesCount: {$size: "$employees"},
-          managerName:  {$concat: ["$manager.firstname", " ", "$manager.lastname"] }, email2: "$manager.email", image2: "$manager.image", 
+        { $project: { _id: 1, image: 1, branchname:1, gender: 1, manager: 1, employeesCount: {$size: "$employees"},
           servicesId: 1, contactnumber: 1, email: 1, address: 1, landmark: 1, country: 1, city: 1, state: 1, 
           postalcode:1, latitude: 1, longitude: 1, paymentmethods: 1, description: 1, status: 1, createdAt: 1, updatedAt: 1 } },
       ])

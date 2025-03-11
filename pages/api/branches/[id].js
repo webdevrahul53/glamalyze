@@ -4,6 +4,18 @@ import { Branches } from "../../../core/model/branches";
 export default async function handler(req, res) {
   await connectDB();
   
+  console.log(req.method, req.query);
+  if(req.method === "GET") {
+    
+    try {
+      const result = await Branches.findOne({_id:req.query['id']}).populate("employees")
+      res.status(200).json(result) 
+    } catch (error) {
+      console.log(error)
+      res.status(500).json(error) 
+    } 
+  }
+
   if(req.method === "DELETE") {
     try {
       await Branches.deleteOne({_id:req.query['id']})

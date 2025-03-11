@@ -141,7 +141,7 @@ export const AddEditBranch = (props:any) => {
                     </div>
                   </div>
 
-                  <Controller name="servicesId" control={control}
+                  <Controller name="servicesId" control={control} rules={{required: "Services is required"}}
                     render={({ field }) => (
                       <AvatarSelectMultiple field={field} data={serviceList} label="Services" keyName="name" />
                     )}
