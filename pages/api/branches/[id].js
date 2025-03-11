@@ -1,5 +1,6 @@
 import { connectDB } from "@/core/db";
 import { Branches } from "../../../core/model/branches";
+import mongoose from "mongoose";
 
 export default async function handler(req, res) {
   await connectDB();
@@ -8,8 +9,16 @@ export default async function handler(req, res) {
   if(req.method === "GET") {
     
     try {
-      const result = await Branches.findOne({_id:req.query['id']}).populate("employees")
-      res.status(200).json(result) 
+      const result = await Branches.aggregate([
+        { $match: { _id: new mongoose.Types.ObjectId(req.query["id"]) } },
+        { $lookup: { from: "employees", localField: "employees", foreignField: "_id", as: "employee", },  },
+        { $lookup: { from: "employees", localField: "managerId", foreignField: "_id", as: "manager", },  },
+        { $unwind: { path: "$manager", preserveNullAndEmptyArrays: true }, },
+        { $project: { _id: 1, image: 1, branchname:1, gender: 1, employee: 1, manager: 1, employeesCount: {$size: "$employees"},
+          servicesId: 1, contactnumber: 1, email: 1, address: 1, landmark: 1, country: 1, city: 1, state: 1, 
+          postalcode:1, latitude: 1, longitude: 1, paymentmethods: 1, description: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+      ])
+      res.status(200).json(result[0] || null) 
     } catch (error) {
       console.log(error)
       res.status(500).json(error) 

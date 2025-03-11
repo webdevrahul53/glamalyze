@@ -59,7 +59,7 @@ export const NewAssignment = (props:any) => {
       try {
           const category = await fetch(`/api/branches/${id}`)
           const parsed = await category.json();
-          setEmployeeList(parsed.employees);
+          setEmployeeList(parsed.employee);
         }catch(err:any) { setError(err) }
     }
   
