@@ -1,4 +1,4 @@
-import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, DotIcon, ListIcon, UserIcon, PersonIcon, SettingIcon } from "@/core/utilities/svgIcons";
+import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, DotIcon, ListIcon, UserIcon, PersonIcon, SettingIcon, UserGroupIcon } from "@/core/utilities/svgIcons";
 import Logo from "@/public/logo.png";
 import Image from 'next/image'
 import Link from "next/link";
@@ -57,7 +57,8 @@ export default function Layout(props:any) {
 
 
         <ListboxWrapper Icon={PeopleIcon} href={"/staffs"} title="Staffs" />
-        <ListboxWrapper Icon={PersonIcon} href={"/customers"} title="Customers" />
+        <ListboxWrapper Icon={UserGroupIcon} href={"/groups"} title="Groups" />
+        <ListboxWrapper Icon={UserIcon} href={"/customers"} title="Customers" />
         <ListboxWrapper Icon={SettingIcon} href={"/setting"} title="Settings" />
       </div>
 

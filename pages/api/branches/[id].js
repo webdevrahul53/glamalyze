@@ -41,14 +41,13 @@ export default async function handler(req, res) {
   
   if(req.method === "PUT") {
     let branchId = req.query["id"]
-    let employeeId = req.body.employeeId
-    let isManager = req.body.isManager
-    console.log(isManager);
+    let groupId = req.body.groupId
+    // console.log(isManager);
     try {
-      await Branches.updateOne({ managerId: employeeId }, { managerId: null });
-      await Branches.updateOne({ employees: employeeId }, { $pull: { employees: employeeId } });
-      await Branches.updateOne({ _id: branchId }, { $addToSet: { employees: employeeId } });
-      if(isManager) await Branches.updateOne({ _id: branchId }, { managerId: employeeId });
+      // await Branches.updateOne({ managerId: employeeId }, { managerId: null });
+      await Branches.updateOne({ groups: groupId }, { $pull: { groups: groupId } });
+      await Branches.updateOne({ _id: branchId }, { $addToSet: { groups: groupId } });
+      // if(isManager) await Branches.updateOne({ _id: branchId }, { managerId: employeeId });
     
       res.status(200).json({
         status: 1,

@@ -14,7 +14,6 @@ const EmployeesSchema = mongoose.Schema({
     },
     password:{type:String,required:true},
     gender:{type:String,required:true},
-    branchId: {type: mongoose.Schema.Types.ObjectId, required:true, ref: "Branches"},
     servicesId:[{type:mongoose.Schema.Types.ObjectId, required:true, ref: "Services"}],
     aboutself:{type:String},
     expert:{type:String},

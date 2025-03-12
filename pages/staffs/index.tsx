@@ -9,7 +9,6 @@ import { AddEditEmployee } from '@/core/drawer/add-edit-employee';
 export const columns = [
   {name: "EMPLOYEE NAME", uid: "employeeName"},
   {name: "TOTAL SERVICES", uid: "totalServices"},
-  {name: "Branch", uid: "branchName"},
   {name: "Role", uid: "role"},
   {name: "PHONE NUMBER", uid: "phonenumber"},
   {name: "STATUS", uid: "status"},

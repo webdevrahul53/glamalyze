@@ -12,9 +12,11 @@ import {
   Tooltip,
   Chip,
   Button,
+  AvatarGroup,
+  Avatar,
 } from "@heroui/react";
 import { DeleteIcon, EditIcon } from "../utilities/svgIcons";
-import { AvatarType, AvatarType2, BoxButtonType, DateType, RoleType } from "../utilities/table-types";
+import { AvatarGroupType, AvatarType, AvatarType2, BoxButtonType, DateType, RoleType } from "../utilities/table-types";
 
 export const columns = [
   {name: "NAME", uid: "name"},
@@ -124,6 +126,13 @@ export default function DataGrid(props:any) {
           {cellValue}
         </User>
       );
+    }else if(AvatarGroupType.includes(columnKey)){
+      console.log(cellValue)
+      return <AvatarGroup isBordered max={3}>
+        {cellValue?.map((item:any) => (
+          <Avatar src={item.image} size="sm" />
+        ))}
+      </AvatarGroup>
     }else if(DateType.includes(columnKey)){
       const formattedDateTime = formatDateTime(cellValue);
       return formattedDateTime

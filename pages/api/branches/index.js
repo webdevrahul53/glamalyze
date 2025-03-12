@@ -9,21 +9,12 @@ export default async function handler(req, res) {
     
     try {
       let result = await Branches.aggregate([
-        { $lookup: {
-            from: "employees", // Name of the Categories collection in MongoDB
-            localField: "managerId", // Field in SubCategories
-            foreignField: "_id", // Matching field in Categories
-            as: "manager", // Output field
-          }, 
-        },
-        {
-          $unwind: {
-            path: "$manager",
-            preserveNullAndEmptyArrays: true, // Keeps subcategories even if no matching category exists
-          },
-        },
-        { $project: { _id: 1, image: 1, branchname:1, gender: 1, manager: 1, employeesCount: {$size: "$employees"},
-          servicesId: 1, contactnumber: 1, email: 1, address: 1, landmark: 1, country: 1, city: 1, state: 1, 
+        { $lookup: { from: "employees", localField: "managerId", foreignField: "_id", as: "manager", },  },
+        { $lookup: { from: "groups", localField: "groups", foreignField: "_id", as: "groups", },  },
+        { $lookup: { from: "employees", localField: "groups.employeesId", foreignField: "_id", as: "groupEmployees" } },
+        { $unwind: { path: "$manager", preserveNullAndEmptyArrays: true, }, },
+        { $project: { _id: 1, image: 1, branchname:1, gender: 1, manager: 1, groupEmployees: 1,
+          managerId: 1,servicesId: 1, contactnumber: 1, email: 1, address: 1, landmark: 1, country: 1, city: 1, state: 1, 
           postalcode:1, latitude: 1, longitude: 1, paymentmethods: 1, description: 1, status: 1, createdAt: 1, updatedAt: 1 } },
       ])
       res.status(200).json(result) 

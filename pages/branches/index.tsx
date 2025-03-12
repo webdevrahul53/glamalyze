@@ -11,7 +11,7 @@ export const columns = [
   {name: "CONTACT NUMBER", uid: "contactnumber"},
   {name: "MANAGER", uid: "manager:firstname"},
   {name: "CITY", uid: "city"},
-  {name: "ASSIGN STAFF", uid: "employeesCount"},
+  {name: "STAFFS", uid: "groupEmployees"},
   {name: "POSTAL CODE", uid: "postalcode"},
   {name: "STATUS", uid: "status"},
   {name: "ACTIONS", uid: "actions"},

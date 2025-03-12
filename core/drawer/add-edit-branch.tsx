@@ -6,6 +6,7 @@ import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelectMultiple from "../common/avatar-select-multiple";
+import AvatarSelect from "../common/avatar-select";
 
 export const AddEditBranch = (props:any) => {
     const { register, handleSubmit, watch, setValue, setError, formState: { errors }, control, reset } = useForm();
@@ -13,6 +14,7 @@ export const AddEditBranch = (props:any) => {
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
     const [serviceList, setServiceList] = React.useState([]);
+    const [employeeList, setEmployeeList] = React.useState([]);
 
     React.useEffect(() => {
         if(props.branches) {
@@ -20,17 +22,20 @@ export const AddEditBranch = (props:any) => {
             reset(props.branches)
             setImagePreview(props.branches.image)
             getServiceList()
+            getEmployeeList()
         }
         else {
           reset({image: null, branchname:null, gender: null, managerId: null, servicesId: [], contactnumber: null, email: null, address: null,
             landmark: null, country: null, city: null, state: null, postalcode:null, latitude: null, longitude: null, paymentmethods: [], 
             description: null, status: false})
           getServiceList();
+          getEmployeeList()
         }
     }, [props.branches])
 
     const onSubmit = async (data:any) => {
       data.servicesId = (typeof data.servicesId === "string") ? data.servicesId?.split(",") : data.servicesId;
+      data.managerId = data.managerId || null
       console.log(data);
       
       setLoading(true)
@@ -58,6 +63,14 @@ export const AddEditBranch = (props:any) => {
           const services = await fetch("/api/services")
           const parsed = await services.json();
           setServiceList(parsed);
+        }catch(err:any) { setErrors(err) }
+    }
+
+    const getEmployeeList = async () => {
+      try {
+          const employees = await fetch("/api/employees")
+          const parsed = await employees.json();
+          setEmployeeList(parsed);
         }catch(err:any) { setErrors(err) }
     }
   
@@ -141,12 +154,23 @@ export const AddEditBranch = (props:any) => {
                     </div>
                   </div>
 
-                  <Controller name="servicesId" control={control} rules={{required: "Services is required"}}
-                    render={({ field }) => (
-                      <AvatarSelectMultiple field={field} data={serviceList} label="Services" keyName="name" />
-                    )}
-                    />
-                  {errors.servicesId && <div className="text-danger text-sm ms-3">Service is required</div>}
+                  <div style={{display: "grid", gridTemplateColumns: "2fr 4fr", rowGap: 10, gap: 10}}>
+                    <div>
+                      <Controller name="managerId" control={control}
+                        render={({ field }) => (
+                          <AvatarSelect field={field} data={employeeList} label="Manager" keyName="firstname" />
+                        )}
+                      />
+                    </div>
+                    <div>
+                      <Controller name="servicesId" control={control} rules={{required: true}}
+                        render={({ field }) => (
+                          <AvatarSelectMultiple field={field} data={serviceList} label="Services" keyName="name" />
+                        )}
+                      />
+                      {errors.servicesId && <div className="text-danger text-sm ms-3">Service is required</div>}
+                    </div>
+                  </div>
                   
 
                   <div style={{display: "grid", gridTemplateColumns: "3fr 3fr", rowGap: 10, gap: 10}}>

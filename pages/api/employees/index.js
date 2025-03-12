@@ -11,21 +11,8 @@ export default async function handler(req, res) {
     
     try {
       let result = await Employees.aggregate([
-        { $lookup: {
-            from: "branches", // Name of the Categories collection in MongoDB
-            localField: "branchId", // Field in SubCategories
-            foreignField: "_id", // Matching field in Categories
-            as: "branch", // Output field
-          }, 
-        },
-        {
-          $unwind: {
-            path: "$branch",
-            preserveNullAndEmptyArrays: true, // Keeps subcategories even if no matching category exists
-          },
-        },
         { $project: { _id: 1, image: 1, employeeName: {$concat: ["$firstname", " ", "$lastname"] }, firstname: 1, lastname: 1, 
-          email: 1, password: 1, phonenumber: 1, gender: 1, branchId: 1, branchName: "$branch.branchname", servicesId: 1, 
+          email: 1, password: 1, phonenumber: 1, gender: 1, servicesId: 1, 
           totalServices: {$size: "$servicesId"}, aboutself: 1, expert: 1, facebook: 1, instagram: 1, twitter: 1, 
           dribble: 1, isVisibleInCalendar: 1, isManager: 1, role: { $cond: { if: "$isManager", then: "Manager", else: "Staff" } }, 
           status: 1, createdAt: 1, updatedAt: 1 } },
@@ -53,7 +40,6 @@ export default async function handler(req, res) {
       email: req.body.email,
       password: hashedPassword,
       gender: req.body.gender,
-      branchId: req.body.branchId,
       servicesId: req.body.servicesId,
       aboutself: req.body.aboutself,
       expert: req.body.expert,
@@ -77,7 +63,6 @@ export default async function handler(req, res) {
                 email: employee.email,
                 phonenumber: employee.phonenumber,
                 gender: employee.gender,
-                branchId: employee.branchId,
                 servicesId: employee.servicesId,
                 aboutself: employee.aboutself,
                 expert: employee.expert,

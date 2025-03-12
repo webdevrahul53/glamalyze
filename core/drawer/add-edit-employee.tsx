@@ -28,7 +28,7 @@ export const AddEditEmployee = (props:any) => {
         }
         else {
           reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: null, servicesId: null, 
-            aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, isVisibleInCalendar: null, isManager: null, status: null})
+            aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, isVisibleInCalendar: null, status: null})
           getServiceList();
           getBranchList();
         }
@@ -91,7 +91,6 @@ export const AddEditEmployee = (props:any) => {
             reset(); 
             setImagePreview(null);
             props.onOpenChange();
-            resetBranchManager(data?.branchId, parsed?._id, data?.isManager);
             
         }else setErrors(parsed.message)
       }catch(err:any) {
@@ -100,23 +99,6 @@ export const AddEditEmployee = (props:any) => {
       }
     }
 
-    const resetBranchManager = async (branchId:string, employeeId:string, isManager: boolean) => {
-      try {
-        setLoading(true)
-        const branch = await fetch(`/api/branches/${branchId}?type=reset`, {
-          method: "PUT",
-          body: JSON.stringify({employeeId, isManager}),
-          headers: { "Content-Type": "application/json" }
-        })
-        const parsed = await branch.json();
-        if(parsed.status){
-          setLoading(false)
-        }else setErrors(parsed.message)
-      } catch (err:any) {
-        setLoading(false)
-        setErrors(err)
-      }
-    }
 
     const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
@@ -182,7 +164,7 @@ export const AddEditEmployee = (props:any) => {
                       </div>
                       <div className="flex gap-3 my-2 mx-3">
                         <Checkbox {...register("isVisibleInCalendar")} color="primary"> Show In Calendar </Checkbox>
-                        <Checkbox {...register("isManager")} color="primary">Is Manager</Checkbox>
+                        {/* <Checkbox {...register("isManager")} color="primary">Is Manager</Checkbox> */}
                       </div>
 
                     </div>
@@ -210,23 +192,12 @@ export const AddEditEmployee = (props:any) => {
                     </div>
                   </div>
 
-                  <div style={{display: "grid", gridTemplateColumns: "2fr 4fr", rowGap: 10, gap: 10}}>
-                    <div>
-                    <Select {...register("branchId", {required: true})} label="Branch" placeholder="Select Branch">
-                      {branchList.map((branch:any) => (
-                        <SelectItem key={branch._id}>{branch.branchname}</SelectItem>
-                      ))}
-                    </Select>
-                    </div>
-                    <div>
-                      <Controller name="servicesId" control={control}
-                        render={({ field }) => (
-                          <AvatarSelectMultiple field={field} data={serviceList} label="Services" keyName="name" />
-                        )}
-                      />
-                      {errors.servicesId && <div className="text-danger text-sm ms-3">Service is required</div>}
-                    </div>
-                  </div>
+                  <Controller name="servicesId" control={control}
+                    render={({ field }) => (
+                      <AvatarSelectMultiple field={field} data={serviceList} label="Services" keyName="name" />
+                    )}
+                  />
+                  {errors.servicesId && <div className="text-danger text-sm ms-3">Service is required</div>}
                   
 
                   <div style={{display: "grid", gridTemplateColumns: "3fr 3fr", rowGap: 10, gap: 10}}>

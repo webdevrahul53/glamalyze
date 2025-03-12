@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   if(req.method === "DELETE") {
     let employeeId = req.query['id'];
     await Branches.updateOne({ managerId: employeeId }, { managerId: null });
-    await Branches.updateOne({ employees: employeeId }, { $pull: { employees: employeeId } });
+    // await Branches.updateOne({ employees: employeeId }, { $pull: { employees: employeeId } });
     Employees.deleteOne({_id:employeeId}).exec()
     .then(()=>{ 
         res.status(200).json({
