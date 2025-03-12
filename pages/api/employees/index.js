@@ -8,10 +8,20 @@ export default async function handler(req, res) {
   await connectDB();
   
   if (req.method === "GET") {
-    
+    const searchQuery = req.query.search || "";
     try {
       let result = await Employees.aggregate([
-        { $project: { _id: 1, image: 1, employeeName: {$concat: ["$firstname", " ", "$lastname"] }, firstname: 1, lastname: 1, 
+        { $addFields: { employeeName: { $concat: ["$firstname", " ", "$lastname"] } } },
+        {
+          $match: {
+            $or: [
+              { employeeName: { $regex: searchQuery, $options: "i" } },
+              { email: { $regex: searchQuery, $options: "i" } },
+              { phonenumber: { $regex: searchQuery, $options: "i" } },
+            ]
+          }
+        },
+        { $project: { _id: 1, image: 1, employeeName: 1, firstname: 1, lastname: 1, 
           email: 1, password: 1, phonenumber: 1, gender: 1, servicesId: 1, 
           totalServices: {$size: "$servicesId"}, aboutself: 1, expert: 1, facebook: 1, instagram: 1, twitter: 1, 
           dribble: 1, isVisibleInCalendar: 1, isManager: 1, role: { $cond: { if: "$isManager", then: "Manager", else: "Staff" } }, 

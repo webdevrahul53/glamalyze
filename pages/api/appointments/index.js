@@ -17,7 +17,8 @@ export default async function handler(req, res) {
         { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$employee", preserveNullAndEmptyArrays: true }, },
         // { $unwind: { path: "$service", preserveNullAndEmptyArrays: true }, },
-        { $project: { _id: 1, datetime: 1, branch: 1, customer: 1, employee: 1, service: 1, totalAmount: 1, totalDuration: 1, paymentStatus: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+        { $project: { _id: 1, datetime: 1, branch: 1, customer: 1, employee: 1, service: 1, totalAmount: 1, totalDuration: 1, 
+          taskStatus: 1, paymentStatus: 1, status: 1, createdAt: 1, updatedAt: 1 } },
       ])
       res.status(200).json(result) 
     }catch(err) {
@@ -38,6 +39,7 @@ export default async function handler(req, res) {
       totalAmount:req.body.totalAmount,
       totalDuration:req.body.totalDuration,
       paymentStatus:req.body.paymentStatus,
+      taskStatus:req.body.taskStatus,
       status:req.body.status,
     })
     appointment.save().then(()=>{ 
@@ -54,6 +56,7 @@ export default async function handler(req, res) {
                 totalAmount:appointment.totalAmount,
                 totalDuration:appointment.totalDuration,
                 paymentStatus:appointment.paymentStatus,
+                taskStatus:appointment.taskStatus,
                 status:appointment.status,
             }
         })

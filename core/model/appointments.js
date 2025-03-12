@@ -12,7 +12,8 @@ const AppointmentsSchema = mongoose.Schema({
     totalAmount:{type:Number,required:true},
     totalDuration:{type:Number,required:true},
     paymentStatus:{type:String,required:true},
-    status:{type:String,required:true},
+    taskStatus:{type:String,required:true},
+    status:{type:Boolean,required:true},
 },{ timestamps: true })
 
 // AppointmentsSchema.index({ name: 1 }, { unique: true });

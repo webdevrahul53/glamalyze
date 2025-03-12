@@ -6,9 +6,17 @@ export default async function handler(req, res) {
   await connectDB();
   
   if (req.method === "GET") {
-    
+    const searchQuery = req.query.search || "";
     try {
       let result = await Branches.aggregate([
+        {
+          $match: {
+            $or: [
+              { branchname: { $regex: searchQuery, $options: "i" } },
+              { city: { $regex: searchQuery, $options: "i" } }
+            ]
+          }
+        },
         { $lookup: { from: "employees", localField: "managerId", foreignField: "_id", as: "manager", },  },
         { $lookup: { from: "groups", localField: "groups", foreignField: "_id", as: "groups", },  },
         { $lookup: { from: "employees", localField: "groups.employeesId", foreignField: "_id", as: "groupEmployees" } },
@@ -23,6 +31,30 @@ export default async function handler(req, res) {
       res.status(500).json(err) 
 
     }    
+  }
+  
+  if(req.method === "PUT"){
+    const serviceIds = req.body.serviceIds.map(id => new mongoose.Types.ObjectId(id)) || [];
+    try {
+      let result = await Branches.aggregate([
+        { $lookup: { from: "groups", localField: "groups", foreignField: "_id", as: "groups", },  },
+        { $lookup: { from: "employees", localField: "groups.employeesId", foreignField: "_id", as: "groupEmployees" } },
+        { $match: { "groupEmployees": { $elemMatch: { servicesId: { $all: serviceIds } } } } },
+        {
+          $addFields: {
+            groupEmployees: {
+              $filter: { input: "$groupEmployees", as: "employee", cond: { $setIsSubset: [serviceIds, "$$employee.servicesId"] } }
+            }
+          }
+        },
+        { $project: {  _id: 1, branchname: 1, image: 1, groupEmployees: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+      ])
+      res.status(200).json(result) 
+    }catch(err) {
+      console.log(err)
+      res.status(500).json(err) 
+
+    }  
   }
 
   if(req.method === "POST") {

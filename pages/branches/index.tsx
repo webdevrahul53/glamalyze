@@ -2,9 +2,10 @@
 import React from 'react'
 import DataGrid from "@/core/common/data-grid";
 import { PageTitle } from '@/core/common/page-title';
-import { Button, Input, Progress, useDisclosure } from '@heroui/react';
-import { DownloadIcon, PlusIcon, SearchIcon } from '@/core/utilities/svgIcons';
+import { Button, Progress, useDisclosure } from '@heroui/react';
+import { DownloadIcon, PlusIcon } from '@/core/utilities/svgIcons';
 import { AddEditBranch } from '@/core/drawer/add-edit-branch';
+import SearchComponent from '@/core/common/search';
 
 export const columns = [
   {name: "Branch NAME", uid: "branchname"},
@@ -30,10 +31,10 @@ export default function Branches() {
   }, [])
 
 
-  const getBranches = async () => {
+  const getBranches = async (searchQuery: string = "") => {
     try {
       setLoading(true)
-      const branches = await fetch("/api/branches");
+      const branches = await fetch("/api/branches?search="+searchQuery);
       const parsed = await branches.json();
       setBranches(parsed)
       setLoading(false)
@@ -67,7 +68,7 @@ export default function Branches() {
           <div className="flex items-center justify-between p-4">
             <Button size="md" color="secondary"> <DownloadIcon color="white" width="25" height="25" /> Export</Button>
             <div className="flex items-center gap-3">
-              <Input placeholder="Search ..." type="email" startContent={ <SearchIcon width="20" /> } />
+              <SearchComponent onSearch={getBranches} />
               <Button size="md" color="primary" onPress={() => handleOpen()}> <PlusIcon color="white" width="25" height="25" /> New</Button>
             </div>
           </div>

@@ -21,13 +21,13 @@ export const NewAssignment = (props:any) => {
 
     
     const customerId = useWatch({ control, name: "customerId" });
+    const branchId = useWatch({ control, name: "branchId" });
     const datetime = useWatch({ control, name: "datetime" });
     
 
     const currentDate = new Date();
 
     React.useEffect(() => {
-      getBranchList();
       getCustomerList();
       getServiceList()
     }, [])
@@ -37,11 +37,21 @@ export const NewAssignment = (props:any) => {
     React.useEffect(() => {
       setTotalAmount(serviceIds.reduce((total:any, item:any) => +total + (item?.defaultPrice || 0), 0))
       setTotalDuration(serviceIds.reduce((total:any, item:any) => +total + (item?.serviceDuration || 0), 0))
+      getBranchList();
     },[serviceIds])
+
+    React.useEffect(() => {
+      const branch:any = branchList.find((item:any) => item._id === branchId);
+      setEmployeeList(branch?.groupEmployees || [])
+    }, [branchId])
 
     const getBranchList = async () => {
       try {
-          const branches = await fetch("/api/branches")
+          const branches = await fetch("/api/branches", {
+            method: "PUT",
+            body: JSON.stringify({serviceIds: serviceIds?.map((e:any)=>e._id)}),
+            headers: { "Content-Type": "application/json" }
+          })
           const parsed = await branches.json();
           setBranchList(parsed);
         }catch(err:any) { setError(err) }
@@ -53,16 +63,6 @@ export const NewAssignment = (props:any) => {
           setCustomerList(parsed);
         }catch(err:any) { setError(err) }
     }
-    const getEmployeeList = async (id:string) => {
-      setValue("employeeId",null)
-      if(!id) return;
-      try {
-          const category = await fetch(`/api/branches/${id}`)
-          const parsed = await category.json();
-          setEmployeeList(parsed.employee);
-        }catch(err:any) { setError(err) }
-    }
-  
 
     const getServiceList = async () => {
       try {
@@ -85,7 +85,8 @@ export const NewAssignment = (props:any) => {
       data.datetime = data.datetime.toDate().toISOString();
       data.serviceIds = serviceIds.map((e:any) => e._id)
       data.paymentStatus = "Pending"
-      data.status = "Pending"
+      data.taskStatus = "Pending"
+      data.status = true;
       console.log(data);
       
 
@@ -150,17 +151,6 @@ export const NewAssignment = (props:any) => {
 
 
 
-                  
-                  <Controller name="branchId" control={control} rules={{required: true}}
-                    render={({ field }) => (
-                      <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname" onChange={(id:string) => getEmployeeList(id)}  />
-                    )}
-                    />
-                  {errors.branchId && <div className="text-danger text-sm -mt-2 ms-3">Branch is required</div>}
-
-
-
-
                   {customerId ? <AvatarCard {...customerList?.find((e:any) => e._id === watch("customerId")) || {}} onDelete={() => setValue("customerId", null)}  /> : 
                     <Controller name="customerId" control={control} rules={{required: true}}
                     render={({ field }) => (
@@ -176,13 +166,6 @@ export const NewAssignment = (props:any) => {
                     ))}
                   </div>
 
-                  <Controller name="employeeId" control={control} rules={{required: true}}
-                    render={({ field }) => (
-                      <AvatarSelect field={field} data={employeeList} label="Staff" keyName="firstname" />
-                    )}
-                  />
-                  {errors.employeeId && <div className="text-danger text-sm -mt-2 ms-3">Employee is required</div>}
-
                   
 
                 </DrawerBody>
@@ -191,7 +174,22 @@ export const NewAssignment = (props:any) => {
                     onSelectionChange={onServiceSelection} >
                     {(item:any) => <AutocompleteItem key={item._id}>{item.name}</AutocompleteItem>}
                   </Autocomplete>
-                  <Textarea {...register("note")} label="Note" placeholder="Enter Note" />
+                  {/* <Textarea {...register("note")} label="Note" placeholder="Enter Note" /> */}
+
+                  <Controller name="branchId" control={control} rules={{required: true}}
+                    render={({ field }) => (
+                      <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname"  />
+                    )}
+                    />
+                  {errors.branchId && <div className="text-danger text-sm -mt-2 ms-3">Branch is required</div>}
+
+                  <Controller name="employeeId" control={control} rules={{required: true}}
+                    render={({ field }) => (
+                      <AvatarSelect field={field} data={employeeList} label="Staff" keyName="firstname" />
+                    )}
+                  />
+                  {errors.employeeId && <div className="text-danger text-sm -mt-2 ms-3">Employee is required</div>}
+
                   <div className="flex items-center justify-between">
                     <h5 className="text-xl">Subtotal :</h5>
                     <h5 className="text-xl">Rs. {totalAmount}</h5>

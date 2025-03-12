@@ -5,6 +5,7 @@ import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, Draw
 import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
 import { useForm } from "react-hook-form";
 import { v4 } from "uuid";
+import { toast } from "react-toastify";
 
 export const AddEditCustomer = (props:any) => {
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
@@ -57,10 +58,10 @@ export const AddEditCustomer = (props:any) => {
                 reset(); 
                 setImagePreview(null);
                 props.onOpenChange();
-            }else setError(parsed.message)
+            }else toast.error(parsed.message)
           }catch(err:any) {
             setLoading(false)
-            setError(err)
+            toast.error(err.error.message)
           }
     }
 
