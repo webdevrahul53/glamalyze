@@ -58,7 +58,7 @@ export const AddEditSubCategory = (props:any) => {
   
     const saveSubCategory = async (data:any) => {
         try {
-            let url = data._id ? SUBCATEGORIES_API_URL+data._id : SUBCATEGORIES_API_URL
+            let url = data._id ? `${SUBCATEGORIES_API_URL}/${data._id}` : SUBCATEGORIES_API_URL
             const subcategory = await fetch(url, {
                 method: data._id ? "PATCH" : "POST",
                 body: JSON.stringify(data),

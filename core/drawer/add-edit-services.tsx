@@ -66,7 +66,7 @@ export const AddEditServices = (props:any) => {
   
     const saveServices = async (data:any) => {
         try {
-            let url = data._id ? SERVICES_API_URL+data._id : SERVICES_API_URL
+            let url = data._id ? `${SERVICES_API_URL}/${data._id}` : SERVICES_API_URL
             const services = await fetch(url, {
                 method: data._id ? "PATCH" : "POST",
                 body: JSON.stringify(data),

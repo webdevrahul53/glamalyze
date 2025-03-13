@@ -16,7 +16,7 @@ export default function Bookings(){
   
   const updateStatus = async (id:string, obj: any) => {
     try {
-      const appointment = await fetch(APPOINTMENTS_API_URL+id, {
+      const appointment = await fetch(`${APPOINTMENTS_API_URL}/${id}`, {
           method: "PATCH",
           body: JSON.stringify(obj),
           headers: { "Content-Type": "application/json" }

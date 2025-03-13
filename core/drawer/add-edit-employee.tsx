@@ -66,7 +66,7 @@ export const AddEditEmployee = (props:any) => {
 
     const saveemployees = async (data:any) => {
       try {
-        let url = data._id ? EMPLOYEES_API_URL+data._id : EMPLOYEES_API_URL
+        let url = data._id ? `${EMPLOYEES_API_URL}/${data._id}` : EMPLOYEES_API_URL
         const employees = await fetch(url, {
             method: data._id ? "PATCH" : "POST",
             body: JSON.stringify(data),

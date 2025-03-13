@@ -43,7 +43,7 @@ export const AddEditCategory = (props:any) => {
   
     const saveCategory = async (data:any) => {
         try {
-            let url = data._id ? CATEGORIES_API_URL+data._id : CATEGORIES_API_URL
+            let url = data._id ? `${CATEGORIES_API_URL}/${data._id}` : CATEGORIES_API_URL
             const category = await fetch(url, {
                 method: data._id ? "PATCH" : "POST",
                 body: JSON.stringify(data),

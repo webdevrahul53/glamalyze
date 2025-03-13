@@ -52,7 +52,7 @@ export const AddEditGroup = (props:any) => {
       data.employeesId = employeesId.map((e:any) => e._id)
       console.log(data);
       try {
-        let url = data._id ? GROUP_API_URL+data._id : GROUP_API_URL
+        let url = data._id ? `${GROUP_API_URL}/${data._id}` : GROUP_API_URL
         const group = await fetch(url, {
             method: data._id ? "PATCH" : "POST",
             body: JSON.stringify(data),
@@ -79,7 +79,7 @@ export const AddEditGroup = (props:any) => {
     const assignGroupToBranch = async (branchId:string, groupId:string) => {
       try {
         setLoading(true)
-        const branch = await fetch(`${BRANCH_API_URL}${branchId}?type=reset`, {
+        const branch = await fetch(`${BRANCH_API_URL}/${branchId}?type=reset`, {
           method: "PUT",
           body: JSON.stringify({groupId}),
           headers: { "Content-Type": "application/json" }

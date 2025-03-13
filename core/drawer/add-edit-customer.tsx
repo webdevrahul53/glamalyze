@@ -44,7 +44,7 @@ export const AddEditCustomer = (props:any) => {
   
     const saveCustomer = async (data:any) => {
         try {
-            let url = data._id ? CUSTOMERS_API_URL+data._id : CUSTOMERS_API_URL
+            let url = data._id ? `${CUSTOMERS_API_URL}/${data._id}` : CUSTOMERS_API_URL
             const customer = await fetch(url, {
                 method: data._id ? "PATCH" : "POST",
                 body: JSON.stringify(data),

@@ -77,7 +77,7 @@ export const AddEditBranch = (props:any) => {
   
     const savebranches = async (data:any) => {
         try {
-            let url = data._id ? BRANCH_API_URL+data._id : BRANCH_API_URL
+            let url = data._id ? `${BRANCH_API_URL}/${data._id}` : BRANCH_API_URL
             const branches = await fetch(url, {
                 method: data._id ? "PATCH" : "POST",
                 body: JSON.stringify(data),

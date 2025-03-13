@@ -67,7 +67,7 @@ export default function DataGrid(props:any) {
 
   const deleteUser = async (id:string) => {
     try {
-      await fetch(`${props.api}${id}`, {method: "DELETE"});
+      await fetch(`${props.api}/${id}`, {method: "DELETE"});
       fetchUsers()
     } catch (error) {
       console.log(error);
