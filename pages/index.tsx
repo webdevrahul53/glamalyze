@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import DataGrid from "@/core/common/data-grid";
+// import DataGrid from "@/core/common/data-grid";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const COLORS = ["#00C49F", "#FFBB28", "#FF8042", "#0088FE"];
@@ -84,7 +84,7 @@ export default function Home() {
         <PieChartComponent />
         </div>
       </section>
-      <DataGrid />
+      {/* <DataGrid /> */}
     </div>
   );
 }
