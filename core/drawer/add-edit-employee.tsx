@@ -6,6 +6,7 @@ import { EyeFilledIcon, EyeSlashFilledIcon, ImageIcon, SaveIcon } from "../utili
 import { Controller, useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelectMultiple from "../common/avatar-select-multiple";
+import { EMPLOYEES_API_URL, SERVICES_API_URL } from "../utilities/api-url";
 
 export const AddEditEmployee = (props:any) => {
     const { register, handleSubmit, watch, setValue, setError, formState: { errors }, control, reset } = useForm();
@@ -13,7 +14,6 @@ export const AddEditEmployee = (props:any) => {
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
     const [serviceList, setServiceList] = React.useState([]);
-    const [branchList, setBranchList] = React.useState([]);
     const [isVisible, setIsVisible] = React.useState(false);
   
     const toggleVisibility = () => setIsVisible(!isVisible);
@@ -24,13 +24,11 @@ export const AddEditEmployee = (props:any) => {
             reset(props.employees)
             setImagePreview(props.employees.image)
             getServiceList()
-            getBranchList()
         }
         else {
           reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: null, servicesId: null, 
             aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, isVisibleInCalendar: null, status: null})
           getServiceList();
-          getBranchList();
         }
     }, [props.employees])
 
@@ -60,23 +58,15 @@ export const AddEditEmployee = (props:any) => {
 
     const getServiceList = async () => {
       try {
-          const services = await fetch("/api/services")
+          const services = await fetch(SERVICES_API_URL)
           const parsed = await services.json();
           setServiceList(parsed);
         }catch(err:any) { setErrors(err) }
     }
 
-    const getBranchList = async () => {
-      try {
-          const branches = await fetch("/api/branches")
-          const parsed = await branches.json();
-          setBranchList(parsed);
-        }catch(err:any) { setErrors(err) }
-    }
-  
     const saveemployees = async (data:any) => {
       try {
-        let url = data._id ? "/api/employees/"+data._id : "/api/employees"
+        let url = data._id ? EMPLOYEES_API_URL+data._id : EMPLOYEES_API_URL
         const employees = await fetch(url, {
             method: data._id ? "PATCH" : "POST",
             body: JSON.stringify(data),

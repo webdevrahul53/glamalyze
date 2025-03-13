@@ -6,6 +6,7 @@ import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelect from "../common/avatar-select";
+import { CATEGORIES_API_URL, SERVICES_API_URL, SUBCATEGORIES_API_URL } from "../utilities/api-url";
 
 export const AddEditServices = (props:any) => {
     const { register, handleSubmit, formState: { errors }, control, reset } = useForm();
@@ -49,7 +50,7 @@ export const AddEditServices = (props:any) => {
 
     const getCategoryList = async () => {
       try {
-          const category = await fetch("/api/categories")
+          const category = await fetch(CATEGORIES_API_URL)
           const parsed = await category.json();
           setCategoryList(parsed);
         }catch(err:any) { setError(err) }
@@ -57,7 +58,7 @@ export const AddEditServices = (props:any) => {
     const getSubCategoryList = async (id:string) => {
       if(!id) return;
       try {
-          const category = await fetch(`/api/sub-categories?categoryId=${id}`)
+          const category = await fetch(`${SUBCATEGORIES_API_URL}?categoryId=${id}`)
           const parsed = await category.json();
           setSubCategoryList(parsed);
         }catch(err:any) { setError(err) }
@@ -65,7 +66,7 @@ export const AddEditServices = (props:any) => {
   
     const saveServices = async (data:any) => {
         try {
-            let url = data._id ? "/api/services/"+data._id : "/api/services"
+            let url = data._id ? SERVICES_API_URL+data._id : SERVICES_API_URL
             const services = await fetch(url, {
                 method: data._id ? "PATCH" : "POST",
                 body: JSON.stringify(data),

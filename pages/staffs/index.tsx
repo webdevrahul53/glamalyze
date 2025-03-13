@@ -2,59 +2,24 @@
 import React from 'react'
 import DataGrid from "@/core/common/data-grid";
 import { PageTitle } from '@/core/common/page-title';
-import { Button, Progress, useDisclosure } from '@heroui/react';
+import { Button, useDisclosure } from '@heroui/react';
 import { DownloadIcon, PlusIcon } from '@/core/utilities/svgIcons';
 import { AddEditEmployee } from '@/core/drawer/add-edit-employee';
 import SearchComponent from '@/core/common/search';
+import { EMPLOYEES_API_URL } from '@/core/utilities/api-url';
 
-export const columns = [
-  {name: "EMPLOYEE NAME", uid: "employeeName"},
-  {name: "TOTAL SERVICES", uid: "totalServices"},
-  {name: "Role", uid: "role"},
-  {name: "PHONE NUMBER", uid: "phonenumber"},
-  {name: "STATUS", uid: "status"},
-  {name: "ACTIONS", uid: "actions"},
-];
 
 
 export default function Staffs() {
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const handleOpen = () => { onOpen(); };
-  const [employees, setEmployees] = React.useState([])
   const [selectedEmployees, setSelectedEmployees] = React.useState(null)
-  const [isLoading, setLoading] = React.useState(false)
-
-  React.useEffect(() => {
-    getEmployees();
-  }, [])
-
-
-  const getEmployees = async (searchQuery: string = "") => {
-    try {
-      setLoading(true)
-      const employees = await fetch("/api/employees?search="+searchQuery);
-      const parsed = await employees.json();
-      setEmployees(parsed)
-      setLoading(false)
-    } catch (error) {
-      console.log(error);
-      setLoading(false)
-    }
-  }
-
-  const deleteEmployee = async (id:string) => {
-    try {
-      await fetch(`/api/employees/${id}`, {method: "DELETE"});
-      getEmployees()
-    } catch (error) {
-      console.log(error);
-      
-    }
-  }
+  const [search, setSearch] = React.useState("")
+  const [pageRefresh, setPageRefresh] = React.useState(false)
 
   const onDrawerClose = () => {
+    setPageRefresh((val) => !val)
     onOpenChange(); 
-    getEmployees();
     setSelectedEmployees(null)
   }
 
@@ -66,7 +31,7 @@ export default function Staffs() {
           <div className="flex items-center justify-between p-4">
             <Button size="md" color="secondary"> <DownloadIcon color="white" width="25" height="25" /> Export</Button>
             <div className="flex items-center gap-3">
-              <SearchComponent onSearch={getEmployees} />
+              <SearchComponent onSearch={setSearch} />
               <Button size="md" color="primary" onPress={() => handleOpen()}> <PlusIcon color="white" width="25" height="25" /> New</Button>
             </div>
           </div>
@@ -74,13 +39,19 @@ export default function Staffs() {
           <AddEditEmployee employees={selectedEmployees} 
           isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
 
-          {/* {employees.length && } */}
-          {isLoading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
-          <DataGrid columns={columns} data={employees} 
-          onEdit={(item:any)=> {setSelectedEmployees(item); handleOpen()}} 
-          onDelete={(id:string) => deleteEmployee(id)} />
+          <DataGrid columns={columns} api={EMPLOYEES_API_URL} search={search} pageRefresh={pageRefresh}
+          onEdit={(item:any)=> {setSelectedEmployees(item); handleOpen()}} />
           
         </div>
     </section>
   )
 }
+
+const columns = [
+  {name: "EMPLOYEE NAME", uid: "employeeName"},
+  {name: "TOTAL SERVICES", uid: "totalServices"},
+  {name: "Role", uid: "role"},
+  {name: "PHONE NUMBER", uid: "phonenumber"},
+  {name: "STATUS", uid: "status"},
+  {name: "ACTIONS", uid: "actions"},
+];

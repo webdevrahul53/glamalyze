@@ -8,9 +8,22 @@ export default async function handler(req, res) {
   await connectDB();
   
   if (req.method === "GET") {
-    const searchQuery = req.query.search || "";
     try {
-      let result = await Employees.aggregate([
+      const searchQuery = req.query.search || "";
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      if(!req.query.page || !req.query.limit) {
+        const result = await Employees.aggregate([
+          { $addFields: { employeeName: { $concat: ["$firstname", " ", "$lastname"] } } },
+          { $project: { _id: 1, employeeName: 1, firstname: 1, lastname: 1, email: 1, phonenumber: 1, image: 1, status: 1, createdAt: 1, updatedAt: 1 } }
+        ])
+        res.status(200).json(result)
+      }else {
+        // Fetch total count WITHOUT lookup for performance
+        const totalCountPromise = Employees.countDocuments();
+        const dataPromise = Employees.aggregate([
         { $addFields: { employeeName: { $concat: ["$firstname", " ", "$lastname"] } } },
         {
           $match: {
@@ -26,8 +39,19 @@ export default async function handler(req, res) {
           totalServices: {$size: "$servicesId"}, aboutself: 1, expert: 1, facebook: 1, instagram: 1, twitter: 1, 
           dribble: 1, isVisibleInCalendar: 1, isManager: 1, role: { $cond: { if: "$isManager", then: "Manager", else: "Staff" } }, 
           status: 1, createdAt: 1, updatedAt: 1 } },
-      ])
-      res.status(200).json(result) 
+          { $skip: skip },
+          { $limit: limit }
+        ])
+        // Execute both queries in parallel
+        const [totalCount, data] = await Promise.all([totalCountPromise, dataPromise]);
+  
+        res.status(200).json({
+          data,
+          currentPage: page,
+          totalPages: Math.ceil(totalCount / limit),
+          totalRecords: totalCount
+        }) 
+      } 
     }catch(err) {
       console.log(err)
       res.status(500).json(err) 

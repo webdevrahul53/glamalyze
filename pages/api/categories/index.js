@@ -7,10 +7,36 @@ export default async function handler(req, res) {
   
   if (req.method === "GET") {
     try {
-      let result = await Categories.aggregate([
-          { $project: { _id: 1, categoryname: 1, image: 1, status: 1, createdAt: 1, updatedAt: 1 } }
-      ])
-      res.status(200).json(result) 
+      const searchQuery = req.query.search || "";
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      if(!req.query.page || !req.query.limit) {
+        const result = await Categories.aggregate([
+          { $project: { _id: 1, categoryname: 1, image: 1 } }
+        ])
+        res.status(200).json(result)
+      }else {
+        // Fetch total count WITHOUT lookup for performance
+        const totalCountPromise = Categories.countDocuments();
+        const dataPromise = Categories.aggregate([
+          { $match: { $or: [ { categoryname: { $regex: searchQuery, $options: "i" } }, ]} },
+          { $project: { _id: 1, categoryname: 1, image: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+          { $skip: skip },
+          { $limit: limit }
+        ])
+        // Execute both queries in parallel
+        const [totalCount, data] = await Promise.all([totalCountPromise, dataPromise]);
+  
+        res.status(200).json({
+          data,
+          currentPage: page,
+          totalPages: Math.ceil(totalCount / limit),
+          totalRecords: totalCount
+        }) 
+      }
+
     }catch(err) {
       res.status(500).json(err) 
 

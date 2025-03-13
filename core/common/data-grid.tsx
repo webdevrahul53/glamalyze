@@ -1,83 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React from "react";
-import {
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-  User,
-  Tooltip,
-  Chip,
-  Button,
-  AvatarGroup,
-  Avatar,
-} from "@heroui/react";
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, User, Tooltip, Chip, Button, AvatarGroup, Avatar, 
+  Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Pagination, Progress } from "@heroui/react";
 import { DeleteIcon, EditIcon } from "../utilities/svgIcons";
 import { AvatarGroupType, AvatarType, AvatarType2, BoxButtonType, DateType, RoleType } from "../utilities/table-types";
-
-export const columns = [
-  {name: "NAME", uid: "name"},
-  {name: "ROLE", uid: "role"},
-  {name: "STATUS", uid: "status"},
-  {name: "ACTIONS", uid: "actions"},
-];
-
-export const users = [
-  {
-    id: 1,
-    name: "Tony Reichert",
-    role: "CEO",
-    team: "Management",
-    status: "active",
-    age: "29",
-    avatar: "https://i.pravatar.cc/150?u=a042581f4e29026024d",
-    email: "tony.reichert@example.com",
-  },
-  {
-    id: 2,
-    name: "Zoey Lang",
-    role: "Technical Lead",
-    team: "Development",
-    status: "paused",
-    age: "25",
-    avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
-    email: "zoey.lang@example.com",
-  },
-  {
-    id: 3,
-    name: "Jane Fisher",
-    role: "Senior Developer",
-    team: "Development",
-    status: "active",
-    age: "22",
-    avatar: "https://i.pravatar.cc/150?u=a04258114e29026702d",
-    email: "jane.fisher@example.com",
-  },
-  {
-    id: 4,
-    name: "William Howard",
-    role: "Community Manager",
-    team: "Marketing",
-    status: "vacation",
-    age: "28",
-    avatar: "https://i.pravatar.cc/150?u=a048581f4e29026701d",
-    email: "william.howard@example.com",
-  },
-  {
-    id: 5,
-    name: "Kristen Copper",
-    role: "Sales Manager",
-    team: "Sales",
-    status: "active",
-    age: "24",
-    avatar: "https://i.pravatar.cc/150?u=a092581d4ef9026700d",
-    email: "kristen.cooper@example.com",
-  },
-];
-
+import { toast } from "react-toastify";
 
 const statusColorMap:any = {
   Active: "success",
@@ -91,6 +19,14 @@ const roleCSS: any = {
   Staff: "bg-red-100 text-red-800"
 }
 
+const statusCSS: any = {
+  Pending: "bg-gray-200 text-gray-800 border-gray-500",
+  CheckIn: "bg-teal-200 text-teal-800 border-teal-500",
+  Checkout: "bg-purple-200 text-purple-800 border-purple-500",
+  Completed: "bg-green-200 text-green-800 border-green-500",
+  Cancelled: "bg-red-200 text-red-800 border-red-500",
+}
+
 
 const formatDateTime = (date:string) => {
   if (!date) return "";
@@ -100,6 +36,45 @@ const formatDateTime = (date:string) => {
 
 
 export default function DataGrid(props:any) {
+  
+  const [page, setPage] = React.useState(1);
+  const [users, setUsers] = React.useState([]);
+  const [totalPages, setTotalPages] = React.useState(1);
+  const [loading, setLoading] = React.useState(false);
+
+  const rowsPerPage = 5; // Change this according to API support
+
+  // Fetch data from API based on the page
+  React.useEffect(() => {
+    fetchUsers();
+  }, [page, props.search, props.pageRefresh]);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `${props.api}?search=${props.search}&page=${page}&limit=${rowsPerPage}`
+      );
+      const data = await response.json();
+
+      setUsers(data?.data); // Assuming API returns { users: [], totalPages: N }
+      setTotalPages(Math.ceil(data?.totalPages));
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+    setLoading(false);
+  };
+
+  const deleteUser = async (id:string) => {
+    try {
+      await fetch(`${props.api}${id}`, {method: "DELETE"});
+      fetchUsers()
+    } catch (error) {
+      console.log(error);
+      
+    }
+  }
+
   
   const renderCell = React.useCallback((user: any, columnKey: any) => {
     let cellValue = user[columnKey];
@@ -127,12 +102,41 @@ export default function DataGrid(props:any) {
         </User>
       );
     }else if(AvatarGroupType.includes(columnKey)){
-      console.log(cellValue)
       return <AvatarGroup isBordered max={3}>
         {cellValue?.map((item:any) => (
-          <Avatar src={item.image} size="sm" />
+          <Avatar key={item._id} src={item.image} size="sm" />
         ))}
       </AvatarGroup>
+    }else if(columnKey === "taskStatus"){
+      return <Dropdown >
+        <DropdownTrigger>
+          <div className={`${statusCSS[cellValue]} p-1 rounded text-center cursor-pointer`}>{cellValue}</div>
+        </DropdownTrigger>
+        <DropdownMenu aria-label="Static Actions" 
+          selectionMode="single"  // Ensure single selection
+          onSelectionChange={(keys) => {
+            const selectedKey = Array.from(keys)[0]; // Extract the selected value
+            props?.updateStatus(user._id, {taskStatus: selectedKey})
+          }}>
+          <DropdownItem key="Pending">Pending</DropdownItem>
+          <DropdownItem key="CheckIn">Check In</DropdownItem>
+          <DropdownItem key="Checkout">Check Out</DropdownItem>
+          <DropdownItem key="Completed">Completed</DropdownItem>
+          <DropdownItem key="Cancelled" className="text-danger" color="danger">
+            Cancelled
+          </DropdownItem>
+        </DropdownMenu>
+      </Dropdown>
+    }else if(columnKey === "paymentStatus"){
+      return <Dropdown>
+        <DropdownTrigger>
+          <Button size="sm" variant="bordered">{cellValue}</Button>
+        </DropdownTrigger>
+        <DropdownMenu aria-label="Static Actions">
+          <DropdownItem key="Pending">Pending</DropdownItem>
+          <DropdownItem key="Cash">Cash</DropdownItem>
+        </DropdownMenu>
+      </Dropdown>
     }else if(DateType.includes(columnKey)){
       const formattedDateTime = formatDateTime(cellValue);
       return formattedDateTime
@@ -166,11 +170,11 @@ export default function DataGrid(props:any) {
               <EditIcon width={30} height={20} color={"darkblue"} />
             </span>
           </Tooltip>}
-          {props.onDelete != undefined && <Tooltip color="danger" content="Delete user">
-            <span className="text-lg text-danger cursor-pointer active:opacity-50" onClick={() => props.onDelete(user._id)}>
+          <Tooltip color="danger" content="Delete user">
+            <span className="text-lg text-danger cursor-pointer active:opacity-50" onClick={() => deleteUser(user._id)}>
               <DeleteIcon width={30} height={20} color={"darkred"} />
             </span>
-          </Tooltip>}
+          </Tooltip>
           
         </div>
       );
@@ -181,22 +185,38 @@ export default function DataGrid(props:any) {
   }, []);
 
   return (
-    <Table isStriped selectionMode="multiple" aria-label="Example table with custom cells">
-      <TableHeader columns={props.columns || columns}>
-        {(column:any) => (
-          <TableColumn key={column.uid} align={column.uid === "actions" ? "center" : "start"}>
-            {column.name}
-          </TableColumn>
-        )}
-      </TableHeader>
-      <TableBody items={props.data || users}>
-        {(item:any) => (
-          <TableRow key={item._id}>
-            {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+    <>
+      {loading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
+      <Table isStriped selectionMode="multiple" aria-label="Example table with custom cells"
+        bottomContent={
+          <div className="flex w-full justify-center">
+            <Pagination
+              isCompact
+              showControls
+              showShadow
+              color="secondary"
+              page={page}
+              total={totalPages}
+              onChange={(newPage) => setPage(newPage)}
+            />
+          </div>
+        }>
+        <TableHeader columns={props.columns}>
+          {(column:any) => (
+            <TableColumn key={column.uid} align={column.uid === "actions" ? "center" : "start"}>
+              {column.name}
+            </TableColumn>
+          )}
+        </TableHeader>
+        <TableBody items={users}>
+          {(item:any) => (
+            <TableRow key={item._id}>
+              {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </>
   );
 }
 

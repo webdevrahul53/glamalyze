@@ -2,61 +2,24 @@
 import React from 'react'
 import DataGrid from "@/core/common/data-grid";
 import { PageTitle } from '@/core/common/page-title';
-import { Button, Progress, useDisclosure } from '@heroui/react';
+import { Button, useDisclosure } from '@heroui/react';
 import { DownloadIcon, PlusIcon } from '@/core/utilities/svgIcons';
 import { AddEditBranch } from '@/core/drawer/add-edit-branch';
 import SearchComponent from '@/core/common/search';
+import { BRANCH_API_URL } from '@/core/utilities/api-url';
 
-export const columns = [
-  {name: "Branch NAME", uid: "branchname"},
-  {name: "CONTACT NUMBER", uid: "contactnumber"},
-  {name: "MANAGER", uid: "manager:firstname"},
-  {name: "CITY", uid: "city"},
-  {name: "STAFFS", uid: "groupEmployees"},
-  {name: "POSTAL CODE", uid: "postalcode"},
-  {name: "STATUS", uid: "status"},
-  {name: "ACTIONS", uid: "actions"},
-];
 
 
 export default function Branches() {
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const handleOpen = () => { onOpen(); };
-  const [branches, setBranches] = React.useState([])
   const [selectedBranches, setSelectedBranches] = React.useState(null)
-  const [isLoading, setLoading] = React.useState(false)
-
-  React.useEffect(() => {
-    getBranches();
-  }, [])
-
-
-  const getBranches = async (searchQuery: string = "") => {
-    try {
-      setLoading(true)
-      const branches = await fetch("/api/branches?search="+searchQuery);
-      const parsed = await branches.json();
-      setBranches(parsed)
-      setLoading(false)
-    } catch (error) {
-      console.log(error);
-      setLoading(false)
-    }
-  }
-
-  const deleteBranch = async (id:string) => {
-    try {
-      await fetch(`/api/branches/${id}`, {method: "DELETE"});
-      getBranches()
-    } catch (error) {
-      console.log(error);
-      
-    }
-  }
+  const [search, setSearch] = React.useState("")
+  const [pageRefresh, setPageRefresh] = React.useState(false)
 
   const onDrawerClose = () => {
+    setPageRefresh((val) => !val)
     onOpenChange(); 
-    getBranches();
     setSelectedBranches(null)
   }
 
@@ -68,7 +31,7 @@ export default function Branches() {
           <div className="flex items-center justify-between p-4">
             <Button size="md" color="secondary"> <DownloadIcon color="white" width="25" height="25" /> Export</Button>
             <div className="flex items-center gap-3">
-              <SearchComponent onSearch={getBranches} />
+              <SearchComponent onSearch={setSearch} />
               <Button size="md" color="primary" onPress={() => handleOpen()}> <PlusIcon color="white" width="25" height="25" /> New</Button>
             </div>
           </div>
@@ -76,13 +39,21 @@ export default function Branches() {
           <AddEditBranch branches={selectedBranches} 
           isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
 
-          {/* {branches.length && } */}
-          {isLoading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
-          <DataGrid columns={columns} data={branches} 
-          onEdit={(item:any)=> {setSelectedBranches(item); handleOpen()}} 
-          onDelete={(id:string) => deleteBranch(id)} />
+          <DataGrid columns={columns} api={BRANCH_API_URL} search={search} pageRefresh={pageRefresh}
+          onEdit={(item:any)=> {setSelectedBranches(item); handleOpen()}}  />
           
         </div>
     </section>
   )
 }
+
+const columns = [
+  {name: "Branch NAME", uid: "branchname"},
+  {name: "CONTACT NUMBER", uid: "contactnumber"},
+  {name: "MANAGER", uid: "manager:firstname"},
+  {name: "CITY", uid: "city"},
+  {name: "STAFFS", uid: "groupEmployees"},
+  {name: "POSTAL CODE", uid: "postalcode"},
+  {name: "STATUS", uid: "status"},
+  {name: "ACTIONS", uid: "actions"},
+];

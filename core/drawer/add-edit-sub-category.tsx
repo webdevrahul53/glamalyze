@@ -6,6 +6,7 @@ import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelect from "../common/avatar-select";
+import { CATEGORIES_API_URL, SUBCATEGORIES_API_URL } from "../utilities/api-url";
 
 export const AddEditSubCategory = (props:any) => {
     const { register, handleSubmit, formState: { errors }, control, reset } = useForm();
@@ -48,7 +49,7 @@ export const AddEditSubCategory = (props:any) => {
 
     const getCategoryList = async () => {
       try {
-          const category = await fetch("/api/categories")
+          const category = await fetch(CATEGORIES_API_URL)
           const parsed = await category.json();
           setCategoryList(parsed);
         }catch(err:any) { setError(err) }
@@ -57,7 +58,7 @@ export const AddEditSubCategory = (props:any) => {
   
     const saveSubCategory = async (data:any) => {
         try {
-            let url = data._id ? "/api/sub-categories/"+data._id : "/api/sub-categories"
+            let url = data._id ? SUBCATEGORIES_API_URL+data._id : SUBCATEGORIES_API_URL
             const subcategory = await fetch(url, {
                 method: data._id ? "PATCH" : "POST",
                 body: JSON.stringify(data),

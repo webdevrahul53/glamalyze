@@ -1,9 +1,58 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import DataGrid from '@/core/common/data-grid'
 import { PageTitle } from '@/core/common/page-title'
-import { DownloadIcon, SearchIcon } from '@/core/utilities/svgIcons';
-import { Button, Input, Progress } from '@heroui/react';
+import SearchComponent from '@/core/common/search';
+import { APPOINTMENTS_API_URL } from '@/core/utilities/api-url';
+import { DownloadIcon } from '@/core/utilities/svgIcons';
+import { Button } from '@heroui/react';
 import React from 'react'
+import { toast } from 'react-toastify';
+
+
+
+export default function Bookings(){
+  const [search, setSearch] = React.useState("")
+  const [pageRefresh, setPageRefresh] = React.useState(false)
+  
+  const updateStatus = async (id:string, obj: any) => {
+    try {
+      const appointment = await fetch(APPOINTMENTS_API_URL+id, {
+          method: "PATCH",
+          body: JSON.stringify(obj),
+          headers: { "Content-Type": "application/json" }
+      })
+      const parsed = await appointment.json();
+      if(parsed.status){
+        setPageRefresh((val) => !val)
+      }else toast.error(parsed.message)
+    }catch(err:any) {
+      toast.error(err.error.message)
+    }
+  }
+  
+
+  return (
+    <section className="">
+        <PageTitle title="Bookings" showCalendarButton />
+
+        <div className="bg-white rounded" style={{margin: "-30px 40px"}}>
+          <div className="flex items-center justify-between p-4">
+            <Button size="md" color="secondary"> <DownloadIcon color="white" width="25" height="25" /> Export</Button>
+            <div className="flex items-center gap-3">
+              <SearchComponent onSearch={setSearch} />
+              {/* <Button size="md" color="primary" onPress={() => handleOpen()}> <PlusIcon color="white" width="25" height="25" /> New</Button> */}
+            </div>
+          </div>
+
+          <DataGrid columns={columns} api={APPOINTMENTS_API_URL} search={search} pageRefresh={pageRefresh} 
+          updateStatus={updateStatus} />
+          
+        </div>
+    </section>
+  )
+}
+
+
 
 export const columns = [
   {name: "DATE", uid: "datetime"},
@@ -17,65 +66,3 @@ export const columns = [
   // {name: "UPDATED AT", uid: "updatedAt"},
   {name: "ACTIONS", uid: "actions"},
 ];
-
-
-export default function Bookings(){
-  // const {isOpen, onOpen, onOpenChange} = useDisclosure();
-  // const handleOpen = () => { onOpen(); };
-  // const [selectedAppointment, setSelectedAppointment] = React.useState(null)
-  const [appointments, setAppointments] = React.useState([])
-  const [isLoading, setLoading] = React.useState(false)
-
-
-  React.useEffect(() => {
-    getAppointments();
-  }, [])
-
-
-  const getAppointments = async () => {
-    try {
-      setLoading(true)
-      const appointment = await fetch("/api/appointments");
-      const parsed = await appointment.json();
-      setAppointments(parsed)
-      setLoading(false)
-    } catch (error) {
-      console.log(error);
-      setLoading(false)
-      
-    }
-  }
-
-  const deleteAppointment = async (id:string) => {
-    try {
-      await fetch(`/api/appointments/${id}`, {method: "DELETE"});
-      getAppointments()
-    } catch (error) {
-      console.log(error);
-      
-    }
-  }
-  return (
-    <section className="">
-        <PageTitle title="Bookings" />
-
-        <div className="bg-white rounded" style={{margin: "-30px 40px"}}>
-          <div className="flex items-center justify-between p-4">
-            <Button size="md" color="secondary"> <DownloadIcon color="white" width="25" height="25" /> Export</Button>
-            <div className="flex items-center gap-3">
-              <Input placeholder="Search ..." type="email" startContent={ <SearchIcon width="20" /> } />
-              {/* <Button size="md" color="primary" onPress={() => handleOpen()}> <PlusIcon color="white" width="25" height="25" /> New</Button> */}
-            </div>
-          </div>
-
-
-          {/* {appointments.length && } */}
-          {isLoading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
-          <DataGrid columns={columns} data={appointments} 
-          // onEdit={(item:any)=> {setSelectedAppointment(item); handleOpen()}} 
-          onDelete={(id:string) => deleteAppointment(id)} />
-          
-        </div>
-    </section>
-  )
-}

@@ -8,26 +8,45 @@ export default async function handler(req, res) {
   if (req.method === "GET") {
     
     try {
-      let result = await Services.aggregate([
-        { $lookup: {
-            from: "categories", // Name of the Categories collection in MongoDB
-            localField: "categoryId", // Field in Services
-            foreignField: "_id", // Matching field in Categories
-            as: "category", // Output field
-          }, 
-        },
-        { $lookup: {
-            from: "subcategories", // Name of the Categories collection in MongoDB
-            localField: "subCategoryId", // Field in Services
-            foreignField: "_id", // Matching field in Categories
-            as: "subCategory", // Output field
-          }
-        },
-        { $unwind: { path: "$category", preserveNullAndEmptyArrays: true }, },
-        { $unwind: { path: "$subCategory", preserveNullAndEmptyArrays: true }, },
-        { $project: { _id: 1, categoryId: 1, subCategoryId: 1, categoryName: {$concat: ["$category.categoryname", " > ", "$subCategory.subcategoryname"]}, name: 1, defaultPrice: 1, serviceDuration: 1, image: 1, status: 1, createdAt: 1, updatedAt: 1 } },
-      ])
-      res.status(200).json(result) 
+      const searchQuery = req.query.search || "";
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      if(!req.query.page || !req.query.limit) {
+        const result = await Services.aggregate([
+          { $project: { _id: 1, image: 1, name: 1, defaultPrice: 1,  serviceDuration: 1} }
+        ])
+        res.status(200).json(result)
+      }else {
+        // Fetch total count WITHOUT lookup for performance
+        const totalCountPromise = Services.countDocuments();
+        const dataPromise = Services.aggregate([
+          { 
+            $match: { $or: [
+              { name: { $regex: searchQuery, $options: "i" } },
+            ]}
+          },
+          { $lookup: { from: "categories", localField: "categoryId", foreignField: "_id", as: "category", },  },
+          { $lookup: { from: "subcategories", localField: "subCategoryId", foreignField: "_id", as: "subCategory", } },
+          { $unwind: { path: "$category", preserveNullAndEmptyArrays: true }, },
+          { $unwind: { path: "$subCategory", preserveNullAndEmptyArrays: true }, },
+          { $project: { _id: 1, categoryId: 1, subCategoryId: 1, categoryName: {$concat: ["$category.categoryname", " > ", "$subCategory.subcategoryname"]}, name: 1, defaultPrice: 1, serviceDuration: 1, image: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+          
+          { $skip: skip },
+          { $limit: limit }
+        ])
+        // Execute both queries in parallel
+        const [totalCount, data] = await Promise.all([totalCountPromise, dataPromise]);
+  
+        res.status(200).json({
+          data,
+          currentPage: page,
+          totalPages: Math.ceil(totalCount / limit),
+          totalRecords: totalCount
+        }) 
+      }
+
     }catch(err) {
       console.log(err)
       res.status(500).json(err) 

@@ -2,6 +2,7 @@ import React from "react";
 import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardHeader, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Radio, RadioGroup, Select, SelectItem } from "@heroui/react";
 import { DeleteIcon, SaveIcon } from "../utilities/svgIcons";
 import { useForm } from "react-hook-form";
+import { BRANCH_API_URL, EMPLOYEES_API_URL, GROUP_API_URL } from "../utilities/api-url";
 
 export const AddEditGroup = (props:any) => {
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
@@ -25,7 +26,7 @@ export const AddEditGroup = (props:any) => {
 
     const getBranchList = async () => {
       try {
-          const branches = await fetch("/api/branches")
+          const branches = await fetch(BRANCH_API_URL)
           const parsed = await branches.json();
           setBranchList(parsed);
         }catch(err:any) { setError(err) }
@@ -33,7 +34,7 @@ export const AddEditGroup = (props:any) => {
     
     const getEmployeeList = async () => {
       try {
-          const employee = await fetch(`/api/employees`)
+          const employee = await fetch(EMPLOYEES_API_URL)
           const parsed = await employee.json();
           setEmployeeList(parsed);
         }catch(err:any) { setError(err) }
@@ -51,7 +52,7 @@ export const AddEditGroup = (props:any) => {
       data.employeesId = employeesId.map((e:any) => e._id)
       console.log(data);
       try {
-        let url = data._id ? "/api/groups/"+data._id : "/api/groups"
+        let url = data._id ? GROUP_API_URL+data._id : GROUP_API_URL
         const group = await fetch(url, {
             method: data._id ? "PATCH" : "POST",
             body: JSON.stringify(data),
@@ -78,7 +79,7 @@ export const AddEditGroup = (props:any) => {
     const assignGroupToBranch = async (branchId:string, groupId:string) => {
       try {
         setLoading(true)
-        const branch = await fetch(`/api/branches/${branchId}?type=reset`, {
+        const branch = await fetch(`${BRANCH_API_URL}${branchId}?type=reset`, {
           method: "PUT",
           body: JSON.stringify({groupId}),
           headers: { "Content-Type": "application/json" }

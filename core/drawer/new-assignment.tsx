@@ -4,6 +4,7 @@ import { DeleteIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {now, getLocalTimeZone} from "@internationalized/date";
+import { APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, SERVICES_API_URL } from "../utilities/api-url";
 
 export const NewAssignment = (props:any) => {
     const { register, handleSubmit, watch, formState: { errors }, control, setValue, reset } = useForm({
@@ -40,6 +41,10 @@ export const NewAssignment = (props:any) => {
       setTotalDuration(serviceIds.reduce((total:any, item:any) => +total + (item?.serviceDuration || 0), 0))
       getBranchList();
     },[serviceIds])
+    
+    React.useEffect(() => {
+      setValue("branchId", null)
+    },[serviceIds, datetime])
 
     React.useEffect(() => {
       setValue("employeeId", null)
@@ -51,13 +56,13 @@ export const NewAssignment = (props:any) => {
       let keys = arr?.filter((item:any)=> (item.totalDuration + totalDuration) > 480)?.map((e:any) => e._id);
       // console.log(keys);
       
-      setBusyEmployeeList(keys)
+      setBusyEmployeeList(() => keys)
       setEmployeeList(arr || [])
     }, [branchId, datetime])
 
     const getBranchList = async () => {
       try {
-          const branches = await fetch("/api/branches", {
+          const branches = await fetch(BRANCH_API_URL, {
             method: "PUT",
             body: JSON.stringify({serviceIds: serviceIds?.map((e:any)=>e._id)}),
             headers: { "Content-Type": "application/json" }
@@ -68,7 +73,7 @@ export const NewAssignment = (props:any) => {
     }
     const getCustomerList = async () => {
       try {
-          const customers = await fetch("/api/customers")
+          const customers = await fetch(CUSTOMERS_API_URL)
           const parsed = await customers.json();
           setCustomerList(parsed);
         }catch(err:any) { setError(err) }
@@ -76,7 +81,7 @@ export const NewAssignment = (props:any) => {
 
     const getServiceList = async () => {
       try {
-          const services = await fetch("/api/services")
+          const services = await fetch(SERVICES_API_URL)
           const parsed = await services.json();
           setServiceList(parsed);
         }catch(err:any) { setError(err) }
@@ -103,7 +108,7 @@ export const NewAssignment = (props:any) => {
       if(data.serviceIds.length === 0) return alert("Add Services")
         
       try {
-          const appointment = await fetch("/api/appointments", {
+          const appointment = await fetch(APPOINTMENTS_API_URL, {
               method: "POST",
               body: JSON.stringify(data),
               headers: { "Content-Type": "application/json" }
@@ -113,9 +118,10 @@ export const NewAssignment = (props:any) => {
           
           setLoading(false)
           if(parsed.status){
-              setError(null)
-              reset(); 
-              props.onOpenChange();
+            setError(null)
+            reset(); 
+            props.onOpenChange();
+            location.reload()
           }else setError(parsed.message)
         }catch(err:any) {
           setLoading(false)
@@ -193,11 +199,11 @@ export const NewAssignment = (props:any) => {
                     />
                   {errors.branchId && <div className="text-danger text-sm -mt-2 ms-3">Branch is required</div>}
 
-                  <Controller name="employeeId" control={control} rules={{required: true}}
+                  {branchId && <Controller name="employeeId" control={control} rules={{required: true}}
                     render={({ field }) => (
                       <AvatarSelect field={field} data={employeeList} label="Staff" keyName="firstname" showStatus={true} disabledKeys={busyEmployeeList} />
                     )}
-                  />
+                  />}
                   {errors.employeeId && <div className="text-danger text-sm -mt-2 ms-3">Employee is required</div>}
 
                   <div className="flex items-center justify-between">

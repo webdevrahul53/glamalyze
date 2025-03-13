@@ -1,11 +1,12 @@
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import React from "react";
 import { imageDb } from "../utilities/firebaseConfig";
-import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Radio, RadioGroup, Switch } from "@heroui/react";
+import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Radio, RadioGroup } from "@heroui/react";
 import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
 import { useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import { toast } from "react-toastify";
+import { CUSTOMERS_API_URL } from "../utilities/api-url";
 
 export const AddEditCustomer = (props:any) => {
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
@@ -43,7 +44,7 @@ export const AddEditCustomer = (props:any) => {
   
     const saveCustomer = async (data:any) => {
         try {
-            let url = data._id ? "/api/customers/"+data._id : "/api/customers"
+            let url = data._id ? CUSTOMERS_API_URL+data._id : CUSTOMERS_API_URL
             const customer = await fetch(url, {
                 method: data._id ? "PATCH" : "POST",
                 body: JSON.stringify(data),

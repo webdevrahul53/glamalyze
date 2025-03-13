@@ -5,6 +5,7 @@ import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, Draw
 import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
 import { useForm } from "react-hook-form";
 import { v4 } from "uuid";
+import { CATEGORIES_API_URL } from "../utilities/api-url";
 
 export const AddEditCategory = (props:any) => {
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
@@ -42,7 +43,7 @@ export const AddEditCategory = (props:any) => {
   
     const saveCategory = async (data:any) => {
         try {
-            let url = data._id ? "/api/categories/"+data._id : "/api/categories"
+            let url = data._id ? CATEGORIES_API_URL+data._id : CATEGORIES_API_URL
             const category = await fetch(url, {
                 method: data._id ? "PATCH" : "POST",
                 body: JSON.stringify(data),

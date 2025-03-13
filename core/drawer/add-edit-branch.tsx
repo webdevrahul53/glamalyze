@@ -7,9 +7,10 @@ import { Controller, useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelectMultiple from "../common/avatar-select-multiple";
 import AvatarSelect from "../common/avatar-select";
+import { BRANCH_API_URL, EMPLOYEES_API_URL, SERVICES_API_URL } from "../utilities/api-url";
 
 export const AddEditBranch = (props:any) => {
-    const { register, handleSubmit, watch, setValue, setError, formState: { errors }, control, reset } = useForm();
+    const { register, handleSubmit, setValue, setError, formState: { errors }, control, reset } = useForm();
     const [error, setErrors] = React.useState(null)
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
@@ -60,7 +61,7 @@ export const AddEditBranch = (props:any) => {
 
     const getServiceList = async () => {
       try {
-          const services = await fetch("/api/services")
+          const services = await fetch(SERVICES_API_URL)
           const parsed = await services.json();
           setServiceList(parsed);
         }catch(err:any) { setErrors(err) }
@@ -68,7 +69,7 @@ export const AddEditBranch = (props:any) => {
 
     const getEmployeeList = async () => {
       try {
-          const employees = await fetch("/api/employees")
+          const employees = await fetch(EMPLOYEES_API_URL)
           const parsed = await employees.json();
           setEmployeeList(parsed);
         }catch(err:any) { setErrors(err) }
@@ -76,7 +77,7 @@ export const AddEditBranch = (props:any) => {
   
     const savebranches = async (data:any) => {
         try {
-            let url = data._id ? "/api/branches/"+data._id : "/api/branches"
+            let url = data._id ? BRANCH_API_URL+data._id : BRANCH_API_URL
             const branches = await fetch(url, {
                 method: data._id ? "PATCH" : "POST",
                 body: JSON.stringify(data),

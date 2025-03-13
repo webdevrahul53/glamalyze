@@ -6,26 +6,48 @@ export default async function handler(req, res) {
   await connectDB();
   
   if (req.method === "GET") {
-    const searchQuery = req.query.search || "";
     try {
-      let result = await Branches.aggregate([
-        {
-          $match: {
-            $or: [
+      const searchQuery = req.query.search || "";
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      if(!req.query.page || !req.query.limit) {
+        const result = await Branches.aggregate([
+          { $project: { _id: 1, image: 1, branchname: 1} }
+        ])
+        res.status(200).json(result)
+      }else {
+        const totalCountPromise = Branches.countDocuments();
+        const dataPromise = Branches.aggregate([
+          { 
+            $match: { $or: [
               { branchname: { $regex: searchQuery, $options: "i" } },
               { city: { $regex: searchQuery, $options: "i" } }
-            ]
-          }
-        },
-        { $lookup: { from: "employees", localField: "managerId", foreignField: "_id", as: "manager", },  },
-        { $lookup: { from: "groups", localField: "groups", foreignField: "_id", as: "groups", },  },
-        { $lookup: { from: "employees", localField: "groups.employeesId", foreignField: "_id", as: "groupEmployees" } },
-        { $unwind: { path: "$manager", preserveNullAndEmptyArrays: true, }, },
-        { $project: { _id: 1, image: 1, branchname:1, gender: 1, manager: 1, groupEmployees: 1,
-          managerId: 1,servicesId: 1, contactnumber: 1, email: 1, address: 1, landmark: 1, country: 1, city: 1, state: 1, 
-          postalcode:1, latitude: 1, longitude: 1, paymentmethods: 1, description: 1, status: 1, createdAt: 1, updatedAt: 1 } },
-      ])
-      res.status(200).json(result) 
+            ]}
+          },
+          { $lookup: { from: "employees", localField: "managerId", foreignField: "_id", as: "manager", },  },
+          { $lookup: { from: "groups", localField: "groups", foreignField: "_id", as: "groups", },  },
+          { $lookup: { from: "employees", localField: "groups.employeesId", foreignField: "_id", as: "groupEmployees" } },
+          { $unwind: { path: "$manager", preserveNullAndEmptyArrays: true, }, },
+          { $project: { _id: 1, image: 1, branchname:1, gender: 1, manager: 1, groupEmployees: 1,
+            managerId: 1,servicesId: 1, contactnumber: 1, email: 1, address: 1, landmark: 1, country: 1, city: 1, state: 1, 
+            postalcode:1, latitude: 1, longitude: 1, paymentmethods: 1, description: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+            
+          { $skip: skip },
+          { $limit: limit }
+        ])
+        // Execute both queries in parallel
+        const [totalCount, data] = await Promise.all([totalCountPromise, dataPromise]);
+  
+        res.status(200).json({
+          data,
+          currentPage: page,
+          totalPages: Math.ceil(totalCount / limit),
+          totalRecords: totalCount
+        }) 
+      }
+
     }catch(err) {
       console.log(err)
       res.status(500).json(err) 
@@ -49,28 +71,13 @@ export default async function handler(req, res) {
           }
         },
         {
-          $addFields: {
-            groupEmployees: {
-              $map: {
-                input: "$groupEmployees",
-                as: "employee",
-                in: {
-                  $mergeObjects: [
-                    "$$employee",
-                    {
-                      appointments: {
-                        $filter: {
-                          input: "$appointments",
-                          as: "appointment",
-                          cond: { $eq: ["$$appointment.employeeId", "$$employee._id"] }
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
+          $addFields: { groupEmployees: { $map: {
+            input: "$groupEmployees",
+            as: "employee", in: { $mergeObjects: [ "$$employee", { appointments: { $filter: {
+                input: "$appointments", as: "appointment", cond: { $eq: ["$$appointment.employeeId", "$$employee._id"] }
+              }}}]
             }
-          }
+          }}}
         },
         { $project: {  _id: 1, branchname: 1, image: 1, groupEmployees: 1, status: 1, createdAt: 1, updatedAt: 1 } },
       ])

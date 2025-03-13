@@ -7,36 +7,44 @@ export default async function handler(req, res) {
   
   if (req.method === "GET") {
     
-    // SubCategories.find().select('categoryId subcategoryname image status createdAt updatedAt')
-    // .sort({created_at: -1}).populate('categoryId').exec().then(docs => {
-    //     res.status(200).json(docs)
-    // }).catch(err => {
-    //   console.log(err)
-    //     res.status(500).json(err)
-    // })
     try {
-      const { categoryId } = req.query; // Get categoryId from request query params
-      let matchStage = {}; // Default empty match stage
-      if (categoryId) matchStage = { categoryId: new mongoose.Types.ObjectId(categoryId) }
+      const searchQuery = req.query.search || "";
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+      
+      if(!req.query.page || !req.query.limit) {
+        const { categoryId } = req.query; // Get categoryId from request query params
+        let matchStage = {}; // Default empty match stage
+        if (categoryId) matchStage = { categoryId: new mongoose.Types.ObjectId(categoryId) }
+        const result = await SubCategories.aggregate([
+          { $match: matchStage },
+          { $project: { _id: 1, subcategoryname: 1, image: 1 } }
+        ])
+        res.status(200).json(result)
+      }else {
+        
+        const totalCountPromise = SubCategories.countDocuments();
+        const dataPromise = SubCategories.aggregate([
+          { $match: { $or: [{subcategoryname: { $regex: searchQuery, $options: "i" }}] }  },
+          { $lookup: { from: "categories", localField: "categoryId", foreignField: "_id", as: "category", },  },
+          { $unwind: { path: "$category", preserveNullAndEmptyArrays: true, }, },
+          { $project: { _id: 1, categoryId: 1, categoryName: "$category.categoryname", subcategoryname: 1, image: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+          
+          { $skip: skip },
+          { $limit: limit }
+        ])
+        // Execute both queries in parallel
+        const [totalCount, data] = await Promise.all([totalCountPromise, dataPromise]);
+  
+        res.status(200).json({
+          data,
+          currentPage: page,
+          totalPages: Math.ceil(totalCount / limit),
+          totalRecords: totalCount
+        }) 
+      }
 
-      let result = await SubCategories.aggregate([
-        { $match: matchStage },
-        { $lookup: {
-            from: "categories", // Name of the Categories collection in MongoDB
-            localField: "categoryId", // Field in SubCategories
-            foreignField: "_id", // Matching field in Categories
-            as: "category", // Output field
-          }, 
-        },
-        {
-          $unwind: {
-            path: "$category",
-            preserveNullAndEmptyArrays: true, // Keeps subcategories even if no matching category exists
-          },
-        },
-        { $project: { _id: 1, categoryId: 1, categoryName: "$category.categoryname", subcategoryname: 1, image: 1, status: 1, createdAt: 1, updatedAt: 1 } },
-      ])
-      res.status(200).json(result) 
     }catch(err) {
       console.log(err)
       res.status(500).json(err) 

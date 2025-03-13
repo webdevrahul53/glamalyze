@@ -8,7 +8,14 @@ export default async function handler(req, res) {
   if (req.method === "GET") {
     
     try {
-      let result = await Appointments.aggregate([
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      // Fetch total count WITHOUT lookup for performance
+      const totalCountPromise = Appointments.countDocuments();
+
+      const dataPromise = Appointments.aggregate([
         { $lookup: { from: "branches", localField: "branchId", foreignField: "_id", as: "branch", },  },
         { $lookup: { from: "customers", localField: "customerId", foreignField: "_id", as: "customer", },  },
         { $lookup: { from: "employees", localField: "employeeId", foreignField: "_id", as: "employee", },  },
@@ -19,8 +26,20 @@ export default async function handler(req, res) {
         // { $unwind: { path: "$service", preserveNullAndEmptyArrays: true }, },
         { $project: { _id: 1, datetime: 1, branch: 1, customer: 1, employee: 1, service: 1, totalAmount: 1, totalDuration: 1, 
           taskStatus: 1, paymentStatus: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+          
+        { $skip: skip },
+        { $limit: limit }
       ])
-      res.status(200).json(result) 
+      
+      // Execute both queries in parallel
+      const [totalCount, data] = await Promise.all([totalCountPromise, dataPromise]);
+
+      res.status(200).json({
+        data,
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
+        totalRecords: totalCount
+      }) 
     }catch(err) {
       console.log(err)
       res.status(500).json(err) 
