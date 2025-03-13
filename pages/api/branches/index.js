@@ -39,11 +39,36 @@ export default async function handler(req, res) {
       let result = await Branches.aggregate([
         { $lookup: { from: "groups", localField: "groups", foreignField: "_id", as: "groups", },  },
         { $lookup: { from: "employees", localField: "groups.employeesId", foreignField: "_id", as: "groupEmployees" } },
+        { $lookup: { from: "appointments", localField: "groupEmployees._id", foreignField: "employeeId", as: "appointments" } },
         { $match: { "groupEmployees": { $elemMatch: { servicesId: { $all: serviceIds } } } } },
         {
           $addFields: {
             groupEmployees: {
               $filter: { input: "$groupEmployees", as: "employee", cond: { $setIsSubset: [serviceIds, "$$employee.servicesId"] } }
+            }
+          }
+        },
+        {
+          $addFields: {
+            groupEmployees: {
+              $map: {
+                input: "$groupEmployees",
+                as: "employee",
+                in: {
+                  $mergeObjects: [
+                    "$$employee",
+                    {
+                      appointments: {
+                        $filter: {
+                          input: "$appointments",
+                          as: "appointment",
+                          cond: { $eq: ["$$appointment.employeeId", "$$employee._id"] }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
             }
           }
         },

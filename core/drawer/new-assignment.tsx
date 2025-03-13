@@ -13,6 +13,7 @@ export const NewAssignment = (props:any) => {
     const [loading, setLoading] = React.useState(false)
     const [branchList, setBranchList] = React.useState([]);
     const [employeeList, setEmployeeList] = React.useState([]);
+    const [busyEmployeeList, setBusyEmployeeList] = React.useState([]);
     const [customerList, setCustomerList] = React.useState([]);
     const [serviceList, setServiceList] = React.useState([]);
     const [serviceIds, setServiceIds] = React.useState<any>([])
@@ -41,9 +42,18 @@ export const NewAssignment = (props:any) => {
     },[serviceIds])
 
     React.useEffect(() => {
+      setValue("employeeId", null)
       const branch:any = branchList.find((item:any) => item._id === branchId);
-      setEmployeeList(branch?.groupEmployees || [])
-    }, [branchId])
+      const arr = branch?.groupEmployees?.map((item:any) => {
+        item.totalDuration = item.appointments.filter((item:any) => item.datetime.split("T")[0] === datetime.toDate().toISOString().split("T")[0]).reduce((total:number, current:any) => total + current.totalDuration, 0)
+        return item;
+      })
+      let keys = arr?.filter((item:any)=> (item.totalDuration + totalDuration) > 480)?.map((e:any) => e._id);
+      // console.log(keys);
+      
+      setBusyEmployeeList(keys)
+      setEmployeeList(arr || [])
+    }, [branchId, datetime])
 
     const getBranchList = async () => {
       try {
@@ -185,7 +195,7 @@ export const NewAssignment = (props:any) => {
 
                   <Controller name="employeeId" control={control} rules={{required: true}}
                     render={({ field }) => (
-                      <AvatarSelect field={field} data={employeeList} label="Staff" keyName="firstname" />
+                      <AvatarSelect field={field} data={employeeList} label="Staff" keyName="firstname" showStatus={true} disabledKeys={busyEmployeeList} />
                     )}
                   />
                   {errors.employeeId && <div className="text-danger text-sm -mt-2 ms-3">Employee is required</div>}
