@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import { CalendarIcon, PlusIcon } from '../utilities/svgIcons'
-import { useDisclosure } from '@heroui/react';
-import { NewAssignment } from '../drawer/new-assignment';
+import { CircularProgress, useDisclosure } from '@heroui/react';
+const NewAssignment = lazy(() => import("@/core/drawer/new-assignment"));
 
 export const PageTitle = ({title, showCalendarButton = false}: {title: string, showCalendarButton?: boolean}) => {
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
@@ -13,6 +13,11 @@ export const PageTitle = ({title, showCalendarButton = false}: {title: string, s
 
   return ( 
     <div className="flex bg-primary text-white" style={{padding: "40px", borderBottomLeftRadius: "8px", borderBottomRightRadius: "8px"}}>
+        {isOpen && (
+          <Suspense fallback={<CircularProgress color="primary" aria-label="Loading..." />}>
+            <NewAssignment isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
+          </Suspense>
+        )}
         <h1 className="text-4xl">{title}</h1>
         <div className="flex items-center ms-auto gap-3">
           <div className="flex items-center bg-secondary gap-2 p-3 px-6 rounded cursor-pointer" onClick={() => handleOpen()}>
@@ -25,7 +30,6 @@ export const PageTitle = ({title, showCalendarButton = false}: {title: string, s
           </div>}
         </div>
         
-        <NewAssignment isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
 
     </div>
   )

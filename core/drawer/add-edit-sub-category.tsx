@@ -1,14 +1,14 @@
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import React from "react";
 import { imageDb } from "../utilities/firebaseConfig";
-import { Avatar, Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Select, SelectItem, Switch } from "@heroui/react";
+import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input } from "@heroui/react";
 import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelect from "../common/avatar-select";
 import { CATEGORIES_API_URL, SUBCATEGORIES_API_URL } from "../utilities/api-url";
 
-export const AddEditSubCategory = (props:any) => {
+const AddEditSubCategory = (props:any) => {
     const { register, handleSubmit, formState: { errors }, control, reset } = useForm();
     const [error, setError] = React.useState(null)
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
@@ -148,3 +148,5 @@ export const AddEditSubCategory = (props:any) => {
       </Drawer>
     )
   }
+
+export default AddEditSubCategory

@@ -1,12 +1,12 @@
 import React from "react";
-import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Textarea } from "@heroui/react";
+import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader } from "@heroui/react";
 import { DeleteIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {now, getLocalTimeZone} from "@internationalized/date";
 import { APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, SERVICES_API_URL } from "../utilities/api-url";
 
-export const NewAssignment = (props:any) => {
+const NewAssignment = (props:any) => {
     const { register, handleSubmit, watch, formState: { errors }, control, setValue, reset } = useForm({
       defaultValues: {datetime: now(getLocalTimeZone()), branchId: null, customerId: null, employeeId: null, note: null}
     });
@@ -270,3 +270,6 @@ const ServiceCard = (props:any) => {
     </Card>
   );
 }
+
+
+export default NewAssignment

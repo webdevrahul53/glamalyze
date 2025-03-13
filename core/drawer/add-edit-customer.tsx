@@ -8,7 +8,7 @@ import { v4 } from "uuid";
 import { toast } from "react-toastify";
 import { CUSTOMERS_API_URL } from "../utilities/api-url";
 
-export const AddEditCustomer = (props:any) => {
+const AddEditCustomer = (props:any) => {
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
     const [error, setError] = React.useState(null)
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
@@ -139,3 +139,5 @@ export const AddEditCustomer = (props:any) => {
       </Drawer>
     )
   }
+
+export default AddEditCustomer

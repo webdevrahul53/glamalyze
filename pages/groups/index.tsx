@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+const AddEditGroup = lazy(() => import("@/core/drawer/add-edit-groups"));
 import DataGrid from '@/core/common/data-grid'
 import { PageTitle } from '@/core/common/page-title'
 import SearchComponent from '@/core/common/search'
-import { AddEditGroup } from '@/core/drawer/add-edit-groups'
+
 import { GROUP_API_URL } from '@/core/utilities/api-url'
 import { DownloadIcon, PlusIcon } from '@/core/utilities/svgIcons'
-import { Button, useDisclosure } from '@heroui/react'
-import React from 'react'
+import { Button, Progress, useDisclosure } from '@heroui/react'
+import React, { lazy, Suspense } from 'react'
 
 
 export default function Groups() {
@@ -35,7 +36,11 @@ export default function Groups() {
             </div>
           </div>
 
-          <AddEditGroup group={selectedGroup} isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
+          {isOpen && (
+          <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
+            <AddEditGroup group={selectedGroup} isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
+          </Suspense>
+          )}
 
           <DataGrid columns={columns} api={GROUP_API_URL} search={search} pageRefresh={pageRefresh}
           onEdit={(item:any)=> {setSelectedGroup(item); handleOpen()}} />

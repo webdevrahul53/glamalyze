@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import DataGrid from "@/core/common/data-grid";
 import { PageTitle } from '@/core/common/page-title';
-import { Button, useDisclosure } from '@heroui/react';
+import { Button, Progress, useDisclosure } from '@heroui/react';
 import { DownloadIcon, PlusIcon } from '@/core/utilities/svgIcons';
-import { AddEditBranch } from '@/core/drawer/add-edit-branch';
 import SearchComponent from '@/core/common/search';
 import { BRANCH_API_URL } from '@/core/utilities/api-url';
+const AddEditBranch = lazy(() => import("@/core/drawer/add-edit-branch"));
+
 
 
 
@@ -36,8 +37,11 @@ export default function Branches() {
             </div>
           </div>
 
-          <AddEditBranch branches={selectedBranches} 
-          isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
+          {isOpen && (
+          <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
+            <AddEditBranch branches={selectedBranches} isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
+          </Suspense>
+          )}
 
           <DataGrid columns={columns} api={BRANCH_API_URL} search={search} pageRefresh={pageRefresh}
           onEdit={(item:any)=> {setSelectedBranches(item); handleOpen()}}  />

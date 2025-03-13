@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+const AddEditCategory = lazy(() => import("@/core/drawer/add-edit-category"));
 import DataGrid from '@/core/common/data-grid'
 import { PageTitle } from '@/core/common/page-title'
 import SearchComponent from '@/core/common/search'
-import { AddEditCategory } from '@/core/drawer/add-edit-category'
 import { CATEGORIES_API_URL } from '@/core/utilities/api-url'
 import { DownloadIcon, PlusIcon } from '@/core/utilities/svgIcons'
-import { Button, useDisclosure } from '@heroui/react'
-import React from 'react'
+import { Button, Progress, useDisclosure } from '@heroui/react'
+import React, { lazy, Suspense } from 'react'
 
 export default function Categories() {
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
@@ -34,7 +34,12 @@ export default function Categories() {
             </div>
           </div>
 
-          <AddEditCategory category={selectedCategory} isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
+          {isOpen && (
+          <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
+            <AddEditCategory category={selectedCategory} isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
+          </Suspense>
+          )}
+
 
           <DataGrid columns={columns} api={CATEGORIES_API_URL} search={search} pageRefresh={pageRefresh}
           onEdit={(item:any)=> {setSelectedCategory(item); handleOpen()}} />

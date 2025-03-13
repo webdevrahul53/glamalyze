@@ -1,14 +1,14 @@
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import React from "react";
 import { imageDb } from "../utilities/firebaseConfig";
-import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Radio, RadioGroup, Select, SelectItem } from "@heroui/react";
+import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Radio, RadioGroup } from "@heroui/react";
 import { EyeFilledIcon, EyeSlashFilledIcon, ImageIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelectMultiple from "../common/avatar-select-multiple";
 import { EMPLOYEES_API_URL, SERVICES_API_URL } from "../utilities/api-url";
 
-export const AddEditEmployee = (props:any) => {
+const AddEditEmployee = (props:any) => {
     const { register, handleSubmit, watch, setValue, setError, formState: { errors }, control, reset } = useForm();
     const [error, setErrors] = React.useState(null)
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
@@ -237,3 +237,5 @@ export const AddEditEmployee = (props:any) => {
       </Drawer>
     )
   }
+
+export default AddEditEmployee

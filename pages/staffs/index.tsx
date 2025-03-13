@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react'
+const AddEditEmployee = lazy(() => import("@/core/drawer/add-edit-employee"));
+import React, { lazy, Suspense } from 'react'
 import DataGrid from "@/core/common/data-grid";
 import { PageTitle } from '@/core/common/page-title';
-import { Button, useDisclosure } from '@heroui/react';
+import { Button, Progress, useDisclosure } from '@heroui/react';
 import { DownloadIcon, PlusIcon } from '@/core/utilities/svgIcons';
-import { AddEditEmployee } from '@/core/drawer/add-edit-employee';
+
 import SearchComponent from '@/core/common/search';
 import { EMPLOYEES_API_URL } from '@/core/utilities/api-url';
 
@@ -36,8 +37,11 @@ export default function Staffs() {
             </div>
           </div>
 
-          <AddEditEmployee employees={selectedEmployees} 
-          isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
+          {isOpen && (
+          <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
+            <AddEditEmployee employees={selectedEmployees} isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
+          </Suspense>
+          )}
 
           <DataGrid columns={columns} api={EMPLOYEES_API_URL} search={search} pageRefresh={pageRefresh}
           onEdit={(item:any)=> {setSelectedEmployees(item); handleOpen()}} />
