@@ -1,20 +1,22 @@
 import React from "react";
-import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader } from "@heroui/react";
-import { DeleteIcon, SaveIcon } from "../utilities/svgIcons";
+import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Select, SelectItem } from "@heroui/react";
+import { DeleteIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
-import {now, getLocalTimeZone} from "@internationalized/date";
+import {parseDate} from "@internationalized/date";
 import { APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, SERVICES_API_URL } from "../utilities/api-url";
+import Link from "next/link";
 
 const NewAssignment = (props:any) => {
     const { register, handleSubmit, watch, formState: { errors }, control, setValue, reset } = useForm({
-      defaultValues: {datetime: now(getLocalTimeZone()), branchId: null, customerId: null, employeeId: null, note: null}
+      defaultValues: {appointmentDate: parseDate(new Date().toISOString().split("T")[0]), startTime: null, branchId: null, customerId: null, employeeId: null, note: null}
     });
     const [error, setError] = React.useState(null)
     const [loading, setLoading] = React.useState(false)
     const [branchList, setBranchList] = React.useState([]);
     const [employeeList, setEmployeeList] = React.useState([]);
     const [busyEmployeeList, setBusyEmployeeList] = React.useState([]);
+    const [busyTimeSlots, setBusyTimeSlots] = React.useState([]);
     const [customerList, setCustomerList] = React.useState([]);
     const [serviceList, setServiceList] = React.useState([]);
     const [serviceIds, setServiceIds] = React.useState<any>([])
@@ -24,7 +26,9 @@ const NewAssignment = (props:any) => {
     
     const customerId = useWatch({ control, name: "customerId" });
     const branchId = useWatch({ control, name: "branchId" });
-    const datetime = useWatch({ control, name: "datetime" });
+    const employeeId = useWatch({ control, name: "employeeId" });
+    const appointmentDate = useWatch({ control, name: "appointmentDate" });
+    const startTime = useWatch({ control, name: "startTime" });
     
 
     const currentDate = new Date();
@@ -35,30 +39,75 @@ const NewAssignment = (props:any) => {
     }, [])
 
 
-
     React.useEffect(() => {
+      setValue("branchId", null)
       setTotalAmount(serviceIds.reduce((total:any, item:any) => +total + (item?.defaultPrice || 0), 0))
       setTotalDuration(serviceIds.reduce((total:any, item:any) => +total + (item?.serviceDuration || 0), 0))
       getBranchList();
-    },[serviceIds])
+    },[serviceIds, appointmentDate])
     
-    React.useEffect(() => {
-      setValue("branchId", null)
-    },[serviceIds, datetime])
-
     React.useEffect(() => {
       setValue("employeeId", null)
       const branch:any = branchList.find((item:any) => item._id === branchId);
-      const arr = branch?.groupEmployees?.map((item:any) => {
-        item.totalDuration = item.appointments.filter((item:any) => item.datetime.split("T")[0] === datetime.toDate().toISOString().split("T")[0]).reduce((total:number, current:any) => total + current.totalDuration, 0)
-        return item;
-      })
-      let keys = arr?.filter((item:any)=> (item.totalDuration + totalDuration) > 480)?.map((e:any) => e._id);
-      // console.log(keys);
+      let allEmployees = getDisabledTimeSlots(branch?.groupEmployees, appointmentDate?.toString(), timeList)
+      let busyEmployees = allEmployees?.filter((item:any)=> (item.totalDuration + totalDuration) > 480)?.map((e:any) => e._id);
       
-      setBusyEmployeeList(() => keys)
-      setEmployeeList(arr || [])
-    }, [branchId, datetime])
+      setBusyEmployeeList(() => busyEmployees)
+      setEmployeeList(allEmployees || [])
+    }, [branchId, appointmentDate])
+    
+    React.useEffect(() => {
+      setValue("startTime", null)
+      let employee:any = employeeList?.find((item:any) => item._id === employeeId);
+      setBusyTimeSlots(employee?.disabledSlots?.map((item:any) => item.key))
+    },[employeeId])
+
+    
+    const getDisabledTimeSlots = (employees: any, date: string, timeList: {key: string, label: string}[]) => {
+      
+      employees?.forEach((employee:any) => {
+        const disabledSlots = new Set();
+        let totalDuration = 0;
+        if (employee.appointments) {
+          employee.appointments.filter((item:any) => item.appointmentDate.split("T")[0] === date).forEach((appointment:any) => {
+            totalDuration += appointment.totalDuration;
+            let currentTime = appointment.startTime;
+            let duration = appointment.totalDuration; // in minutes
+  
+            while (duration > 0) {
+              disabledSlots.add(currentTime);
+              currentTime = getNextTimeSlot(currentTime, 30); // Assuming 30-min slots
+              duration -= 30;
+            }
+          });
+        }
+        employee.disabledSlots = timeList.filter((time) => disabledSlots.has(time.key));
+        employee.totalDuration = totalDuration;
+      });
+    
+      return employees;
+    };
+    
+    // Helper function to get the next time slot
+    const getNextTimeSlot = (time:any, interval:number) => {
+      let [hour, minute, period] = time.match(/(\d+):(\d+) (\w+)/).slice(1);
+      hour = parseInt(hour);
+      minute = parseInt(minute) + interval;
+
+      if (minute >= 60) {
+        minute -= 60;
+        hour++;
+      }
+
+      if (hour === 12 && period === "AM") period = "PM";
+      else if (hour === 12 && period === "PM") period = "AM";
+      else if (hour > 12) {
+        hour -= 12;
+        period = period === "AM" ? "PM" : "AM";
+      }
+
+      return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")} ${period}`;
+    };
 
     const getBranchList = async () => {
       try {
@@ -97,13 +146,13 @@ const NewAssignment = (props:any) => {
 
     const onSubmit = async (data:any) => {
       data = {...data, totalAmount, totalDuration}
-      data.datetime = data.datetime.toDate().toISOString();
+      data.appointmentDate = data.appointmentDate?.toString();
       data.serviceIds = serviceIds.map((e:any) => e._id)
       data.paymentStatus = "Pending"
       data.taskStatus = "Pending"
       data.status = true;
       console.log(data);
-      
+
 
       if(data.serviceIds.length === 0) return alert("Add Services")
         
@@ -147,32 +196,34 @@ const NewAssignment = (props:any) => {
                 
                   <div className="flex ">
                     <div className="w-1/2 p-2 border border-3">
-                      <span>On</span> <i><strong> {datetime ? datetime.toDate().toDateString() : "MM DD YYYY"} </strong>  </i> 
+                      <span>On</span> <i><strong> {new Date(appointmentDate?.toString()).toDateString()} </strong>  </i> 
                     </div>
                     <div className="w-1/2 p-2 border border-3">
-                      <span>At</span> <i><strong> {datetime ? datetime.toDate().toLocaleTimeString() : "HH MM SS"} </strong>  </i> 
+                      <span>At</span> <i><strong> {startTime} </strong>  </i> 
                     </div>
                   </div>
 
-                  <Controller name="datetime" control={control}
-                    render={({ field }) => (
-                      <DatePicker
-                        {...field}
-                        hideTimeZone showMonthAndYearPickers label="Date & Time" variant="bordered"
-                        defaultValue={field.value}
-                        onChange={(date) => field.onChange(date)} // Ensure React Hook Form updates the state
-                      />
+
+                  {customerId ? <AvatarCard {...customerList?.find((e:any) => e._id === customerId) || {}} onDelete={() => setValue("customerId", null)}  /> : 
+                    <Autocomplete {...register("customerId", {required: true})} defaultItems={customerList} label="Customer" 
+                    labelPlacement="inside" placeholder="Select a customer" variant="bordered"
+                    onSelectionChange={(item:any)=> setValue("customerId",item)}
+                    endContent={<Link href={"/customers"}> <Button size="sm"><PlusIcon width={10} />ADD</Button> </Link>}>
+                    {(user:any) => (
+                      <AutocompleteItem key={user._id} textValue={user.name}>
+                        <div className="flex gap-2 items-center">
+                          <Avatar alt={user.name} className="flex-shrink-0" size="sm" src={user.image} />
+                          <div className="flex flex-col">
+                            <span className="text-small">{user.name}</span>
+                            <span className="text-tiny text-default-400">{user.email}</span>
+                          </div>
+                        </div>
+                      </AutocompleteItem>
                     )}
-                  />
-
-
-
-                  {customerId ? <AvatarCard {...customerList?.find((e:any) => e._id === watch("customerId")) || {}} onDelete={() => setValue("customerId", null)}  /> : 
-                    <Controller name="customerId" control={control} rules={{required: true}}
-                    render={({ field }) => (
-                      <AvatarSelect field={field} data={customerList} label="Customer" keyName="firstname" />
-                    )}
-                  />}
+                    
+                  </Autocomplete>}
+                  
+    
                   {errors.customerId && <div className="text-danger text-sm -mt-2 ms-3">Customer is required</div>}
 
 
@@ -186,17 +237,18 @@ const NewAssignment = (props:any) => {
 
                 </DrawerBody>
                 <DrawerFooter style={{justifyContent: "start", flexDirection: "column"}}>
-                  <Autocomplete defaultItems={serviceList} placeholder="Add Services"
+                  <Autocomplete defaultItems={serviceList} placeholder="Add Services" 
+                    disabledKeys={serviceIds?.map((e:any) => e._id)}
                     onSelectionChange={onServiceSelection} >
                     {(item:any) => <AutocompleteItem key={item._id}>{item.name}</AutocompleteItem>}
                   </Autocomplete>
                   {/* <Textarea {...register("note")} label="Note" placeholder="Enter Note" /> */}
 
-                  <Controller name="branchId" control={control} rules={{required: true}}
+                  {branchList.length ? <Controller name="branchId" control={control} rules={{required: true}}
                     render={({ field }) => (
                       <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname"  />
                     )}
-                    />
+                    /> : <></>}
                   {errors.branchId && <div className="text-danger text-sm -mt-2 ms-3">Branch is required</div>}
 
                   {branchId && <Controller name="employeeId" control={control} rules={{required: true}}
@@ -206,6 +258,27 @@ const NewAssignment = (props:any) => {
                   />}
                   {errors.employeeId && <div className="text-danger text-sm -mt-2 ms-3">Employee is required</div>}
 
+                  <div className="flex items-center gap-2">
+                    <Controller name="appointmentDate" control={control}
+                      render={({ field }) => (
+                        <DatePicker
+                          {...field}
+                          hideTimeZone showMonthAndYearPickers label="Date & Time" variant="bordered"
+                          defaultValue={field.value}
+                          onChange={(date) => field.onChange(date)} // Ensure React Hook Form updates the state
+                        />
+                      )}
+                    />
+                    {employeeId && <Select {...register("startTime", {required: true})} label="Select Time" 
+                      disabledKeys={busyTimeSlots}>
+                      {timeList.map((value) => (
+                        <SelectItem key={value.key}>{value.label}</SelectItem>
+                      ))}
+                    </Select>}
+                  </div>
+                  {errors.startTime && <div className="text-danger text-sm -mt-2 ms-3">Date & Time is not selected</div>}
+
+                  
                   <div className="flex items-center justify-between">
                     <h5 className="text-xl">Subtotal :</h5>
                     <h5 className="text-xl">Rs. {totalAmount}</h5>
@@ -273,3 +346,23 @@ const ServiceCard = (props:any) => {
 
 
 export default NewAssignment
+
+const timeList = [
+  {key: "10:00 AM", label: "10:00 AM"},
+  {key: "10:30 AM", label: "10:30 AM"},
+  {key: "11:00 AM", label: "11:00 AM"},
+  {key: "11:30 AM", label: "11:30 AM"},
+  {key: "12:00 PM", label: "12:00 PM"},
+  {key: "12:30 PM", label: "12:30 PM"},
+  {key: "01:00 PM", label: "01:00 PM"},
+  {key: "01:30 PM", label: "01:30 PM"},
+  {key: "02:00 PM", label: "02:00 PM"},
+  {key: "02:30 PM", label: "02:30 PM"},
+  {key: "03:00 PM", label: "03:00 PM"},
+  {key: "03:30 PM", label: "03:30 PM"},
+  {key: "04:00 PM", label: "04:00 PM"},
+  {key: "04:30 PM", label: "04:30 PM"},
+  {key: "05:00 PM", label: "05:00 PM"},
+  {key: "05:30 PM", label: "05:30 PM"},
+  {key: "06:00 PM", label: "06:00 PM"},
+];

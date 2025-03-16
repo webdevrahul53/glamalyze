@@ -1,5 +1,5 @@
-import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, DotIcon, ListIcon, UserIcon, PersonIcon, SettingIcon, UserGroupIcon } from "@/core/utilities/svgIcons";
-import Logo from "@/public/logo.png";
+import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, DotIcon, ListIcon, UserIcon, SettingIcon, UserGroupIcon } from "@/core/utilities/svgIcons";
+import Logo from "@/public/logo.svg";
 import Image from 'next/image'
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -42,7 +42,7 @@ export default function Layout(props:any) {
     <div style={{display: "grid", gridTemplateColumns: "1fr 5fr"}}>
       {/* Left Side */}
       <div>
-        <Image src={Logo} alt="Logo" width={150} height={100} className="mx-3 my-6 pb-3" />
+        <Image src={Logo} alt="Logo" height={100} className="p-3 my-11 bg-primary" style={{width: "100%"}} />
 
         <ListboxWrapper Icon={DashboardIcon} href={"/"} title="Dashboard"/>
         <ListboxWrapper Icon={CodeBranch} href={"/branches"} title="Branches" />

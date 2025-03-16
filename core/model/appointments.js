@@ -4,7 +4,8 @@ import mongoose from "mongoose";
 
 const AppointmentsSchema = mongoose.Schema({
     _id:mongoose.Schema.Types.ObjectId,
-    datetime:{type:Date,required:true},
+    appointmentDate:{type:Date,required:true},
+    startTime:{type:String,required:true},
     branchId:{type:mongoose.Schema.Types.ObjectId,required:true, ref: "Branches"},
     customerId:{type:mongoose.Schema.Types.ObjectId,required:true, ref: "Customers"},
     employeeId:{type:mongoose.Schema.Types.ObjectId,required:true, ref: "Employees"},

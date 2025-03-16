@@ -5,7 +5,9 @@ import { useForm } from "react-hook-form";
 import { BRANCH_API_URL, EMPLOYEES_API_URL, GROUP_API_URL } from "../utilities/api-url";
 
 const AddEditGroup = (props:any) => {
-    const { register, handleSubmit, formState: { errors }, reset } = useForm();
+    const { register, handleSubmit, control, formState: { errors }, reset } = useForm({
+      defaultValues: {groupname: null, branchId: null, status: false}
+    });
     const [error, setError] = React.useState(null)
     const [loading, setLoading] = React.useState(false)
     const [branchList, setBranchList] = React.useState([]);
@@ -66,7 +68,7 @@ const AddEditGroup = (props:any) => {
             setError(null)
             reset(); 
             props.onOpenChange();
-            assignGroupToBranch(data?.branchId, parsed?._id)
+            data?.branchId && assignGroupToBranch(data?.branchId, parsed?._id)
         }else setError(parsed.message)
       }catch(err:any) {
         setLoading(false)
@@ -113,14 +115,9 @@ const AddEditGroup = (props:any) => {
   
   
                     <Input {...register("groupname", {required: true})} label="Group Name" placeholder="Enter Group Name" type="text" variant="flat" />
-                    <Select {...register("branchId", {required: true})} label="Branch" placeholder="Select Branch">
-                      {branchList.map((branch:any) => (
-                        <SelectItem key={branch._id}>{branch.branchname}</SelectItem>
-                      ))}
-                    </Select>
                     
                     <Autocomplete defaultItems={employeeList} placeholder="Add Staffs"
-                      onSelectionChange={onServiceSelection} >
+                      onSelectionChange={onServiceSelection} disabledKeys={employeesId?.map((item:any) => item._id)} >
                       {(item:any) => <AutocompleteItem key={item._id}>{item.firstname} {item.lastname} </AutocompleteItem>}
                     </Autocomplete>
                     <div className="flex gap-2 flex-wrap">

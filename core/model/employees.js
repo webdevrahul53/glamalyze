@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 
 const EmployeesSchema = mongoose.Schema({
     _id:mongoose.Schema.Types.ObjectId,
-    image:{type:String,required:true},
+    image:{type:String},
     firstname:{type:String,required:true},
     lastname:{type:String,required:true},
     phonenumber:{type:String,required:true},

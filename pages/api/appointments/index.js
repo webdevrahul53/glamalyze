@@ -24,7 +24,7 @@ export default async function handler(req, res) {
         { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$employee", preserveNullAndEmptyArrays: true }, },
         // { $unwind: { path: "$service", preserveNullAndEmptyArrays: true }, },
-        { $project: { _id: 1, datetime: 1, branch: 1, customer: 1, employee: 1, service: 1, totalAmount: 1, totalDuration: 1, 
+        { $project: { _id: 1, appointmentDate: 1, startTime: 1, branch: 1, customer: 1, employee: 1, service: 1, totalAmount: 1, totalDuration: 1, 
           taskStatus: 1, paymentStatus: 1, status: 1, createdAt: 1, updatedAt: 1 } },
           
         { $skip: skip },
@@ -50,7 +50,8 @@ export default async function handler(req, res) {
   if(req.method === "POST") {
     const appointment = new Appointments({
       _id:new mongoose.Types.ObjectId(),
-      datetime:req.body.datetime,
+      appointmentDate:req.body.appointmentDate,
+      startTime:req.body.startTime,
       branchId:req.body.branchId,
       customerId:req.body.customerId,
       employeeId:req.body.employeeId,
@@ -67,7 +68,8 @@ export default async function handler(req, res) {
             status: 1,
             appointment:{
                 _id:appointment._id, 
-                datetime:appointment.datetime,
+                appointmentDate:appointment.appointmentDate,
+                startTime:appointment.startTime,
                 branchId:appointment.branchId,
                 customerId:appointment.customerId,
                 employeeId:appointment.employeeId,

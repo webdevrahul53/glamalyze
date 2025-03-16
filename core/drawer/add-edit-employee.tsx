@@ -7,10 +7,10 @@ import { Controller, useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelectMultiple from "../common/avatar-select-multiple";
 import { EMPLOYEES_API_URL, SERVICES_API_URL } from "../utilities/api-url";
+import { toast } from "react-toastify";
 
 const AddEditEmployee = (props:any) => {
     const { register, handleSubmit, watch, setValue, setError, formState: { errors }, control, reset } = useForm();
-    const [error, setErrors] = React.useState(null)
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
     const [serviceList, setServiceList] = React.useState([]);
@@ -37,14 +37,9 @@ const AddEditEmployee = (props:any) => {
       console.log(data);
       
       setLoading(true)
-      if(typeof data.image === "string") saveemployees(data);
+      let file = data?.image?.[0]
+      if(!file || typeof data.image === "string") saveemployees(data)
       else {
-        if(!data.image?.length) {
-          setError("image", {type:"required"})
-          setLoading(false)
-          return;
-        }
-        let file = data?.image[0]
         const imageRef = ref(imageDb, `spa-management-system/employees/${v4()}`)
         uploadBytes(imageRef, file).then(() => {
             getDownloadURL(imageRef).then( async (image) => {
@@ -52,7 +47,7 @@ const AddEditEmployee = (props:any) => {
             saveemployees(data)
             })
         })
-      } 
+      }
   
     }
 
@@ -61,10 +56,12 @@ const AddEditEmployee = (props:any) => {
           const services = await fetch(SERVICES_API_URL)
           const parsed = await services.json();
           setServiceList(parsed);
-        }catch(err:any) { setErrors(err) }
+        }catch(err:any) { toast.error(err) }
     }
 
     const saveemployees = async (data:any) => {
+      console.log(data);
+      
       try {
         let url = data._id ? `${EMPLOYEES_API_URL}/${data._id}` : EMPLOYEES_API_URL
         const employees = await fetch(url, {
@@ -77,15 +74,13 @@ const AddEditEmployee = (props:any) => {
         
         setLoading(false)
         if(parsed.status){
-            setErrors(null)
             reset(); 
             setImagePreview(null);
             props.onOpenChange();
-            
-        }else setErrors(parsed.message)
+        }else toast.error(parsed.message)
       }catch(err:any) {
         setLoading(false)
-        setErrors(err)
+        toast.error(err)
       }
     }
 
@@ -148,8 +143,7 @@ const AddEditEmployee = (props:any) => {
                           <Button type="button" color="primary"><label htmlFor="image" className="cursor-pointer">Upload</label></Button>
                           <Button type="button" color="danger" variant="bordered" onPress={() => {setValue("image", null); setImagePreview(null)}}>Remove</Button>
                         </div>
-                        <input id="image" {...register("image", {required: props.employees ? false : true})} type="file" onChange={handleImageChange} style={{width:"0", height:"0"}} />
-                        {errors.image && <div className="text-danger text-sm ms-3">Image is required</div>}
+                        <input id="image" {...register("image")} type="file" onChange={handleImageChange} style={{width:"0", height:"0"}} />
 
                       </div>
                       <div className="flex gap-3 my-2 mx-3">
@@ -191,30 +185,12 @@ const AddEditEmployee = (props:any) => {
                   
 
                   <div style={{display: "grid", gridTemplateColumns: "3fr 3fr", rowGap: 10, gap: 10}}>
-                    <div>
-                      <Input {...register("aboutself", {required: true})} label="About Self" placeholder="Enter About Self" type="text" variant="flat" />
-                      {errors.aboutself && <div className="text-danger text-sm ms-3">About Self is required</div>}
-                    </div>
-                    <div>
-                      <Input {...register("expert", {required: true})} label="Expert" placeholder="Enter Expert" type="text" variant="flat" />
-                      {errors.expert && <div className="text-danger text-sm ms-3">Expert is required</div>}
-                    </div>
-                    <div>
-                      <Input {...register("facebook", {required: true})} label="Facebook" placeholder="Enter Facebook" type="text" variant="flat" />
-                      {errors.facebook && <div className="text-danger text-sm ms-3">Facebook is required</div>}
-                    </div>
-                    <div>
-                      <Input {...register("instagram", {required: true})} label="Instagram" placeholder="Enter Instagram" type="text" variant="flat" />
-                      {errors.instagram && <div className="text-danger text-sm ms-3">Instagram is required</div>}
-                    </div>
-                    <div>
-                      <Input {...register("twitter", {required: true})} label="Twitter" placeholder="Enter Twitter" type="text" variant="flat" />
-                      {errors.twitter && <div className="text-danger text-sm ms-3">Twitter is required</div>}
-                    </div>
-                    <div>
-                      <Input {...register("dribble", {required: true})} label="Dribble" placeholder="Enter Dribble" type="text" variant="flat" />
-                      {errors.dribble && <div className="text-danger text-sm ms-3">Dribble is required</div>}
-                    </div>
+                    <Input {...register("aboutself")} label="About Self" placeholder="Enter About Self" type="text" variant="flat" />
+                    <Input {...register("expert")} label="Expert" placeholder="Enter Expert" type="text" variant="flat" />
+                    <Input {...register("facebook")} label="Facebook" placeholder="Enter Facebook" type="text" variant="flat" />
+                    <Input {...register("instagram")} label="Instagram" placeholder="Enter Instagram" type="text" variant="flat" />
+                    <Input {...register("twitter")} label="Twitter" placeholder="Enter Twitter" type="text" variant="flat" />
+                    <Input {...register("dribble")} label="Dribble" placeholder="Enter Dribble" type="text" variant="flat" />
                   </div>
                 
 

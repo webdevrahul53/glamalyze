@@ -5,7 +5,6 @@ import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, User, 
   Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Pagination, Progress } from "@heroui/react";
 import { DeleteIcon, EditIcon } from "../utilities/svgIcons";
 import { AvatarGroupType, AvatarType, AvatarType2, BoxButtonType, DateType, RoleType } from "../utilities/table-types";
-import { toast } from "react-toastify";
 
 const statusColorMap:any = {
   Active: "success",
@@ -188,6 +187,7 @@ export default function DataGrid(props:any) {
     <>
       {loading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
       <Table isStriped selectionMode="multiple" aria-label="Example table with custom cells"
+        onSelectionChange={(keys) => props?.onKeysSelection && props?.onKeysSelection(keys === "all" ? users.map((item:any) => item._id) : keys) }
         bottomContent={
           <div className="flex w-full justify-center">
             <Pagination

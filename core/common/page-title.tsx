@@ -1,9 +1,10 @@
 import React, { lazy, Suspense } from 'react'
-import { CalendarIcon, PlusIcon } from '../utilities/svgIcons'
+import { CalendarIcon, ListIcon, PlusIcon } from '../utilities/svgIcons'
 import { CircularProgress, useDisclosure } from '@heroui/react';
+import Link from 'next/link';
 const NewAssignment = lazy(() => import("@/core/drawer/new-assignment"));
 
-export const PageTitle = ({title, showCalendarButton = false}: {title: string, showCalendarButton?: boolean}) => {
+export const PageTitle = ({title, showCalendarButton = false, showDatatableButton = false}: {title: string, showCalendarButton?: boolean, showDatatableButton?: boolean}) => {
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const handleOpen = () => { onOpen(); };
 
@@ -12,7 +13,7 @@ export const PageTitle = ({title, showCalendarButton = false}: {title: string, s
   }
 
   return ( 
-    <div className="flex bg-primary text-white" style={{padding: "40px", borderBottomLeftRadius: "8px", borderBottomRightRadius: "8px"}}>
+    <div className="flex bg-primary text-white" style={{padding: "40px"}}>
         {isOpen && (
           <Suspense fallback={<CircularProgress color="primary" aria-label="Loading..." />}>
             <NewAssignment isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
@@ -24,10 +25,15 @@ export const PageTitle = ({title, showCalendarButton = false}: {title: string, s
               <PlusIcon  width={15} height={15} color="white" />
               <div>Assignment</div>
           </div>
-          {showCalendarButton && <div className="flex items-center border-gray-100 border-2 gap-2 p-3 px-6 rounded cursor-pointer">
+          {showCalendarButton && <Link href={"/bookings/calendar-view"} className="flex items-center border-gray-100 border-2 gap-2 p-3 px-6 rounded cursor-pointer">
               <CalendarIcon  width={15} height={15} color="white" />
               <div>Calendar View</div>
-          </div>}
+          </Link>}
+          
+          {showDatatableButton && <Link href={"/bookings"} className="flex items-center border-gray-100 border-2 gap-2 p-3 px-6 rounded cursor-pointer">
+              <ListIcon  width={15} height={15} color="white" />
+              <div>Datatable View</div>
+          </Link>}
         </div>
         
 
