@@ -3,8 +3,8 @@
 import React from "react";
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, User, Tooltip, Chip, Button, AvatarGroup, Avatar, 
   Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Pagination, Progress } from "@heroui/react";
-import { DeleteIcon, EditIcon } from "../utilities/svgIcons";
-import { AvatarGroupType, AvatarType, AvatarType2, BoxButtonType, DateType, RoleType } from "../utilities/table-types";
+import { BathIcon, BedIcon, ChairIcon, DeleteIcon, EditIcon, SofaIcon } from "../utilities/svgIcons";
+import { ArrayType, AvatarGroupType, AvatarType, AvatarType2, BoxButtonType, DateType, RoleType } from "../utilities/table-types";
 
 const statusColorMap:any = {
   Active: "success",
@@ -24,6 +24,13 @@ const statusCSS: any = {
   Checkout: "bg-purple-200 text-purple-800 border-purple-500",
   Completed: "bg-green-200 text-green-800 border-green-500",
   Cancelled: "bg-red-200 text-red-800 border-red-500",
+}
+
+const assetIcons: any = {
+  chair: <ChairIcon width={25} height={25} />,
+  sofa: <SofaIcon width={40} height={25} />,
+  bed: <BedIcon width={25} height={25} />,
+  bath: <BathIcon width={25} height={25} />,
 }
 
 
@@ -106,6 +113,16 @@ export default function DataGrid(props:any) {
           <Avatar key={item._id} src={item.image} size="sm" />
         ))}
       </AvatarGroup>
+    }else if(ArrayType.includes(columnKey)){
+      const value = columnKey.split(":");
+      console.log()
+      return <div className="flex items-center">
+        {user[value[0]].map((item:any, index: number, arr:any) => (<span key={index}> {(index === arr.length || index === 0) ? "":","} {item[value[1]]} </span>))}
+      </div>
+    }else if(columnKey === "assetType"){
+      return <div className="flex items-center justify-center">
+        {assetIcons[cellValue]}
+      </div>
     }else if(columnKey === "taskStatus"){
       return <Dropdown >
         <DropdownTrigger>

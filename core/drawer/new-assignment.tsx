@@ -1,16 +1,30 @@
 import React from "react";
-import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Select, SelectItem } from "@heroui/react";
+import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Select, SelectItem, Tab, Tabs, Textarea } from "@heroui/react";
 import { DeleteIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
 import { APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, SERVICES_API_URL } from "../utilities/api-url";
 import Link from "next/link";
+import { toast } from "react-toastify";
 
 const NewAssignment = (props:any) => {
     const { register, handleSubmit, watch, formState: { errors }, control, setValue, reset } = useForm({
-      defaultValues: {appointmentDate: parseDate(new Date().toISOString().split("T")[0]), startTime: null, branchId: null, customerId: null, employeeId: null, note: null}
+      defaultValues: {
+        appointmentDate: parseDate(new Date().toISOString().split("T")[0]), 
+        startTime: null, 
+        branchId: null, 
+        customerId: null, 
+        pax: [ [{serviceId: null, durationList: [], duration: null, price: null, employeeId: null}] ],
+        note: null
+      }
     });
+    const { fields: paxFields, append: addPax, remove: removePax } = useFieldArray({
+      control,
+      name: "pax",
+    });
+  
+
     const [error, setError] = React.useState(null)
     const [loading, setLoading] = React.useState(false)
     const [branchList, setBranchList] = React.useState([]);
@@ -22,32 +36,31 @@ const NewAssignment = (props:any) => {
     const [serviceIds, setServiceIds] = React.useState<any>([])
     const [totalAmount, setTotalAmount] = React.useState<any>(0)
     const [totalDuration, setTotalDuration] = React.useState<any>(0)
+    const [selectedTab, setSelectedTab] = React.useState<any>(0)
 
     
     const customerId = useWatch({ control, name: "customerId" });
     const branchId = useWatch({ control, name: "branchId" });
-    const employeeId = useWatch({ control, name: "employeeId" });
     const appointmentDate = useWatch({ control, name: "appointmentDate" });
     const startTime = useWatch({ control, name: "startTime" });
+    const pax = useWatch({ control, name: "pax" });
     
 
     const currentDate = new Date();
 
     React.useEffect(() => {
       getCustomerList();
-      getServiceList()
+      getBranchList();
     }, [])
 
 
     React.useEffect(() => {
-      setValue("branchId", null)
-      setTotalAmount(serviceIds.reduce((total:any, item:any) => +total + (item?.defaultPrice || 0), 0))
-      setTotalDuration(serviceIds.reduce((total:any, item:any) => +total + (item?.serviceDuration || 0), 0))
+      const totalSum = pax.flat().reduce((sum, item: any) => sum + (item?.price || 0), 0);
+      setTotalAmount(totalSum)
       getBranchList();
-    },[serviceIds, appointmentDate])
+    },[pax])
     
     React.useEffect(() => {
-      setValue("employeeId", null)
       const branch:any = branchList.find((item:any) => item._id === branchId);
       let allEmployees = getDisabledTimeSlots(branch?.groupEmployees, appointmentDate?.toString(), timeList)
       let busyEmployees = allEmployees?.filter((item:any)=> (item.totalDuration + totalDuration) > 480)?.map((e:any) => e._id);
@@ -55,12 +68,7 @@ const NewAssignment = (props:any) => {
       setBusyEmployeeList(() => busyEmployees)
       setEmployeeList(allEmployees || [])
     }, [branchId, appointmentDate])
-    
-    React.useEffect(() => {
-      setValue("startTime", null)
-      let employee:any = employeeList?.find((item:any) => item._id === employeeId);
-      setBusyTimeSlots(employee?.disabledSlots?.map((item:any) => item.key))
-    },[employeeId])
+  
 
     
     const getDisabledTimeSlots = (employees: any, date: string, timeList: {key: string, label: string}[]) => {
@@ -111,13 +119,18 @@ const NewAssignment = (props:any) => {
 
     const getBranchList = async () => {
       try {
-          const branches = await fetch(BRANCH_API_URL, {
-            method: "PUT",
-            body: JSON.stringify({serviceIds: serviceIds?.map((e:any)=>e._id)}),
-            headers: { "Content-Type": "application/json" }
-          })
+          const branches = await fetch(BRANCH_API_URL)
           const parsed = await branches.json();
           setBranchList(parsed);
+        }catch(err:any) { setError(err) }
+    }
+    
+    const getBranchById = async (id: string) => {
+      try {
+          const branches = await fetch(`${BRANCH_API_URL}/${id}`)
+          const parsed = await branches.json();
+          setServiceList(parsed?.employeeServices)
+          setEmployeeList(parsed?.groupEmployees)
         }catch(err:any) { setError(err) }
     }
     const getCustomerList = async () => {
@@ -128,33 +141,35 @@ const NewAssignment = (props:any) => {
         }catch(err:any) { setError(err) }
     }
 
-    const getServiceList = async () => {
-      try {
-          const services = await fetch(SERVICES_API_URL)
-          const parsed = await services.json();
-          setServiceList(parsed);
-        }catch(err:any) { setError(err) }
-    }
+    const onPaxChange = (value: number) => {
+      
+      const updatedPax = Array.from({ length: value }, () => [
+        { serviceId: null, durationList: [], duration: null,  price: null, employeeId: null },
+      ]);
+
+      setValue("pax", updatedPax);
+    };
   
     const onServiceSelection = (value: any) => {
-      const item:any = serviceList.find((service:any) => service._id === value);
-      if(!item) return;
-      let array = serviceIds;
-      const exists = array.some((obj:any) => obj["_id"] === item["_id"]);
-      setServiceIds(exists ? array.filter((obj:any) => obj["_id"] !== item["_id"]) : [...array, item]);
+      const filteredEmployee = employeeList?.filter((item: any) => item.servicesId.includes(value))
+      setEmployeeList(() => filteredEmployee)
     };
 
     const onSubmit = async (data:any) => {
-      data = {...data, totalAmount, totalDuration}
+      data = {...data, totalAmount}
       data.appointmentDate = data.appointmentDate?.toString();
-      data.serviceIds = serviceIds.map((e:any) => e._id)
       data.paymentStatus = "Pending"
       data.taskStatus = "Pending"
       data.status = true;
+      data.pax = data.pax?.map((item:any) => {
+        item = item?.map((nested: any) => {
+          const {serviceId, duration, price, employeeId} = nested
+          return {serviceId, duration: +duration, price, employeeId}
+        })
+        return item
+      })
       console.log(data);
-
-
-      if(data.serviceIds.length === 0) return alert("Add Services")
+      // return;
         
       try {
           const appointment = await fetch(APPOINTMENTS_API_URL, {
@@ -167,14 +182,14 @@ const NewAssignment = (props:any) => {
           
           setLoading(false)
           if(parsed.status){
-            setError(null)
+            toast.error(null)
             reset(); 
             props.onOpenChange();
             location.reload()
-          }else setError(parsed.message)
+          }else toast.error(parsed.message)
         }catch(err:any) {
           setLoading(false)
-          setError(err)
+          toast.error(err)
         }
     }
   
@@ -186,7 +201,7 @@ const NewAssignment = (props:any) => {
   
   
     return (
-      <Drawer isOpen={props.isOpen} placement={"right"} onOpenChange={props.onOpenChange}>
+      <Drawer isOpen={props.isOpen} size="lg" placement={"right"} onOpenChange={props.onOpenChange}>
         <form onSubmit={handleSubmit(onSubmit)} onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}>
           <DrawerContent>
             {(onClose) => (
@@ -202,6 +217,43 @@ const NewAssignment = (props:any) => {
                       <span>At</span> <i><strong> {startTime} </strong>  </i> 
                     </div>
                   </div>
+
+                  <div className="flex items-center gap-2">
+                    <Controller name="appointmentDate" control={control}
+                      render={({ field }) => (
+                        <DatePicker
+                          {...field}
+                          hideTimeZone showMonthAndYearPickers label="Date & Time" variant="bordered"
+                          defaultValue={field.value}
+                          onChange={(date) => field.onChange(date)} // Ensure React Hook Form updates the state
+                        />
+                      )}
+                    />
+                    <Select {...register("startTime", {required: true})} label="Select Time" 
+                      disabledKeys={busyTimeSlots}>
+                      {timeList.map((value) => (
+                        <SelectItem key={value.key}>{value.label}</SelectItem>
+                      ))}
+                    </Select>
+                    <Select className="w-2/5" label="Pax" onChange={(event:any) => onPaxChange(+event.target.value)}>
+                      <SelectItem key="1">1</SelectItem>
+                      <SelectItem key="2">2</SelectItem>
+                      <SelectItem key="3">3</SelectItem>
+                      <SelectItem key="4">4</SelectItem>
+                      <SelectItem key="5">5</SelectItem>
+                    </Select>
+                  </div>
+                  {errors.startTime && <div className="text-danger text-sm -mt-2 ms-3">Date & Time is not selected</div>}
+
+
+                  {branchList.length ? <Controller name="branchId" control={control} rules={{required: true}}
+                    render={({ field }) => (
+                      <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname" onChange={getBranchById} />
+                    )}
+                    /> : <></>}
+                  {errors.branchId && <div className="text-danger text-sm -mt-2 ms-3">Branch is required</div>}
+
+
 
 
                   {customerId ? <AvatarCard {...customerList?.find((e:any) => e._id === customerId) || {}} onDelete={() => setValue("customerId", null)}  /> : 
@@ -222,61 +274,43 @@ const NewAssignment = (props:any) => {
                     )}
                     
                   </Autocomplete>}
-                  
-    
                   {errors.customerId && <div className="text-danger text-sm -mt-2 ms-3">Customer is required</div>}
 
 
-                  <div className="flex gap-2 flex-wrap">
-                    {serviceIds?.map((item:any) => (
-                      <ServiceCard {...item} onDelete={() => onServiceSelection(item._id)} />
+                      
+                  {branchId && <section className="flex items-center px-2 mt-3 gap-3 border-b-5 border-primary">
+                    {paxFields.map((paxField, paxIndex) => (
+                      <Button key={paxField.id} size="sm" color={paxIndex === selectedTab ? "primary":"default"}
+                        variant="solid" onPress={() => setSelectedTab(paxIndex)} style={{borderRadius: "2px"}}
+                        >Person {paxIndex + 1}</Button>
                     ))}
-                  </div>
+                  </section>}
+
+                  {branchId && <div className="py-3">
+                      {paxFields.map((paxField, paxIndex) => (
+                        <div key={paxField.id} style={{
+                          visibility: paxIndex === selectedTab ? "visible" : "hidden",
+                          height: paxIndex === selectedTab ? "100%" : "0"
+                          }}>
+                          {/* <h1> Person {paxIndex + 1} </h1> */}
+                          <ServiceList control={control} paxIndex={paxIndex} register={register} watch={watch} setValue={setValue} serviceList={serviceList} employeeList={employeeList} onServiceSelection={onServiceSelection} />
+                        </div>
+                      ))}
+                      
+                  </div>}
+                  
 
                   
 
                 </DrawerBody>
                 <DrawerFooter style={{justifyContent: "start", flexDirection: "column"}}>
-                  <Autocomplete defaultItems={serviceList} placeholder="Add Services" 
+                  {/* <Autocomplete defaultItems={serviceList} placeholder="Add Services" 
                     disabledKeys={serviceIds?.map((e:any) => e._id)}
                     onSelectionChange={onServiceSelection} >
                     {(item:any) => <AutocompleteItem key={item._id}>{item.name}</AutocompleteItem>}
-                  </Autocomplete>
+                  </Autocomplete> */}
                   {/* <Textarea {...register("note")} label="Note" placeholder="Enter Note" /> */}
 
-                  {branchList.length ? <Controller name="branchId" control={control} rules={{required: true}}
-                    render={({ field }) => (
-                      <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname"  />
-                    )}
-                    /> : <></>}
-                  {errors.branchId && <div className="text-danger text-sm -mt-2 ms-3">Branch is required</div>}
-
-                  {branchId && <Controller name="employeeId" control={control} rules={{required: true}}
-                    render={({ field }) => (
-                      <AvatarSelect field={field} data={employeeList} label="Staff" keyName="firstname" showStatus={true} disabledKeys={busyEmployeeList} />
-                    )}
-                  />}
-                  {errors.employeeId && <div className="text-danger text-sm -mt-2 ms-3">Employee is required</div>}
-
-                  <div className="flex items-center gap-2">
-                    <Controller name="appointmentDate" control={control}
-                      render={({ field }) => (
-                        <DatePicker
-                          {...field}
-                          hideTimeZone showMonthAndYearPickers label="Date & Time" variant="bordered"
-                          defaultValue={field.value}
-                          onChange={(date) => field.onChange(date)} // Ensure React Hook Form updates the state
-                        />
-                      )}
-                    />
-                    {employeeId && <Select {...register("startTime", {required: true})} label="Select Time" 
-                      disabledKeys={busyTimeSlots}>
-                      {timeList.map((value) => (
-                        <SelectItem key={value.key}>{value.label}</SelectItem>
-                      ))}
-                    </Select>}
-                  </div>
-                  {errors.startTime && <div className="text-danger text-sm -mt-2 ms-3">Date & Time is not selected</div>}
 
                   
                   <div className="flex items-center justify-between">
@@ -296,6 +330,77 @@ const NewAssignment = (props:any) => {
       </Drawer>
     )
   }
+
+
+// Separate component to handle nested "serviceIds" array
+const ServiceList = ({ control, paxIndex, register, watch, setValue, serviceList, employeeList, onServiceSelection }: any) => {
+  const { fields: serviceFields, append: addService, remove: removeService } = useFieldArray({
+    control,
+    name: `pax.${paxIndex}`,
+  });
+  
+  return (
+    <div>
+
+      {serviceFields.map((serviceField, serviceIndex) => {
+        const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
+        const durationList = watch(`pax.${paxIndex}.${serviceIndex}.durationList`)
+        const duration = watch(`pax.${paxIndex}.${serviceIndex}.duration`)
+        const price = watch(`pax.${paxIndex}.${serviceIndex}.price`)
+        const employeeId = watch(`pax.${paxIndex}.${serviceIndex}.employeeId`)
+        return <div key={serviceField.id} className="flex flex-col gap-2">
+          {/* {serviceId + "===" + duration + "===" + price + "===" + employeeId}
+          {JSON.stringify(durationList)} */}
+          <div className="flex items-center gap-2">
+            <Controller name={`pax.${paxIndex}.${serviceIndex}.serviceId`} control={control} rules={{required: true}}
+              render={({ field }) => (
+                <AvatarSelect field={field} data={serviceList} label="Services" keyName="name" onChange={(id:string) => {
+                  const service = serviceList?.find((item: any) => item._id === id)
+                  
+                  setValue(`pax.${paxIndex}.${serviceIndex}.durationList`, service?.variants || [])
+                  setValue(`pax.${paxIndex}.${serviceIndex}.duration`, service?.variants[0].serviceDuration)
+                  onServiceSelection(id)
+                }} showStatus={true} />
+              )}
+            />
+            
+            <Select {...register(`pax.${paxIndex}.${serviceIndex}.duration`, {required: true})} className="w-3/5" label="Duration" 
+              onSelectionChange={(item: any) => {
+                const index: any = Array.from(item)[0]
+                const price:any = durationList?.find((e:any) => +e.serviceDuration === +index)?.defaultPrice
+                setValue(`pax.${paxIndex}.${serviceIndex}.price`, price)
+              }}>
+              {durationList?.map((item:any) => <SelectItem textValue={item.serviceDuration} key={item.serviceDuration}>{item.serviceDuration} min</SelectItem>)}
+            </Select>
+
+          </div>
+          
+          <div className="flex items-center gap-2">
+
+            <Controller name={`pax.${paxIndex}.${serviceIndex}.employeeId`} control={control} rules={{required: true}}
+              render={({ field }) => (
+                <AvatarSelect field={field} data={employeeList} label="Staff" keyName="firstname" showStatus={true} />
+              )}
+            />
+
+            <Input className="w-3/5" type="text" label={"Amount"} readOnly value={price} />
+          </div>
+          
+
+          {serviceFields.length > 1 && <button type="button" className="my-2" onClick={() => removeService(serviceIndex)}>❌ Remove Service</button>}
+        </div>
+        
+        
+      })}
+
+      <div className="text-center mt-2">
+        <button type="button" onClick={() => addService({ serviceId: null, duration: null, employeeId: null })}>
+          ➕ Add Service
+        </button>
+      </div>
+    </div>
+  );
+};
 
 
 const AvatarCard = (props:any) => {
@@ -324,25 +429,30 @@ const AvatarCard = (props:any) => {
 
 
 
-const ServiceCard = (props:any) => {
+// const ServiceCard = (props:any) => {
 
-  return (
-    <Card className="w-full flex-shrink-0 min-w-[250px]">
-      <CardHeader className="justify-between">
-        <div className="flex gap-3">
-          <Avatar isBordered radius="full" size="sm" src={props.image} />
-          <div className="flex flex-col gap-1 items-start justify-center">
-            <h4 className="text-small font-semibold leading-none text-default-600">{props.name}</h4>
-            <h5 className="text-small tracking-tight text-default-400"> <strong>Rs. {props.defaultPrice}</strong> <i> {props.serviceDuration} min</i> </h5>
-          </div>
-        </div>
-        <div className="cursor-pointer" onClick={props.onDelete}>
-            <DeleteIcon  width="15" color="darkred" />
-        </div> 
-      </CardHeader>
-    </Card>
-  );
-}
+//   return (
+//     <Card className="w-full flex-shrink-0 min-w-[250px]">
+//       <CardHeader className="justify-between">
+//         <div className="flex gap-3">
+//           <Avatar isBordered radius="full" size="sm" src={props.image} />
+//           <div className="flex flex-col gap-1 items-start justify-center">
+//             <h4 className="text-small font-semibold leading-none text-default-600">{props.name}</h4>
+//             <h5 className="text-small tracking-tight text-default-400"> 
+//               <strong>Rs. {props.variants[0].defaultPrice}</strong> 
+//               <select className="ms-2" name="duration">
+//                 {props?.variants?.map((item:any) => <option value={item.serviceDuration}> {item.serviceDuration} min </option>)}
+//               </select>
+//             </h5>
+//           </div>
+//         </div>
+//         <div className="cursor-pointer" onClick={props.onDelete}>
+//             <DeleteIcon  width="15" color="darkred" />
+//         </div> 
+//       </CardHeader>
+//     </Card>
+//   );
+// }
 
 
 export default NewAssignment

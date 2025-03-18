@@ -1,15 +1,19 @@
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import React from "react";
 import { imageDb } from "../utilities/firebaseConfig";
-import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Textarea } from "@heroui/react";
+import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Select, SelectItem, Textarea } from "@heroui/react";
 import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelect from "../common/avatar-select";
 import { CATEGORIES_API_URL, SERVICES_API_URL, SUBCATEGORIES_API_URL } from "../utilities/api-url";
 
 const AddEditServices = (props:any) => {
-    const { register, handleSubmit, formState: { errors }, control, reset } = useForm();
+    const { register, handleSubmit, formState: { errors }, control, reset } = useForm({
+      defaultValues: { image: null, categoryId: null, subCategoryId: null, name: null, assetType: null, variants: [{serviceDuration: null, defaultPrice: null}], description:null, status: false }
+    });
+    const { fields, append, remove } = useFieldArray({ control, name: "variants" });
+
     const [error, setError] = React.useState(null)
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
@@ -25,14 +29,13 @@ const AddEditServices = (props:any) => {
             getSubCategoryList(props.services.categoryId)
         }
         else {
-          reset({categoryId: null, subCategoryId: null, name:"", serviceDuration: null, defaultPrice: null, status: false, image: null})
+          reset({categoryId: null, subCategoryId: null, name: null, assetType: null, status: false, image: null, variants: [{serviceDuration: null, defaultPrice: null}]})
           getCategoryList();
         }
     }, [props.services])
 
     const onSubmit = async (data:any) => {
       console.log(data);
-      
       setLoading(true)
       if(typeof data.image === "string") saveServices(data);
       else {
@@ -104,7 +107,7 @@ const AddEditServices = (props:any) => {
   
   
     return (
-      <Drawer isOpen={props.isOpen} placement={"right"} onOpenChange={props.onOpenChange}>
+      <Drawer isOpen={props.isOpen} size="lg" placement={"right"} onOpenChange={props.onOpenChange}>
         <form onSubmit={handleSubmit(onSubmit)} onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}>
           <DrawerContent>
             {(onClose) => (
@@ -141,11 +144,23 @@ const AddEditServices = (props:any) => {
                     <Input {...register("name", {required: true})} label="Name" placeholder="Enter Name" type="text" variant="flat" />
                     {errors.name && <div className="text-danger text-sm -mt-2 ms-3">Name is required</div>}
 
+                    <Select {...register("assetType", {required: true})} label="Asset Type" placeholder="Select Asset Type">
+                      <SelectItem key={"chair"}>Chair</SelectItem>
+                      <SelectItem key={"bed"}>Bed</SelectItem>
+                      <SelectItem key={"sofa"}>Sofa</SelectItem>
+                      <SelectItem key={"bath"}>Bath</SelectItem>
+                    </Select>
 
-                    <Input {...register("serviceDuration", {required: true})} label="Service Duration (Mins)" placeholder="Enter Service Duration (Mins)" type="number" variant="flat" />
-                    {errors.serviceDuration && <div className="text-danger text-sm -mt-2 ms-3">Service Duration is required</div>}
-                    <Input {...register("defaultPrice", {required: true})} label="Default Price (Rs)" placeholder="Enter Default Price (Rs)" type="number" variant="flat" />
-                    {errors.defaultPrice && <div className="text-danger text-sm -mt-2 ms-3">Default Price is required</div>}
+
+                    {fields.map((field, index) => (
+                      <div key={field.id} className="flex items-center gap-2" >
+                        <Input {...register(`variants.${index}.serviceDuration`, {required: true})} label="Duration (Mins)" placeholder="Enter Duration" type="number" variant="flat" />
+                        <Input {...register(`variants.${index}.defaultPrice`, {required: true})} label="Price (Rs)" placeholder="Enter Price" type="number" variant="flat" />
+                        {fields.length > 1 && <button type="button" onClick={() => remove(index)}>❌</button>}
+                      </div>
+                    ))}
+                    
+                    <div className="text-center cursor-pointer my-2" onClick={() => append({ serviceDuration: null, defaultPrice: null })}>Add Variants ➕ </div>
                     
                     <Textarea {...register("description")} label="Description" placeholder="Enter description" />
 

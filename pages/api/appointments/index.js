@@ -18,14 +18,59 @@ export default async function handler(req, res) {
       const dataPromise = Appointments.aggregate([
         { $lookup: { from: "branches", localField: "branchId", foreignField: "_id", as: "branch", },  },
         { $lookup: { from: "customers", localField: "customerId", foreignField: "_id", as: "customer", },  },
-        { $lookup: { from: "employees", localField: "employeeId", foreignField: "_id", as: "employee", },  },
-        { $lookup: { from: "services", localField: "serviceIds", foreignField: "_id", as: "service", },  },
         { $unwind: { path: "$branch", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true }, },
-        { $unwind: { path: "$employee", preserveNullAndEmptyArrays: true }, },
-        // { $unwind: { path: "$service", preserveNullAndEmptyArrays: true }, },
-        { $project: { _id: 1, appointmentDate: 1, startTime: 1, branch: 1, customer: 1, employee: 1, service: 1, totalAmount: 1, totalDuration: 1, 
-          taskStatus: 1, paymentStatus: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+        { $unwind: "$pax" }, // Flatten the pax array (each array inside pax represents one person)
+        {
+          $addFields: {
+            totalDuration: { $sum: "$pax.duration" },
+            totalPrice: { $sum: "$pax.price" }
+          }
+        },
+        {
+          $addFields: {
+            parsedTime: {
+              $regexFind: { input: "$startTime", regex: "^(\\d{1,2}):(\\d{2}) (AM|PM)$" }
+            }
+          }
+        },
+        {
+          $addFields: {
+            hour: { $toInt: { $arrayElemAt: ["$parsedTime.captures", 0] } },
+            minute: { $toInt: { $arrayElemAt: ["$parsedTime.captures", 1] } },
+            period: { $arrayElemAt: ["$parsedTime.captures", 2] }
+          }
+        },
+        {
+          $addFields: {
+            adjustedHour: {
+              $switch: {
+                branches: [
+                  { case: { $and: [{ $eq: ["$period", "PM"] }, { $ne: ["$hour", 12] }] }, then: { $add: ["$hour", 12] } },
+                  { case: { $and: [{ $eq: ["$period", "AM"] }, { $eq: ["$hour", 12] }] }, then: 0 }
+                ],
+                default: "$hour"
+              }
+            }
+          }
+        },
+        {
+          $addFields: {
+            start: {
+              $dateFromParts: {
+                year: { $year: "$appointmentDate" },
+                month: { $month: "$appointmentDate" },
+                day: { $dayOfMonth: "$appointmentDate" },
+                hour: "$adjustedHour",
+                minute: "$minute"
+              }
+            }
+          }
+        },
+        { $lookup: { from: "employees", localField: "pax.employeeId", foreignField: "_id", as: "employeeId" } },
+        { $lookup: { from: "services", localField: "pax.serviceId", foreignField: "_id", as: "serviceId" } },
+        { $project: { _id: 1, appointmentDate: 1, startTime: 1, start: 1, branch: 1, customer: 1, pax: 1, totalDuration: 1, totalPrice: 1, 
+          totalAmount: 1, taskStatus: 1, paymentStatus: 1, employeeId: 1, serviceId: 1, status: 1, createdAt: 1, updatedAt: 1 } },
           
         { $skip: skip },
         { $limit: limit }
@@ -54,10 +99,8 @@ export default async function handler(req, res) {
       startTime:req.body.startTime,
       branchId:req.body.branchId,
       customerId:req.body.customerId,
-      employeeId:req.body.employeeId,
-      serviceIds:req.body.serviceIds,
+      pax:req.body.pax,
       totalAmount:req.body.totalAmount,
-      totalDuration:req.body.totalDuration,
       paymentStatus:req.body.paymentStatus,
       taskStatus:req.body.taskStatus,
       status:req.body.status,
@@ -72,10 +115,8 @@ export default async function handler(req, res) {
                 startTime:appointment.startTime,
                 branchId:appointment.branchId,
                 customerId:appointment.customerId,
-                employeeId:appointment.employeeId,
-                serviceIds:appointment.serviceIds,
                 totalAmount:appointment.totalAmount,
-                totalDuration:appointment.totalDuration,
+                pax:appointment.pax,
                 paymentStatus:appointment.paymentStatus,
                 taskStatus:appointment.taskStatus,
                 status:appointment.status,
@@ -101,3 +142,55 @@ export default async function handler(req, res) {
   // }
 
 }
+
+
+
+
+// {
+//   $addFields: {
+//     parsedTime: {
+//       $regexFind: { input: "$startTime", regex: "^(\\d{1,2}):(\\d{2}) (AM|PM)$" }
+//     }
+//   }
+// },
+// {
+//   $addFields: {
+//     hour: { $toInt: { $arrayElemAt: ["$parsedTime.captures", 0] } },
+//     minute: { $toInt: { $arrayElemAt: ["$parsedTime.captures", 1] } },
+//     period: { $arrayElemAt: ["$parsedTime.captures", 2] }
+//   }
+// },
+// {
+//   $addFields: {
+//     adjustedHour: {
+//       $switch: {
+//         branches: [
+//           { case: { $and: [{ $eq: ["$period", "PM"] }, { $ne: ["$hour", 12] }] }, then: { $add: ["$hour", 12] } },
+//           { case: { $and: [{ $eq: ["$period", "AM"] }, { $eq: ["$hour", 12] }] }, then: 0 }
+//         ],
+//         default: "$hour"
+//       }
+//     }
+//   }
+// },
+// {
+//   $addFields: {
+//     start: {
+//       $dateFromParts: {
+//         year: { $year: "$appointmentDate" },
+//         month: { $month: "$appointmentDate" },
+//         day: { $dayOfMonth: "$appointmentDate" },
+//         hour: "$adjustedHour",
+//         minute: "$minute"
+//       }
+//     }
+//   }
+// },
+// {
+//   $addFields: {
+//     // Calculate end time by adding totalDuration
+//     end: {
+//       $dateAdd: { startDate: "$start", unit: "minute", amount: "$totalDuration" }
+//     }
+//   }
+// },

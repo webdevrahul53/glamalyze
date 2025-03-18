@@ -26,3 +26,30 @@ body {
 .accordian h2 {
   padding: 0 10px;
 }
+
+
+/* Make all events the same width */
+.rbc-event {
+  width: var(--event-width) !important; /* Adjust based on max overlap */
+  min-width: 100px;
+  flex-grow: 1;
+}
+
+/* Add spacing between overlapping events */
+.rbc-event-content {
+  padding: 5px;
+}
+
+/* Ensure events align properly in a row */
+.rbc-row-segment {
+  display: flex !important;
+  justify-content: space-evenly;
+}
+
+/* Reduce margin/padding for better alignment */
+.rbc-event-label {
+  display: none; /* Hide the extra label space */
+}
+.hide-time .rbc-event-label {
+  display: none; /* Hides start & end times */
+}

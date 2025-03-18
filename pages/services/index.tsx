@@ -52,11 +52,12 @@ export default function Services() {
 
 const columns = [
   {name: "NAME", uid: "name"},
-  {name: "DURATION (Mins)", uid: "serviceDuration"},
-  {name: "PRICE (Rs)", uid: "defaultPrice"},
+  {name: "DURATION (Mins)", uid: "variants:serviceDuration"},
+  {name: "PRICE (Rs)", uid: "variants:defaultPrice"},
   {name: "CATEGORY", uid: "categoryName"},
-  {name: "CREATED AT", uid: "createdAt"},
-  {name: "UPDATED AT", uid: "updatedAt"},
+  {name: "TYPE", uid: "assetType"},
+  // {name: "CREATED AT", uid: "createdAt"},
+  // {name: "UPDATED AT", uid: "updatedAt"},
   {name: "STATUS", uid: "status"},
   {name: "ACTIONS", uid: "actions"},
 ];

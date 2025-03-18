@@ -13,25 +13,25 @@ export const PageTitle = ({title, showCalendarButton = false, showDatatableButto
   }
 
   return ( 
-    <div className="flex bg-primary text-white" style={{padding: "40px"}}>
+    <div className="flex bg-primary text-white" style={{padding: "46px"}}>
+        <h1 className="text-4xl">{title}</h1>
         {isOpen && (
           <Suspense fallback={<CircularProgress color="primary" aria-label="Loading..." />}>
             <NewAssignment isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
           </Suspense>
         )}
-        <h1 className="text-4xl">{title}</h1>
         <div className="flex items-center ms-auto gap-3">
           <div className="flex items-center bg-secondary gap-2 p-3 px-6 rounded cursor-pointer" onClick={() => handleOpen()}>
               <PlusIcon  width={15} height={15} color="white" />
               <div>Assignment</div>
           </div>
-          {showCalendarButton && <Link href={"/bookings/calendar-view"} className="flex items-center border-gray-100 border-2 gap-2 p-3 px-6 rounded cursor-pointer">
-              <CalendarIcon  width={15} height={15} color="white" />
+          {showCalendarButton && <Link href={"/bookings/calendar-view"} className="flex items-center bg-light text-black gap-2 p-3 px-6 rounded cursor-pointer">
+              <CalendarIcon  width={15} height={15} color="black" />
               <div>Calendar View</div>
           </Link>}
           
-          {showDatatableButton && <Link href={"/bookings"} className="flex items-center border-gray-100 border-2 gap-2 p-3 px-6 rounded cursor-pointer">
-              <ListIcon  width={15} height={15} color="white" />
+          {showDatatableButton && <Link href={"/bookings"} className="flex items-center bg-light text-black gap-2 p-3 px-6 rounded cursor-pointer">
+              <ListIcon  width={15} height={15} color="black" />
               <div>Datatable View</div>
           </Link>}
         </div>

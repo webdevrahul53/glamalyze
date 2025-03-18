@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
       if(!req.query.page || !req.query.limit) {
         const result = await Services.aggregate([
-          { $project: { _id: 1, image: 1, name: 1, defaultPrice: 1,  serviceDuration: 1} }
+          { $project: { _id: 1, image: 1, name: 1, variants: 1, assetType: 1} }
         ])
         res.status(200).json(result)
       }else {
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
           { $lookup: { from: "subcategories", localField: "subCategoryId", foreignField: "_id", as: "subCategory", } },
           { $unwind: { path: "$category", preserveNullAndEmptyArrays: true }, },
           { $unwind: { path: "$subCategory", preserveNullAndEmptyArrays: true }, },
-          { $project: { _id: 1, categoryId: 1, subCategoryId: 1, categoryName: {$concat: ["$category.categoryname", " > ", "$subCategory.subcategoryname"]}, name: 1, defaultPrice: 1, serviceDuration: 1, image: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+          { $project: { _id: 1, categoryId: 1, subCategoryId: 1, categoryName: {$concat: ["$category.categoryname", " > ", "$subCategory.subcategoryname"]}, name: 1, variants: 1, assetType: 1, image: 1, status: 1, createdAt: 1, updatedAt: 1 } },
           
           { $skip: skip },
           { $limit: limit }
@@ -59,8 +59,8 @@ export default async function handler(req, res) {
       _id:new mongoose.Types.ObjectId(),
       image:req.body.image,
       name:req.body.name,
-      serviceDuration:req.body.serviceDuration,
-      defaultPrice:req.body.defaultPrice,
+      assetType:req.body.assetType,
+      variants:req.body.variants,
       categoryId:req.body.categoryId,
       subCategoryId:req.body.subCategoryId,
       descripiton:req.body.descripiton,
@@ -74,8 +74,8 @@ export default async function handler(req, res) {
                 _id:service._id, 
                 image:service.image,
                 name:service.name,
-                serviceDuration:service.serviceDuration,
-                defaultPrice:service.defaultPrice,
+                assetType:service.assetType,
+                variants:service.variants,
                 categoryId:service.categoryId,
                 subCategoryId:service.subCategoryId,
                 descripiton:service.descripiton,

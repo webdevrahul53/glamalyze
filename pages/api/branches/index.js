@@ -55,39 +55,39 @@ export default async function handler(req, res) {
     }    
   }
   
-  if(req.method === "PUT"){
-    const serviceIds = req.body.serviceIds.map(id => new mongoose.Types.ObjectId(id)) || [];
-    try {
-      let result = await Branches.aggregate([
-        { $lookup: { from: "groups", localField: "groups", foreignField: "_id", as: "groups", },  },
-        { $lookup: { from: "employees", localField: "groups.employeesId", foreignField: "_id", as: "groupEmployees" } },
-        { $lookup: { from: "appointments", localField: "groupEmployees._id", foreignField: "employeeId", as: "appointments" } },
-        { $match: { "groupEmployees": { $elemMatch: { servicesId: { $all: serviceIds } } } } },
-        {
-          $addFields: {
-            groupEmployees: {
-              $filter: { input: "$groupEmployees", as: "employee", cond: { $setIsSubset: [serviceIds, "$$employee.servicesId"] } }
-            }
-          }
-        },
-        {
-          $addFields: { groupEmployees: { $map: {
-            input: "$groupEmployees",
-            as: "employee", in: { $mergeObjects: [ "$$employee", { appointments: { $filter: {
-                input: "$appointments", as: "appointment", cond: { $eq: ["$$appointment.employeeId", "$$employee._id"] }
-              }}}]
-            }
-          }}}
-        },
-        { $project: {  _id: 1, branchname: 1, image: 1, groupEmployees: 1, status: 1, createdAt: 1, updatedAt: 1 } },
-      ])
-      res.status(200).json(result) 
-    }catch(err) {
-      console.log(err)
-      res.status(500).json(err) 
+  // if(req.method === "PUT"){
+  //   const serviceIds = req.body.serviceIds.map(id => new mongoose.Types.ObjectId(id)) || [];
+  //   try {
+  //     let result = await Branches.aggregate([
+  //       { $lookup: { from: "groups", localField: "groups", foreignField: "_id", as: "groups", },  },
+  //       { $lookup: { from: "employees", localField: "groups.employeesId", foreignField: "_id", as: "groupEmployees" } },
+  //       { $lookup: { from: "appointments", localField: "groupEmployees._id", foreignField: "employeeId", as: "appointments" } },
+  //       { $match: { "groupEmployees": { $elemMatch: { servicesId: { $all: serviceIds } } } } },
+  //       {
+  //         $addFields: {
+  //           groupEmployees: {
+  //             $filter: { input: "$groupEmployees", as: "employee", cond: { $setIsSubset: [serviceIds, "$$employee.servicesId"] } }
+  //           }
+  //         }
+  //       },
+  //       {
+  //         $addFields: { groupEmployees: { $map: {
+  //           input: "$groupEmployees",
+  //           as: "employee", in: { $mergeObjects: [ "$$employee", { appointments: { $filter: {
+  //               input: "$appointments", as: "appointment", cond: { $eq: ["$$appointment.employeeId", "$$employee._id"] }
+  //             }}}]
+  //           }
+  //         }}}
+  //       },
+  //       { $project: {  _id: 1, branchname: 1, image: 1, groupEmployees: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+  //     ])
+  //     res.status(200).json(result) 
+  //   }catch(err) {
+  //     console.log(err)
+  //     res.status(500).json(err) 
 
-    }  
-  }
+  //   }  
+  // }
 
   if(req.method === "POST") {
     const branch = new Branches({

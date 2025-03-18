@@ -9,7 +9,7 @@ export default function AvatarSelect({field, data = [], label, keyName, onChange
     <Select
         {...field}
         items={data}
-        label={field.value ? "":label}
+        label={label}
         placeholder={"Select " + label}
         disabledKeys={disabledKeys}
         selectedKeys={field.value ? [field.value] : []}
@@ -17,10 +17,10 @@ export default function AvatarSelect({field, data = [], label, keyName, onChange
         renderValue={(items:any) =>
         items?.map((item:any) => (
             <div key={item.key} className="flex items-center gap-2">
-            <Avatar alt={item.data[keyName]} className="flex-shrink-0" size="sm" src={item.data.image} />
+            <Avatar alt={item.data[keyName]} className="flex-shrink-0" size="sm" src={item.data.image} style={{width: 22, height: 22}} />
             <div className="flex flex-col">
                 <span>{item.data[keyName]}</span>
-                {/* <span className="text-default-500 text-tiny">({item.data.createdAt})</span> */}
+                {/* {item.data.email && <span className="text-default-500 text-tiny">{item.data.email}</span>} */}
             </div>
             </div>
         ))

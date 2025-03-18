@@ -11,11 +11,13 @@ export default async function handler(req, res) {
     try {
       const result = await Branches.aggregate([
         { $match: { _id: new mongoose.Types.ObjectId(req.query["id"]) } },
-        { $lookup: { from: "employees", localField: "employees", foreignField: "_id", as: "employee", },  },
         { $lookup: { from: "employees", localField: "managerId", foreignField: "_id", as: "manager", },  },
-        { $unwind: { path: "$manager", preserveNullAndEmptyArrays: true }, },
-        { $project: { _id: 1, image: 1, branchname:1, gender: 1, employee: 1, manager: 1, employeesCount: {$size: "$employees"},
-          servicesId: 1, contactnumber: 1, email: 1, address: 1, landmark: 1, country: 1, city: 1, state: 1, 
+        { $lookup: { from: "groups", localField: "groups", foreignField: "_id", as: "groups", },  },
+        { $lookup: { from: "employees", localField: "groups.employeesId", foreignField: "_id", as: "groupEmployees" } },
+        { $lookup: { from: "services", localField: "groupEmployees.servicesId", foreignField: "_id", as: "employeeServices" } },
+        { $unwind: { path: "$manager", preserveNullAndEmptyArrays: true, }, },
+        { $project: { _id: 1, image: 1, branchname:1, gender: 1, manager: 1, groupEmployees: 1, employeeServices: 1,
+          managerId: 1,servicesId: 1, contactnumber: 1, email: 1, address: 1, landmark: 1, country: 1, city: 1, state: 1, 
           postalcode:1, latitude: 1, longitude: 1, paymentmethods: 1, description: 1, status: 1, createdAt: 1, updatedAt: 1 } },
       ])
       res.status(200).json(result[0] || null) 
