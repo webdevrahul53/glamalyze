@@ -57,25 +57,25 @@ export default function CalendarViewBookings(){
 
 
   
-  const generateTimeSlots = (startHour:number, endHour:number, seatsPerSlot:number) => {
-    const slots = [];
-    const currentTime = moment().set({ hour: startHour, minute: 0 });
+  // const generateTimeSlots = (startHour:number, endHour:number, seatsPerSlot:number) => {
+  //   const slots = [];
+  //   const currentTime = moment().set({ hour: startHour, minute: 0 });
 
-    while (currentTime.hour() < endHour) {
-      for (let i = 0; i < seatsPerSlot; i++) {
-        slots.push({
-          id: `${currentTime.format("HH:mm")}-${i + 1}`,
-          title: `Available Seat ${i + 1}`,
-          start: new Date(currentTime.toISOString()),
-          end: new Date(currentTime.clone().add(30, "minutes").toISOString()),
-          seatNumber: i + 1,
-          available: true,
-        });
-      }
-      currentTime.add(30, "minutes");
-    }
-    return slots;
-  };
+  //   while (currentTime.hour() < endHour) {
+  //     for (let i = 0; i < seatsPerSlot; i++) {
+  //       slots.push({
+  //         id: `${currentTime.format("HH:mm")}-${i + 1}`,
+  //         title: `Available Seat ${i + 1}`,
+  //         start: new Date(currentTime.toISOString()),
+  //         end: new Date(currentTime.clone().add(30, "minutes").toISOString()),
+  //         seatNumber: i + 1,
+  //         available: true,
+  //       });
+  //     }
+  //     currentTime.add(30, "minutes");
+  //   }
+  //   return slots;
+  // };
 
   const getAppointments = async () => {
     try {
