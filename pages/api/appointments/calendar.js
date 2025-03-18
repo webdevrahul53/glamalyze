@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import { connectDB } from "@/core/db";
 import { Appointments } from "../../../core/model/appointments";
 

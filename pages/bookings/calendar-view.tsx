@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react'
 import { PageTitle } from '@/core/common/page-title'
-import { Calendar, momentLocalizer, Event } from 'react-big-calendar';
+import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import { APPOINTMENTS_API_URL } from '@/core/utilities/api-url';
-import { CalendarIcon, ChairIcon } from '@/core/utilities/svgIcons';
+import { ChairIcon } from '@/core/utilities/svgIcons';
 
 // Localizer (Using Moment.js)
 const localizer = momentLocalizer(moment);
@@ -58,8 +58,8 @@ export default function CalendarViewBookings(){
 
   
   const generateTimeSlots = (startHour:number, endHour:number, seatsPerSlot:number) => {
-    let slots = [];
-    let currentTime = moment().set({ hour: startHour, minute: 0 });
+    const slots = [];
+    const currentTime = moment().set({ hour: startHour, minute: 0 });
 
     while (currentTime.hour() < endHour) {
       for (let i = 0; i < seatsPerSlot; i++) {
@@ -107,22 +107,22 @@ export default function CalendarViewBookings(){
   };
   
 
-  const mergeBookingsWithSlots = (bookedSlots:any) => {
-    let allSlots = generateTimeSlots(10, 18, 20);
-    console.log(bookedSlots)
-    // Mark booked slots
-    bookedSlots.forEach((booked:any) => {
-      allSlots = allSlots.map((slot) => {
-        console.log(slot.start.getHours(), "===", booked.start.getHours())
-        if (slot.start.getHours() === booked.start.getHours() && slot.start.getMinutes() === booked.start.getMinutes()) {
-          return { ...slot, booked: true, title: "Booked", ...booked };
-        }
-        return slot;
-      });
-    });
+  // const mergeBookingsWithSlots = (bookedSlots:any) => {
+  //   let allSlots = generateTimeSlots(10, 18, 20);
+  //   console.log(bookedSlots)
+  //   // Mark booked slots
+  //   bookedSlots.forEach((booked:any) => {
+  //     allSlots = allSlots.map((slot) => {
+  //       console.log(slot.start.getHours(), "===", booked.start.getHours())
+  //       if (slot.start.getHours() === booked.start.getHours() && slot.start.getMinutes() === booked.start.getMinutes()) {
+  //         return { ...slot, booked: true, title: "Booked", ...booked };
+  //       }
+  //       return slot;
+  //     });
+  //   });
 
-    return allSlots;
-  }
+  //   return allSlots;
+  // }
 
   return (
     <section className="">
@@ -148,7 +148,7 @@ export default function CalendarViewBookings(){
               onSelectEvent={(item: any) => console.log(item)}
               onSelectSlot={(item: any) => console.log(item)}
               components={{event: CustomEvent}}
-              eventPropGetter={(event) => {
+              eventPropGetter={() => {
                 document.documentElement.style.setProperty(
                   "--event-width",
                   `calc(100% / 20 - 5px)`
@@ -189,10 +189,10 @@ const CustomEvent = (event: any) => {
 }
 
 
-const statusColor: any = {
-  Pending: "gray",
-  CheckIn: "teal",
-  Checkout: "purple",
-  Completed: "green",
-  Cancelled: "darkred",
-}
+// const statusColor: any = {
+//   Pending: "gray",
+//   CheckIn: "teal",
+//   Checkout: "purple",
+//   Completed: "green",
+//   Cancelled: "darkred",
+// }
