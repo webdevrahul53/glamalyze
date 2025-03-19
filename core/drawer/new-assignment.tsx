@@ -57,7 +57,7 @@ const NewAssignment = (props:any) => {
     
     React.useEffect(() => {
       setValue("pax", [ [{serviceId: null, durationList: [], duration: null, price: null, busyEmployees: [], employeeList: [], employeeId: null}] ])
-    }, [startTime])
+    }, [startTime, branchId])
   
 
     
@@ -311,40 +311,25 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
   
 
   const onServiceSelection = (id: string, serviceIndex: number) => {
-    const service = serviceList?.find((item: any) => item._id === id)
-                  
-    setValue(`pax.${paxIndex}.${serviceIndex}.durationList`, service?.variants || [])
     setValue(`pax.${paxIndex}.${serviceIndex}.duration`, null)
+    setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)
     setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, [])
+    
+    const service = serviceList?.find((item: any) => item._id === id)
+    setValue(`pax.${paxIndex}.${serviceIndex}.durationList`, service?.variants || [])
   }
 
-  const onDurationSelection = (item: any, serviceIndex: number, durationList: any, serviceId: string, servStartTime: string) => {
-    setStartTimeForService(serviceIndex);
-    
-    const index: any = Array.from(item)[0]
-    setValue(`pax.${paxIndex}.${serviceIndex}.duration`, +index)
+  const onDurationSelection = (item: any, serviceIndex: number, durationList: any) => {
+    const index: any = item?.target?.value
     const price:any = durationList?.find((e:any) => +e.serviceDuration === +index)?.defaultPrice
     setValue(`pax.${paxIndex}.${serviceIndex}.price`, price)
-    
-    const filteredEmployee = employeeList?.filter((item: any) => item.servicesId.includes(serviceId))
-    console.log(filteredEmployee);
-    
-    setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, price ? filteredEmployee : [])
-    
+    setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)
+    setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, [])
+    setStartTimeForService(serviceIndex, +index);
   }
 
-  const getBusyEmployeesWithNextSlot = async (time: string, duration: number, serviceIndex: number) => {
-    try {
-        const branches = await fetch(`${APPOINTMENTS_API_URL}/busy-employees?startTime=${time}&duration=${duration}`)
-        const parsed = await branches.json();
-        console.log(parsed);
-        setValue(`pax.${paxIndex}.${serviceIndex}.busyEmployees`, parsed.busyEmployeesWithSlots)
-        
-      }catch(err:any) { console.log(err) }
-  }
-  
 
-  const setStartTimeForService = (serviceIndex: number) => {
+  const setStartTimeForService = (serviceIndex: number, duration: number) => {
     let value;
     if(serviceIndex == 0) value = startTime;
     else {
@@ -356,17 +341,27 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
     }
     setValue(`pax.${paxIndex}.${serviceIndex}.startTime`, value)
     watch(`pax.${paxIndex}.${serviceIndex+1}`) && setValue(`pax.${paxIndex}.${serviceIndex+1}.serviceId`, null)
-    getBusyEmployeesWithNextSlot(value, +watch(`pax.${paxIndex}.${serviceIndex}.duration`), serviceIndex)
+    getBusyEmployeesWithNextSlot(value, duration, serviceIndex)
   }
 
+  const getBusyEmployeesWithNextSlot = async (time: string, duration: number, serviceIndex: number) => {
+    try {
+      const branches = await fetch(`${APPOINTMENTS_API_URL}/busy-employees?startTime=${time}&duration=${duration}`)
+      const parsed = await branches.json();
+      const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
+      const filteredEmployee = employeeList?.filter((item: any) => item.servicesId.includes(serviceId))
+      setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, duration ? filteredEmployee : [])
+      setValue(`pax.${paxIndex}.${serviceIndex}.busyEmployees`, parsed.busyEmployeesWithSlots)
+        
+    }catch(err:any) { console.log(err) }
+  }
 
   return (
     <div>
 
       {serviceFields.map((serviceField, serviceIndex) => {
-        const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
         const durationList = watch(`pax.${paxIndex}.${serviceIndex}.durationList`)
-        const servStartTime = watch(`pax.${paxIndex}.${serviceIndex}.startTime`)
+        // const servStartTime = watch(`pax.${paxIndex}.${serviceIndex}.startTime`)
         // const duration = watch(`pax.${paxIndex}.${serviceIndex}.duration`)
         const price = watch(`pax.${paxIndex}.${serviceIndex}.price`)
         const paxEmployeeList = watch(`pax.${paxIndex}.${serviceIndex}.employeeList`)
@@ -386,10 +381,11 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
               )}
             />
             
-            <Select {...register(`pax.${paxIndex}.${serviceIndex}.duration`)} className="w-3/5" label="Duration" 
-              onSelectionChange={(item: any) => onDurationSelection(item, serviceIndex, durationList, serviceId, servStartTime)}>
-              {durationList?.map((item:any) => <SelectItem textValue={item.serviceDuration} key={item.serviceDuration}>{item.serviceDuration} min</SelectItem>)}
-            </Select>
+            <select {...register(`pax.${paxIndex}.${serviceIndex}.duration`)} className="w-3/5 border-2 py-3"
+              onChange={(item: any) => onDurationSelection(item, serviceIndex, durationList)}>
+                <option value="">Select Duration</option>
+              {durationList?.map((item:any) => <option value={item.serviceDuration}>{item.serviceDuration} min</option>)}
+            </select>
 
           </div>
           

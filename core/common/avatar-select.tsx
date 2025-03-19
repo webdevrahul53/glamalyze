@@ -29,7 +29,6 @@ export default function AvatarSelect({field, data = [], label, keyName, onChange
         {(user:any) => {
 
             const employee = disabledKeys?.find((item:any) => item.employeeId == user._id);
-            console.log(employee)
             return <SelectItem key={user._id} textValue={user[keyName]}>
                 <div className="flex gap-2 items-center">
                     <Avatar alt={user[keyName]} className="flex-shrink-0" size="sm" src={user.image} />
