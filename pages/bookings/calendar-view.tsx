@@ -183,7 +183,7 @@ const CustomEvent = (event: any) => {
   return <section>
     <div className="flex flex-col items-center gap-1">
       <ChairIcon width={30} color="black" />
-      <small>{event.event.totalDuration} m </small>
+      <small>{event.event.duration} m </small>
     </div>
   </section>
 }

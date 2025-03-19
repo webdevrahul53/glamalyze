@@ -1,5 +1,5 @@
 import React from "react";
-import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Select, SelectItem, Tab, Tabs, Textarea } from "@heroui/react";
+import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Select, SelectItem } from "@heroui/react";
 import { DeleteIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
@@ -97,20 +97,20 @@ const NewAssignment = (props:any) => {
     };
     
     // Helper function to get the next time slot
-    const getNextTimeSlot = (time:any, interval:number) => {
+    const getNextTimeSlot = (time: any, interval: number) => {
       let [hour, minute, period] = time.match(/(\d+):(\d+) (\w+)/).slice(1);
       hour = parseInt(hour);
       minute = parseInt(minute) + interval;
 
+      // Handle minute overflow
       if (minute >= 60) {
-        minute -= 60;
-        hour++;
+        hour += Math.floor(minute / 60);
+        minute = minute % 60;
       }
 
-      if (hour === 12 && period === "AM") period = "PM";
-      else if (hour === 12 && period === "PM") period = "AM";
-      else if (hour > 12) {
-        hour -= 12;
+      // Handle hour and period change
+      if (hour >= 12) {
+        if (hour > 12) hour -= 12;
         period = period === "AM" ? "PM" : "AM";
       }
 
@@ -161,15 +161,22 @@ const NewAssignment = (props:any) => {
       data.paymentStatus = "Pending"
       data.taskStatus = "Pending"
       data.status = true;
-      data.pax = data.pax?.map((item:any) => {
-        item = item?.map((nested: any) => {
+      data.pax = await data.pax?.map((item:any) => {
+        item = item?.map((nested: any, index: number, arr: any) => {
           const {serviceId, duration, price, employeeId} = nested
-          return {serviceId, duration: +duration, price, employeeId}
+          if(index == 0) nested.startTime = startTime;
+          else {
+            let prevDurationSum = 0;
+            for(var i = 0; i < index; i++){
+              prevDurationSum += +item[i].duration
+            }
+            nested.startTime = getNextTimeSlot(startTime, +prevDurationSum)
+          }
+
+          return {serviceId, duration: +duration, price, employeeId, startTime: nested.startTime}
         })
         return item
       })
-      console.log(data);
-      // return;
         
       try {
           const appointment = await fetch(APPOINTMENTS_API_URL, {

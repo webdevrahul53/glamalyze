@@ -1,21 +1,42 @@
+import mongoose from "mongoose";
 import { connectDB } from "@/core/db";
 import { Appointments } from "../../../core/model/appointments";
+import { AppointmentServices } from "../../../core/model/appointment-services";
+import { AppointmentPax } from "../../../core/model/appointment-pax";
 
 export default async function handler(req, res) {
   await connectDB();
   
   if(req.method === "DELETE") {
-    Appointments.deleteOne({_id:req.query['id']}).exec()
-    .then(()=>{ 
-        res.status(200).json({
-            status: 1,
-            message:"Appointment deleted",
-            _id:req.params['id']
-        }) 
-    }).catch(err=>{ 
-        res.status(500).json(err) 
-
-    }) 
+    const appointmentServiceId = req.query["id"]
+    try {
+      const session = await mongoose.startSession();
+      session.startTransaction();
+  
+      // Delete the AppointmentService
+      const deletedService = await AppointmentServices.findByIdAndDelete(appointmentServiceId).session(session);
+      if (!deletedService) throw new Error("AppointmentService not found");
+  
+      // Remove the deleted service reference from AppointmentPax
+      await AppointmentPax.updateMany(
+        { appointmentServiceId: appointmentServiceId },
+        { $pull: { appointmentServiceId: appointmentServiceId } },
+        { session }
+      );
+  
+      // Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
+  
+      res.status(200).json({
+          status: 1,
+          message: "AppointmentService deleted successfully" ,
+          _id:req.query['id']
+      }) 
+    } catch (error) {
+      console.error("Error deleting AppointmentService:", error);
+      res.status(500).json(err) 
+    }
   }
 
   if(req.method === "PATCH") {

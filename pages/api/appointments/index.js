@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 import { connectDB } from "@/core/db";
 import { Appointments } from "../../../core/model/appointments";
+import { AppointmentServices } from "../../../core/model/appointment-services";
+import { AppointmentPax } from "../../../core/model/appointment-pax";
+import { randomUUID } from "crypto";
 
 export default async function handler(req, res) {
   await connectDB();
@@ -13,14 +16,17 @@ export default async function handler(req, res) {
       const skip = (page - 1) * limit;
 
       // Fetch total count WITHOUT lookup for performance
-      const totalCountPromise = Appointments.countDocuments();
+      const totalCountPromise = AppointmentServices.countDocuments();
 
-      const dataPromise = Appointments.aggregate([
-        { $lookup: { from: "branches", localField: "branchId", foreignField: "_id", as: "branch", },  },
-        { $lookup: { from: "customers", localField: "customerId", foreignField: "_id", as: "customer", },  },
-        { $unwind: { path: "$branch", preserveNullAndEmptyArrays: true }, },
+      const dataPromise = AppointmentServices.aggregate([
+        { $lookup: { from: "appointments", localField: "appointmentId", foreignField: "_id", as: "appointment", },  },
+        { $lookup: { from: "customers", localField: "appointment.customerId", foreignField: "_id", as: "customer", },  },
+        { $lookup: { from: "employees", localField: "employeeId", foreignField: "_id", as: "employee" } },
+        { $lookup: { from: "services", localField: "serviceId", foreignField: "_id", as: "service" } },
+        { $unwind: { path: "$appointment", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true }, },
-        { $unwind: "$pax" }, // Flatten the pax array (each array inside pax represents one person)
+        { $unwind: { path: "$employee", preserveNullAndEmptyArrays: true }, },
+        { $unwind: { path: "$service", preserveNullAndEmptyArrays: true }, },
         {
           $addFields: {
             totalDuration: { $sum: "$pax.duration" },
@@ -67,10 +73,9 @@ export default async function handler(req, res) {
             }
           }
         },
-        { $lookup: { from: "employees", localField: "pax.employeeId", foreignField: "_id", as: "employeeId" } },
-        { $lookup: { from: "services", localField: "pax.serviceId", foreignField: "_id", as: "serviceId" } },
-        { $project: { _id: 1, appointmentDate: 1, startTime: 1, start: 1, branch: 1, customer: 1, pax: 1, totalDuration: 1, totalPrice: 1, 
-          totalAmount: 1, taskStatus: 1, paymentStatus: 1, employeeId: 1, serviceId: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+        { $project: { _id: 1, start: 1, customer: 1, employee: 1, 
+          serviceName: "$service.name", taskStatus: "$appointment.taskStatus", paymentStatus: "$appointment.paymentStatus", 
+          duration: 1, price: 1, status: 1, createdAt: 1, updatedAt: 1 } },
           
         { $skip: skip },
         { $limit: limit }
@@ -93,38 +98,94 @@ export default async function handler(req, res) {
   }
 
   if(req.method === "POST") {
-    const appointment = new Appointments({
-      _id:new mongoose.Types.ObjectId(),
-      appointmentDate:req.body.appointmentDate,
-      startTime:req.body.startTime,
-      branchId:req.body.branchId,
-      customerId:req.body.customerId,
-      pax:req.body.pax,
-      totalAmount:req.body.totalAmount,
-      paymentStatus:req.body.paymentStatus,
-      taskStatus:req.body.taskStatus,
-      status:req.body.status,
-    })
-    appointment.save().then(()=>{ 
-        res.status(200).json({
-            message:'New appointment added',
-            status: 1,
-            appointment:{
-                _id:appointment._id, 
-                appointmentDate:appointment.appointmentDate,
-                startTime:appointment.startTime,
-                branchId:appointment.branchId,
-                customerId:appointment.customerId,
-                totalAmount:appointment.totalAmount,
-                pax:appointment.pax,
-                paymentStatus:appointment.paymentStatus,
-                taskStatus:appointment.taskStatus,
-                status:appointment.status,
+
+    const appointmentData = req.body;
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+        // 1. Create Appointment
+        const bookingId = randomUUID(); // Generate a unique booking ID
+        const appointment = new Appointments({
+            _id: new mongoose.Types.ObjectId(),
+            bookingId,
+            appointmentDate: appointmentData.appointmentDate,
+            startTime: appointmentData.startTime,
+            branchId: appointmentData.branchId,
+            customerId: appointmentData.customerId,
+            totalDuration: appointmentData.pax.flat().reduce((acc, pax) => acc + Number(pax.duration), 0),
+            totalAmount: appointmentData.totalAmount,
+            paymentStatus: appointmentData.paymentStatus,
+            taskStatus: appointmentData.taskStatus,
+            status: appointmentData.status
+        });
+
+        await appointment.save({ session });
+
+        // Store Pax IDs
+        const paxIds = [];
+
+        // 2. Insert Pax and Services
+        for (const pax of appointmentData.pax) {
+            const paxId = new mongoose.Types.ObjectId();
+            paxIds.push(paxId);
+
+            // Store AppointmentService IDs
+            const appointmentServiceIds = [];
+
+            for (const service of pax) {
+                const appointmentService = new AppointmentServices({
+                    _id: new mongoose.Types.ObjectId(),
+                    bookingId,
+                    appointmentId: appointment._id,
+                    paxId: paxId,
+                    appointmentDate: appointment.appointmentDate,
+                    startTime: service.startTime,
+                    serviceId: service.serviceId,
+                    employeeId: service.employeeId,
+                    duration: service.duration,
+                    price: service.price,
+                    status: true
+                });
+
+                await appointmentService.save({ session });
+                appointmentServiceIds.push(appointmentService._id);
             }
-        })
-    }).catch(err=>{
-        res.status(500).json(err)
-    }) 
+
+            // 3. Create AppointmentPax Entry
+            const appointmentPax = new AppointmentPax({
+                _id: paxId,
+                bookingId,
+                appointmentId: appointment._id,
+                appointmentServiceId: appointmentServiceIds,
+                status: true
+            });
+
+            await appointmentPax.save({ session });
+        }
+
+        // 4. Update Appointment with Pax IDs
+        appointment.paxId = paxIds;
+        await appointment.save({ session });
+
+        // Commit the transaction
+        await session.commitTransaction();
+        session.endSession();
+
+        res.status(200).json({
+          message:'New branch added',
+          status: 1,
+          appointment:{
+              _id:appointment._id,
+              bookingId, 
+          }
+      })
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        console.error("Transaction Failed:", error);
+        return { success: false, error: error.message };
+    }
+
   }
   
   
@@ -142,55 +203,3 @@ export default async function handler(req, res) {
   // }
 
 }
-
-
-
-
-// {
-//   $addFields: {
-//     parsedTime: {
-//       $regexFind: { input: "$startTime", regex: "^(\\d{1,2}):(\\d{2}) (AM|PM)$" }
-//     }
-//   }
-// },
-// {
-//   $addFields: {
-//     hour: { $toInt: { $arrayElemAt: ["$parsedTime.captures", 0] } },
-//     minute: { $toInt: { $arrayElemAt: ["$parsedTime.captures", 1] } },
-//     period: { $arrayElemAt: ["$parsedTime.captures", 2] }
-//   }
-// },
-// {
-//   $addFields: {
-//     adjustedHour: {
-//       $switch: {
-//         branches: [
-//           { case: { $and: [{ $eq: ["$period", "PM"] }, { $ne: ["$hour", 12] }] }, then: { $add: ["$hour", 12] } },
-//           { case: { $and: [{ $eq: ["$period", "AM"] }, { $eq: ["$hour", 12] }] }, then: 0 }
-//         ],
-//         default: "$hour"
-//       }
-//     }
-//   }
-// },
-// {
-//   $addFields: {
-//     start: {
-//       $dateFromParts: {
-//         year: { $year: "$appointmentDate" },
-//         month: { $month: "$appointmentDate" },
-//         day: { $dayOfMonth: "$appointmentDate" },
-//         hour: "$adjustedHour",
-//         minute: "$minute"
-//       }
-//     }
-//   }
-// },
-// {
-//   $addFields: {
-//     // Calculate end time by adding totalDuration
-//     end: {
-//       $dateAdd: { startDate: "$start", unit: "minute", amount: "$totalDuration" }
-//     }
-//   }
-// },

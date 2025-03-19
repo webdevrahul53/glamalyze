@@ -57,9 +57,10 @@ export default function Bookings(){
 export const columns = [
   {name: "DATE", uid: "start"},
   {name: "CLIENT", uid: "customer:firstname"},
-  {name: "AMOUNT", uid: "totalPrice"},
-  {name: "DURATION", uid: "totalDuration"},
-  {name: "SERVICES", uid: "serviceId"},
+  {name: "STAFF", uid: "employee:firstname"},
+  {name: "AMOUNT", uid: "price"},
+  {name: "DURATION", uid: "duration"},
+  {name: "SERVICES", uid: "serviceName"},
   {name: "STATUS", uid: "taskStatus"},
   // {name: "STATUS", uid: "status"},
   {name: "PAYMENT STATUS", uid: "paymentStatus"},
