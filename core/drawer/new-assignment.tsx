@@ -4,7 +4,7 @@ import { DeleteIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
-import { APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, SERVICES_API_URL } from "../utilities/api-url";
+import { APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL } from "../utilities/api-url";
 import Link from "next/link";
 import { toast } from "react-toastify";
 
@@ -15,7 +15,7 @@ const NewAssignment = (props:any) => {
         startTime: null, 
         branchId: null, 
         customerId: null, 
-        pax: [ [{serviceId: null, durationList: [], duration: null, price: null, employeeId: null}] ],
+        pax: [ [{serviceId: null, durationList: [], duration: null, price: null, employeeList: [], employeeId: null}] ],
         note: null
       }
     });
@@ -33,7 +33,7 @@ const NewAssignment = (props:any) => {
     const [busyTimeSlots, setBusyTimeSlots] = React.useState([]);
     const [customerList, setCustomerList] = React.useState([]);
     const [serviceList, setServiceList] = React.useState([]);
-    const [serviceIds, setServiceIds] = React.useState<any>([])
+    // const [serviceIds, setServiceIds] = React.useState<any>([])
     const [totalAmount, setTotalAmount] = React.useState<any>(0)
     const [totalDuration, setTotalDuration] = React.useState<any>(0)
     const [selectedTab, setSelectedTab] = React.useState<any>(0)
@@ -142,19 +142,30 @@ const NewAssignment = (props:any) => {
     }
 
     const onPaxChange = (value: number) => {
-      
-      const updatedPax = Array.from({ length: value }, () => [
-        { serviceId: null, durationList: [], duration: null,  price: null, employeeId: null },
-      ]);
-
-      setValue("pax", updatedPax);
+      const prevPax = watch("pax") || []; // Get the current pax array
+    
+      let updatedPax = [...prevPax]; // Clone the array
+    
+      if (updatedPax.length > value) {
+        // Remove extra pax if new value is less
+        updatedPax = updatedPax.slice(0, value);
+      } else {
+        // Add new pax if value is greater
+        while (updatedPax.length < value) {
+          updatedPax.push([{ 
+            serviceId: null, 
+            durationList: [], 
+            duration: null,  
+            price: null, 
+            employeeList: [], 
+            employeeId: null 
+          }]);
+        }
+      }
+    
+      setValue("pax", updatedPax); // Update the form field
     };
   
-    const onServiceSelection = (value: any) => {
-      const filteredEmployee = employeeList?.filter((item: any) => item.servicesId.includes(value))
-      setEmployeeList(() => filteredEmployee)
-    };
-
     const onSubmit = async (data:any) => {
       data = {...data, totalAmount}
       data.appointmentDate = data.appointmentDate?.toString();
@@ -300,7 +311,7 @@ const NewAssignment = (props:any) => {
                           height: paxIndex === selectedTab ? "100%" : "0"
                           }}>
                           {/* <h1> Person {paxIndex + 1} </h1> */}
-                          <ServiceList control={control} paxIndex={paxIndex} register={register} watch={watch} setValue={setValue} serviceList={serviceList} employeeList={employeeList} onServiceSelection={onServiceSelection} />
+                          <ServiceList control={control} paxIndex={paxIndex} register={register} watch={watch} setValue={setValue} serviceList={serviceList} employeeList={employeeList} />
                         </div>
                       ))}
                       
@@ -338,14 +349,19 @@ const NewAssignment = (props:any) => {
     )
   }
 
+export default NewAssignment
 
+
+
+  
 // Separate component to handle nested "serviceIds" array
-const ServiceList = ({ control, paxIndex, register, watch, setValue, serviceList, employeeList, onServiceSelection }: any) => {
+const ServiceList = ({ control, paxIndex, register, watch, setValue, serviceList, employeeList }: any) => {
   const { fields: serviceFields, append: addService, remove: removeService } = useFieldArray({
     control,
     name: `pax.${paxIndex}`,
   });
   
+
   return (
     <div>
 
@@ -354,7 +370,7 @@ const ServiceList = ({ control, paxIndex, register, watch, setValue, serviceList
         const durationList = watch(`pax.${paxIndex}.${serviceIndex}.durationList`)
         const duration = watch(`pax.${paxIndex}.${serviceIndex}.duration`)
         const price = watch(`pax.${paxIndex}.${serviceIndex}.price`)
-        const employeeId = watch(`pax.${paxIndex}.${serviceIndex}.employeeId`)
+        const paxEmployeeList = watch(`pax.${paxIndex}.${serviceIndex}.employeeList`)
         return <div key={serviceField.id} className="flex flex-col gap-2">
           {/* {serviceId + "===" + duration + "===" + price + "===" + employeeId}
           {JSON.stringify(durationList)} */}
@@ -363,10 +379,11 @@ const ServiceList = ({ control, paxIndex, register, watch, setValue, serviceList
               render={({ field }) => (
                 <AvatarSelect field={field} data={serviceList} label="Services" keyName="name" onChange={(id:string) => {
                   const service = serviceList?.find((item: any) => item._id === id)
+                  const filteredEmployee = employeeList?.filter((item: any) => item.servicesId.includes(id))
                   
                   setValue(`pax.${paxIndex}.${serviceIndex}.durationList`, service?.variants || [])
+                  setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, filteredEmployee || [])
                   setValue(`pax.${paxIndex}.${serviceIndex}.duration`, service?.variants[0].serviceDuration)
-                  onServiceSelection(id)
                 }} showStatus={true} />
               )}
             />
@@ -386,7 +403,7 @@ const ServiceList = ({ control, paxIndex, register, watch, setValue, serviceList
 
             <Controller name={`pax.${paxIndex}.${serviceIndex}.employeeId`} control={control} rules={{required: true}}
               render={({ field }) => (
-                <AvatarSelect field={field} data={employeeList} label="Staff" keyName="firstname" showStatus={true} />
+                <AvatarSelect field={field} data={paxEmployeeList} label="Staff" keyName="firstname" showStatus={true} />
               )}
             />
 
@@ -408,6 +425,7 @@ const ServiceList = ({ control, paxIndex, register, watch, setValue, serviceList
     </div>
   );
 };
+
 
 
 const AvatarCard = (props:any) => {
@@ -434,35 +452,6 @@ const AvatarCard = (props:any) => {
   );
 }
 
-
-
-// const ServiceCard = (props:any) => {
-
-//   return (
-//     <Card className="w-full flex-shrink-0 min-w-[250px]">
-//       <CardHeader className="justify-between">
-//         <div className="flex gap-3">
-//           <Avatar isBordered radius="full" size="sm" src={props.image} />
-//           <div className="flex flex-col gap-1 items-start justify-center">
-//             <h4 className="text-small font-semibold leading-none text-default-600">{props.name}</h4>
-//             <h5 className="text-small tracking-tight text-default-400"> 
-//               <strong>Rs. {props.variants[0].defaultPrice}</strong> 
-//               <select className="ms-2" name="duration">
-//                 {props?.variants?.map((item:any) => <option value={item.serviceDuration}> {item.serviceDuration} min </option>)}
-//               </select>
-//             </h5>
-//           </div>
-//         </div>
-//         <div className="cursor-pointer" onClick={props.onDelete}>
-//             <DeleteIcon  width="15" color="darkred" />
-//         </div> 
-//       </CardHeader>
-//     </Card>
-//   );
-// }
-
-
-export default NewAssignment
 
 const timeList = [
   {key: "10:00 AM", label: "10:00 AM"},
