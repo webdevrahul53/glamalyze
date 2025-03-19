@@ -15,7 +15,7 @@ const NewAssignment = (props:any) => {
         startTime: null, 
         branchId: null, 
         customerId: null, 
-        pax: [ [{serviceId: null, durationList: [], duration: null, price: null, employeeList: [], employeeId: null}] ],
+        pax: [ [{serviceId: null, durationList: [], duration: null, price: null, busyEmployees: [], employeeList: [], employeeId: null}] ],
         note: null
       }
     });
@@ -29,13 +29,9 @@ const NewAssignment = (props:any) => {
     const [loading, setLoading] = React.useState(false)
     const [branchList, setBranchList] = React.useState([]);
     const [employeeList, setEmployeeList] = React.useState([]);
-    const [busyEmployeeList, setBusyEmployeeList] = React.useState([]);
-    const [busyTimeSlots, setBusyTimeSlots] = React.useState([]);
     const [customerList, setCustomerList] = React.useState([]);
     const [serviceList, setServiceList] = React.useState([]);
-    // const [serviceIds, setServiceIds] = React.useState<any>([])
     const [totalAmount, setTotalAmount] = React.useState<any>(0)
-    const [totalDuration, setTotalDuration] = React.useState<any>(0)
     const [selectedTab, setSelectedTab] = React.useState<any>(0)
 
     
@@ -57,65 +53,31 @@ const NewAssignment = (props:any) => {
     React.useEffect(() => {
       const totalSum = pax.flat().reduce((sum, item: any) => sum + (item?.price || 0), 0);
       setTotalAmount(totalSum)
-      getBranchList();
     },[pax])
     
     React.useEffect(() => {
-      const branch:any = branchList.find((item:any) => item._id === branchId);
-      let allEmployees = getDisabledTimeSlots(branch?.groupEmployees, appointmentDate?.toString(), timeList)
-      let busyEmployees = allEmployees?.filter((item:any)=> (item.totalDuration + totalDuration) > 480)?.map((e:any) => e._id);
-      
-      setBusyEmployeeList(() => busyEmployees)
-      setEmployeeList(allEmployees || [])
-    }, [branchId, appointmentDate])
+      setValue("pax", [ [{serviceId: null, durationList: [], duration: null, price: null, busyEmployees: [], employeeList: [], employeeId: null}] ])
+    }, [startTime])
   
 
-    
-    const getDisabledTimeSlots = (employees: any, date: string, timeList: {key: string, label: string}[]) => {
-      
-      employees?.forEach((employee:any) => {
-        const disabledSlots = new Set();
-        let totalDuration = 0;
-        if (employee.appointments) {
-          employee.appointments.filter((item:any) => item.appointmentDate.split("T")[0] === date).forEach((appointment:any) => {
-            totalDuration += appointment.totalDuration;
-            let currentTime = appointment.startTime;
-            let duration = appointment.totalDuration; // in minutes
-  
-            while (duration > 0) {
-              disabledSlots.add(currentTime);
-              currentTime = getNextTimeSlot(currentTime, 30); // Assuming 30-min slots
-              duration -= 30;
-            }
-          });
-        }
-        employee.disabledSlots = timeList.filter((time) => disabledSlots.has(time.key));
-        employee.totalDuration = totalDuration;
-      });
-    
-      return employees;
-    };
     
     // Helper function to get the next time slot
-    const getNextTimeSlot = (time: any, interval: number) => {
-      let [hour, minute, period] = time.match(/(\d+):(\d+) (\w+)/).slice(1);
-      hour = parseInt(hour);
-      minute = parseInt(minute) + interval;
-
+    const getNextTimeSlot = (time: string, interval: number) => {
+      let [hour, minute] = time.split(":").map(Number);
+      minute += interval;
+  
       // Handle minute overflow
       if (minute >= 60) {
         hour += Math.floor(minute / 60);
         minute = minute % 60;
       }
-
-      // Handle hour and period change
-      if (hour >= 12) {
-        if (hour > 12) hour -= 12;
-        period = period === "AM" ? "PM" : "AM";
-      }
-
-      return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")} ${period}`;
+    
+      // Handle hour overflow (to keep within 24-hour format)
+      hour = hour % 24;
+    
+      return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
     };
+    
 
     const getBranchList = async () => {
       try {
@@ -157,6 +119,7 @@ const NewAssignment = (props:any) => {
             durationList: [], 
             duration: null,  
             price: null, 
+            busyEmployees: [],
             employeeList: [], 
             employeeId: null 
           }]);
@@ -165,29 +128,26 @@ const NewAssignment = (props:any) => {
     
       setValue("pax", updatedPax); // Update the form field
     };
+
+    const convertTo24HourFormat = (timeStr: string) => {
+      const [time, modifier] = timeStr.split(" ");
+      let [hours, minutes] = time.split(":");
+      if (modifier === "PM" && hours !== "12") {
+        hours = String(parseInt(hours, 10) + 12);
+      }
+      if (modifier === "AM" && hours === "12") {
+        hours = "00";
+      }
+      return `${hours}:${minutes}`;
+    };
   
     const onSubmit = async (data:any) => {
       data = {...data, totalAmount}
       data.appointmentDate = data.appointmentDate?.toString();
+      data.startTime = convertTo24HourFormat(data.startTime);
       data.paymentStatus = "Pending"
       data.taskStatus = "Pending"
       data.status = true;
-      data.pax = await data.pax?.map((item:any) => {
-        item = item?.map((nested: any, index: number, arr: any) => {
-          const {serviceId, duration, price, employeeId} = nested
-          if(index == 0) nested.startTime = startTime;
-          else {
-            let prevDurationSum = 0;
-            for(var i = 0; i < index; i++){
-              prevDurationSum += +item[i].duration
-            }
-            nested.startTime = getNextTimeSlot(startTime, +prevDurationSum)
-          }
-
-          return {serviceId, duration: +duration, price, employeeId, startTime: nested.startTime}
-        })
-        return item
-      })
         
       try {
           const appointment = await fetch(APPOINTMENTS_API_URL, {
@@ -240,25 +200,20 @@ const NewAssignment = (props:any) => {
                     <Controller name="appointmentDate" control={control}
                       render={({ field }) => (
                         <DatePicker
-                          {...field}
-                          hideTimeZone showMonthAndYearPickers label="Date & Time" variant="bordered"
-                          defaultValue={field.value}
-                          onChange={(date) => field.onChange(date)} // Ensure React Hook Form updates the state
+                          {...field} hideTimeZone showMonthAndYearPickers label="Date & Time" variant="bordered"
+                          defaultValue={field.value} onChange={(date) => field.onChange(date)} // Ensure React Hook Form updates the state
                         />
                       )}
                     />
-                    <Select {...register("startTime", {required: true})} label="Select Time" 
-                      disabledKeys={busyTimeSlots}>
+                    <Select {...register("startTime", {required: true})} label="Select Time">
                       {timeList.map((value) => (
                         <SelectItem key={value.key}>{value.label}</SelectItem>
                       ))}
                     </Select>
                     <Select className="w-2/5" label="Pax" onChange={(event:any) => onPaxChange(+event.target.value)}>
-                      <SelectItem key="1">1</SelectItem>
-                      <SelectItem key="2">2</SelectItem>
-                      <SelectItem key="3">3</SelectItem>
-                      <SelectItem key="4">4</SelectItem>
-                      <SelectItem key="5">5</SelectItem>
+                      {Array.from({ length: 5 }, (_, i) => (i + 1).toString())?.map((val: string) => {
+                        return <SelectItem key={val}>{val}</SelectItem>
+                      })}
                     </Select>
                   </div>
                   {errors.startTime && <div className="text-danger text-sm -mt-2 ms-3">Date & Time is not selected</div>}
@@ -311,7 +266,7 @@ const NewAssignment = (props:any) => {
                           height: paxIndex === selectedTab ? "100%" : "0"
                           }}>
                           {/* <h1> Person {paxIndex + 1} </h1> */}
-                          <ServiceList control={control} paxIndex={paxIndex} register={register} watch={watch} setValue={setValue} serviceList={serviceList} employeeList={employeeList} />
+                          <ServiceList control={control} paxIndex={paxIndex} register={register} errors={errors} watch={watch} setValue={setValue} startTime={startTime} serviceList={serviceList} employeeList={employeeList} getNextTimeSlot={getNextTimeSlot} convertTo24HourFormat={convertTo24HourFormat} />
                         </div>
                       ))}
                       
@@ -322,14 +277,7 @@ const NewAssignment = (props:any) => {
 
                 </DrawerBody>
                 <DrawerFooter style={{justifyContent: "start", flexDirection: "column"}}>
-                  {/* <Autocomplete defaultItems={serviceList} placeholder="Add Services" 
-                    disabledKeys={serviceIds?.map((e:any) => e._id)}
-                    onSelectionChange={onServiceSelection} >
-                    {(item:any) => <AutocompleteItem key={item._id}>{item.name}</AutocompleteItem>}
-                  </Autocomplete> */}
                   {/* <Textarea {...register("note")} label="Note" placeholder="Enter Note" /> */}
-
-
                   
                   <div className="flex items-center justify-between">
                     <h5 className="text-xl">Subtotal :</h5>
@@ -355,12 +303,62 @@ export default NewAssignment
 
   
 // Separate component to handle nested "serviceIds" array
-const ServiceList = ({ control, paxIndex, register, watch, setValue, serviceList, employeeList }: any) => {
+const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, startTime, serviceList, employeeList, getNextTimeSlot }: any) => {
   const { fields: serviceFields, append: addService, remove: removeService } = useFieldArray({
     control,
     name: `pax.${paxIndex}`,
   });
   
+
+  const onServiceSelection = (id: string, serviceIndex: number) => {
+    const service = serviceList?.find((item: any) => item._id === id)
+                  
+    setValue(`pax.${paxIndex}.${serviceIndex}.durationList`, service?.variants || [])
+    setValue(`pax.${paxIndex}.${serviceIndex}.duration`, null)
+    setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, [])
+  }
+
+  const onDurationSelection = (item: any, serviceIndex: number, durationList: any, serviceId: string, servStartTime: string) => {
+    setStartTimeForService(serviceIndex);
+    
+    const index: any = Array.from(item)[0]
+    setValue(`pax.${paxIndex}.${serviceIndex}.duration`, +index)
+    const price:any = durationList?.find((e:any) => +e.serviceDuration === +index)?.defaultPrice
+    setValue(`pax.${paxIndex}.${serviceIndex}.price`, price)
+    
+    const filteredEmployee = employeeList?.filter((item: any) => item.servicesId.includes(serviceId))
+    console.log(filteredEmployee);
+    
+    setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, price ? filteredEmployee : [])
+    
+  }
+
+  const getBusyEmployeesWithNextSlot = async (time: string, duration: number, serviceIndex: number) => {
+    try {
+        const branches = await fetch(`${APPOINTMENTS_API_URL}/busy-employees?startTime=${time}&duration=${duration}`)
+        const parsed = await branches.json();
+        console.log(parsed);
+        setValue(`pax.${paxIndex}.${serviceIndex}.busyEmployees`, parsed.busyEmployeesWithSlots)
+        
+      }catch(err:any) { console.log(err) }
+  }
+  
+
+  const setStartTimeForService = (serviceIndex: number) => {
+    let value;
+    if(serviceIndex == 0) value = startTime;
+    else {
+      let prevDurationSum = 0;
+      for(var i = 0; i < serviceIndex; i++){
+        prevDurationSum += +watch(`pax.${paxIndex}`)[i].duration
+      }
+      value = getNextTimeSlot(startTime, +prevDurationSum)
+    }
+    setValue(`pax.${paxIndex}.${serviceIndex}.startTime`, value)
+    watch(`pax.${paxIndex}.${serviceIndex+1}`) && setValue(`pax.${paxIndex}.${serviceIndex+1}.serviceId`, null)
+    getBusyEmployeesWithNextSlot(value, +watch(`pax.${paxIndex}.${serviceIndex}.duration`), serviceIndex)
+  }
+
 
   return (
     <div>
@@ -368,32 +366,28 @@ const ServiceList = ({ control, paxIndex, register, watch, setValue, serviceList
       {serviceFields.map((serviceField, serviceIndex) => {
         const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
         const durationList = watch(`pax.${paxIndex}.${serviceIndex}.durationList`)
-        const duration = watch(`pax.${paxIndex}.${serviceIndex}.duration`)
+        const servStartTime = watch(`pax.${paxIndex}.${serviceIndex}.startTime`)
+        // const duration = watch(`pax.${paxIndex}.${serviceIndex}.duration`)
         const price = watch(`pax.${paxIndex}.${serviceIndex}.price`)
         const paxEmployeeList = watch(`pax.${paxIndex}.${serviceIndex}.employeeList`)
+        const busyEmployees = watch(`pax.${paxIndex}.${serviceIndex}.busyEmployees`)
+
         return <div key={serviceField.id} className="flex flex-col gap-2">
-          {/* {serviceId + "===" + duration + "===" + price + "===" + employeeId}
-          {JSON.stringify(durationList)} */}
+          {/* {servStartTime + "===" + duration + "===" + price + "==="} */}
+          
+          {errors.pax?.[paxIndex]?.[serviceIndex] && (
+            <p className="text-danger text-sm ms-2"> Required fields are mandatory </p>
+          )}
           <div className="flex items-center gap-2">
             <Controller name={`pax.${paxIndex}.${serviceIndex}.serviceId`} control={control} rules={{required: true}}
               render={({ field }) => (
-                <AvatarSelect field={field} data={serviceList} label="Services" keyName="name" onChange={(id:string) => {
-                  const service = serviceList?.find((item: any) => item._id === id)
-                  const filteredEmployee = employeeList?.filter((item: any) => item.servicesId.includes(id))
-                  
-                  setValue(`pax.${paxIndex}.${serviceIndex}.durationList`, service?.variants || [])
-                  setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, filteredEmployee || [])
-                  setValue(`pax.${paxIndex}.${serviceIndex}.duration`, service?.variants[0].serviceDuration)
-                }} showStatus={true} />
+                <AvatarSelect field={field} data={serviceList} label="Services" keyName="name" 
+                  onChange={(id:string) => onServiceSelection(id, serviceIndex)} />
               )}
             />
             
-            <Select {...register(`pax.${paxIndex}.${serviceIndex}.duration`, {required: true})} className="w-3/5" label="Duration" 
-              onSelectionChange={(item: any) => {
-                const index: any = Array.from(item)[0]
-                const price:any = durationList?.find((e:any) => +e.serviceDuration === +index)?.defaultPrice
-                setValue(`pax.${paxIndex}.${serviceIndex}.price`, price)
-              }}>
+            <Select {...register(`pax.${paxIndex}.${serviceIndex}.duration`)} className="w-3/5" label="Duration" 
+              onSelectionChange={(item: any) => onDurationSelection(item, serviceIndex, durationList, serviceId, servStartTime)}>
               {durationList?.map((item:any) => <SelectItem textValue={item.serviceDuration} key={item.serviceDuration}>{item.serviceDuration} min</SelectItem>)}
             </Select>
 
@@ -403,7 +397,7 @@ const ServiceList = ({ control, paxIndex, register, watch, setValue, serviceList
 
             <Controller name={`pax.${paxIndex}.${serviceIndex}.employeeId`} control={control} rules={{required: true}}
               render={({ field }) => (
-                <AvatarSelect field={field} data={paxEmployeeList} label="Staff" keyName="firstname" showStatus={true} />
+                <AvatarSelect field={field} data={paxEmployeeList} label="Staff" keyName="firstname" showStatus={true} disabledKeys={busyEmployees} />
               )}
             />
 
@@ -454,21 +448,21 @@ const AvatarCard = (props:any) => {
 
 
 const timeList = [
-  {key: "10:00 AM", label: "10:00 AM"},
-  {key: "10:30 AM", label: "10:30 AM"},
-  {key: "11:00 AM", label: "11:00 AM"},
-  {key: "11:30 AM", label: "11:30 AM"},
-  {key: "12:00 PM", label: "12:00 PM"},
-  {key: "12:30 PM", label: "12:30 PM"},
-  {key: "01:00 PM", label: "01:00 PM"},
-  {key: "01:30 PM", label: "01:30 PM"},
-  {key: "02:00 PM", label: "02:00 PM"},
-  {key: "02:30 PM", label: "02:30 PM"},
-  {key: "03:00 PM", label: "03:00 PM"},
-  {key: "03:30 PM", label: "03:30 PM"},
-  {key: "04:00 PM", label: "04:00 PM"},
-  {key: "04:30 PM", label: "04:30 PM"},
-  {key: "05:00 PM", label: "05:00 PM"},
-  {key: "05:30 PM", label: "05:30 PM"},
-  {key: "06:00 PM", label: "06:00 PM"},
+  {key: "10:00", label: "10:00"},
+  {key: "10:30", label: "10:30"},
+  {key: "11:00", label: "11:00"},
+  {key: "11:30", label: "11:30"},
+  {key: "12:00", label: "12:00"},
+  {key: "12:30", label: "12:30"},
+  {key: "13:00", label: "13:00"},
+  {key: "13:30", label: "13:30"},
+  {key: "14:00", label: "14:00"},
+  {key: "14:30", label: "14:30"},
+  {key: "15:00", label: "15:00"},
+  {key: "15:30", label: "15:30"},
+  {key: "16:00", label: "16:00"},
+  {key: "16:30", label: "16:30"},
+  {key: "17:00", label: "17:00"},
+  {key: "17:30", label: "17:30"},
+  {key: "18:00", label: "18:00"},
 ];

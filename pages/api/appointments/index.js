@@ -29,35 +29,15 @@ export default async function handler(req, res) {
         { $unwind: { path: "$service", preserveNullAndEmptyArrays: true }, },
         {
           $addFields: {
-            totalDuration: { $sum: "$pax.duration" },
-            totalPrice: { $sum: "$pax.price" }
-          }
-        },
-        {
-          $addFields: {
             parsedTime: {
-              $regexFind: { input: "$startTime", regex: "^(\\d{1,2}):(\\d{2}) (AM|PM)$" }
+              $split: ["$startTime", ":"]
             }
           }
         },
         {
           $addFields: {
-            hour: { $toInt: { $arrayElemAt: ["$parsedTime.captures", 0] } },
-            minute: { $toInt: { $arrayElemAt: ["$parsedTime.captures", 1] } },
-            period: { $arrayElemAt: ["$parsedTime.captures", 2] }
-          }
-        },
-        {
-          $addFields: {
-            adjustedHour: {
-              $switch: {
-                branches: [
-                  { case: { $and: [{ $eq: ["$period", "PM"] }, { $ne: ["$hour", 12] }] }, then: { $add: ["$hour", 12] } },
-                  { case: { $and: [{ $eq: ["$period", "AM"] }, { $eq: ["$hour", 12] }] }, then: 0 }
-                ],
-                default: "$hour"
-              }
-            }
+            hour: { $toInt: { $arrayElemAt: ["$parsedTime", 0] } },
+            minute: { $toInt: { $arrayElemAt: ["$parsedTime", 1] } }
           }
         },
         {
@@ -67,7 +47,7 @@ export default async function handler(req, res) {
                 year: { $year: "$appointmentDate" },
                 month: { $month: "$appointmentDate" },
                 day: { $dayOfMonth: "$appointmentDate" },
-                hour: "$adjustedHour",
+                hour: "$hour",
                 minute: "$minute"
               }
             }
@@ -142,7 +122,7 @@ export default async function handler(req, res) {
                     startTime: service.startTime,
                     serviceId: service.serviceId,
                     employeeId: service.employeeId,
-                    duration: service.duration,
+                    duration: Number(service.duration),
                     price: service.price,
                     status: true
                 });
@@ -183,7 +163,7 @@ export default async function handler(req, res) {
         await session.abortTransaction();
         session.endSession();
         console.error("Transaction Failed:", error);
-        return { success: false, error: error.message };
+        res.status(500).json(err) 
     }
 
   }
