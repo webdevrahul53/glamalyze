@@ -142,6 +142,7 @@ const NewAssignment = (props:any) => {
     };
   
     const onSubmit = async (data:any) => {
+      setLoading(true)
       data = {...data, totalAmount}
       data.appointmentDate = data.appointmentDate?.toString();
       data.startTime = convertTo24HourFormat(data.startTime);
@@ -285,7 +286,7 @@ const NewAssignment = (props:any) => {
                   </div>
                   <Button color="primary" type="submit" size="lg" className={`w-full ${loading ? "bg-light text-dark":""}`} disabled={loading}> 
                     <SaveIcon width="15" color="white" />  
-                    {loading ? "Loading...": props.customer ? "Update" : "Save"} Appointment
+                    {loading ? "Loading...": props.customer ? "Update Appointment" : "Save Appointment"} 
                   </Button>
                   {/* <Button color="danger" variant="bordered" onPress={() => onDrawerClose()}> Close </Button> */}
                 </DrawerFooter>

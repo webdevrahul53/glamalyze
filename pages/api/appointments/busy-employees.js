@@ -59,7 +59,6 @@ export default async function handler(req, res) {
           employeeId: emp._id,
           nextAvailableTime: formatTime(emp.lastBookingEndTime)
         }));
-        console.log(busyEmployeesWithSlots)
         
         res.status(200).json({
             status: 1,

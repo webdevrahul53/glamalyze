@@ -9,6 +9,14 @@ export default async function handler(req, res) {
     try {
 
       const result = await AppointmentServices.aggregate([
+        { $lookup: { from: "appointments", localField: "appointmentId", foreignField: "_id", as: "appointment", },  },
+        { $lookup: { from: "employees", localField: "employeeId", foreignField: "_id", as: "employee" } },
+        { $lookup: { from: "services", localField: "serviceId", foreignField: "_id", as: "service" } },
+        { $lookup: { from: "customers", localField: "appointment.customerId", foreignField: "_id", as: "customer" } },
+        { $unwind: { path: "$appointment", preserveNullAndEmptyArrays: true }, },
+        { $unwind: { path: "$employee", preserveNullAndEmptyArrays: true }, },
+        { $unwind: { path: "$service", preserveNullAndEmptyArrays: true }, },
+        { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true }, },
         {
           $addFields: {
             parsedTime: {
@@ -43,8 +51,8 @@ export default async function handler(req, res) {
                 }
             }
         },
-        { $project: { _id: 1, appointmentDate: 1, startTime: 1, start: 1, end: 1, employeeId: 1, serviceId: 1, duration: 1, price: 1, 
-            status: 1, createdAt: 1, updatedAt: 1 } },
+        { $project: { _id: 1, customer: 1, bookingId: 1, startTime: 1, start: 1, end: 1, employee: 1, service: 1, duration: 1, price: 1, 
+            status: 1 } },
       ]);
       
       
