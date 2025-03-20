@@ -40,7 +40,7 @@ export default function CalendarViewBookings(){
       })
       
       // console.log();
-      let allSlots = generateTimeSlots(10, 18, 10, data);
+      const allSlots = generateTimeSlots(10, 18, 10, data);
       
       setEvents([...allSlots, ...data]); // Assuming API returns { users: [], totalPages: N }
       // setEvents(data)
