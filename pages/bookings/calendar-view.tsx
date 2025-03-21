@@ -64,7 +64,7 @@ export default function CalendarViewBookings(){
 
   function mergeBookedSlots(emptySlots: any[], bookedSlots: any[]) {
     // Filter out empty slots that overlap with booked slots
-    let filteredEmptySlots = emptySlots.filter((empty) => 
+    const filteredEmptySlots = emptySlots.filter((empty) => 
       !bookedSlots.some(
         (booked) =>
           booked.assetType === empty.assetType &&
@@ -75,7 +75,7 @@ export default function CalendarViewBookings(){
       );
 
     // Combine booked slots and remaining empty slots
-    let mergedSlots = [...filteredEmptySlots, ...bookedSlots];
+    const mergedSlots = [...filteredEmptySlots, ...bookedSlots];
 
     return mergedSlots;
   }
@@ -86,10 +86,10 @@ export default function CalendarViewBookings(){
   function generateTimeSlots(startTime: string, endTime: string, intervalMinutes: number, availableAssets:any, date: string) {
     let slots = [];
     let start = new Date(`${date}T${startTime}:00`);
-    let end = new Date(`${date}T${endTime}:00`);
+    const end = new Date(`${date}T${endTime}:00`);
     
     while (start < end) {
-      let slotEnd = new Date(start.getTime() + intervalMinutes * 60000);
+      const slotEnd = new Date(start.getTime() + intervalMinutes * 60000);
       
       slots.push(
         availableAssets.map((asset:any) => ({
