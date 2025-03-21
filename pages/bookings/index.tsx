@@ -30,7 +30,7 @@ export default function Bookings(){
         setPageRefresh((val) => !val)
       }else toast.error(parsed.message)
     }catch(err:any) {
-      toast.error(err.error.message)
+      toast.error(err.error)
     }
   }
   

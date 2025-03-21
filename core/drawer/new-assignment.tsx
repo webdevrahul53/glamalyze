@@ -1,13 +1,22 @@
-import React, { Suspense } from "react";
+import React, { lazy, Suspense } from "react";
 import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Progress, Select, SelectItem, useDisclosure } from "@heroui/react";
 import { DeleteIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
 import { APPOINTMENT_SERVICES_API_URL, APPOINTMENTS_API_URL, ASSETS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL } from "../utilities/api-url";
-import Link from "next/link";
 import { toast } from "react-toastify";
-import AddEditCustomer from "./add-edit-customer";
+const AddEditCustomer = lazy(() => import("@/core/drawer/add-edit-customer"));
+
+
+const statusCSS: any = {
+  Pending: "bg-gray-200 text-gray-800 border-gray-500",
+  CheckIn: "bg-teal-200 text-teal-800 border-teal-500",
+  Checkout: "bg-purple-200 text-purple-800 border-purple-500",
+  Completed: "bg-green-200 text-green-800 border-green-500",
+  Cancelled: "bg-red-200 text-red-800 border-red-500",
+}
+
 
 const NewAssignment = (props:any) => {
     const { register, handleSubmit, watch, formState: { errors }, control, setValue, reset } = useForm({
@@ -48,7 +57,7 @@ const NewAssignment = (props:any) => {
 
     React.useEffect(() => {
       if(props.bookings){
-        getBookingsById(props?.bookings?.bookingId)
+        getBookingsById(props?.bookings?.appointmentId)
       }else {
 
       }
@@ -174,16 +183,17 @@ const NewAssignment = (props:any) => {
       data = {...data, totalAmount}
       data.appointmentDate = data.appointmentDate?.toString();
       data.startTime = convertTo24HourFormat(data.startTime);
-      data.paymentStatus = "Pending"
-      data.taskStatus = "Pending"
       data.status = true;
+      // console.log(data);
+      // return;
         
       try {
         const appointmentId = props?.bookings?.appointmentId
         let url = appointmentId ? `${APPOINTMENT_SERVICES_API_URL}/${appointmentId}` : APPOINTMENT_SERVICES_API_URL
+        if(appointmentId) data.appointmentId = appointmentId;
         const appointment = await fetch(url, {
             method: appointmentId ? "PUT" : "POST",
-            body: JSON.stringify({appointmentId, appointmentData: data}),
+            body: JSON.stringify(data),
             headers: { "Content-Type": "application/json" }
         })
         const parsed = await appointment.json();
@@ -220,7 +230,10 @@ const NewAssignment = (props:any) => {
           <DrawerContent>
             {(onClose) => (
               <>
-                <DrawerHeader className="flex flex-col gap-1"> {props.bookings ? "Update":"New"} Assignment </DrawerHeader>
+                <DrawerHeader className="flex gap-1"> 
+                  <span>{props?.bookings ? "Update":"New"} Assignment</span>
+                  <span className={`px-2 rounded ms-auto me-4 ${statusCSS[props?.bookings?.taskStatus]}`}> {props?.bookings?.taskStatus} </span>
+                </DrawerHeader>
                 <DrawerBody> 
                 
                   <div className="flex ">
@@ -241,22 +254,22 @@ const NewAssignment = (props:any) => {
                         />
                       )}
                     />
-                    <div className="w-2/5 border-2 p-3 px-2">
-                      <select className="w-100 outline-none pe-3" {...register("startTime", {required: true})}>
+                    <label htmlFor="startTime" className="w-2/5 border-2 p-3 px-2">
+                      <select id="startTime" className="w-100 outline-none pe-3" {...register("startTime", {required: true})}>
                         <option value="">Select Time</option>
                         {timeList.map((value) => (
                           <option value={value.key}>{value.label}</option>
                         ))}
                       </select>
-                    </div>
-                    <div className="w-1/5 border-2 p-3 px-2">
-                      <select className="w-100 outline-none pe-3" value={pax.length} onChange={(event:any) => onPaxChange(+event.target.value)}>
+                    </label>
+                    <label htmlFor="paxValue" className="w-1/5 border-2 p-3 px-2">
+                      <select id="paxValue" className="w-100 outline-none pe-3" value={pax.length} onChange={(event:any) => onPaxChange(+event.target.value)}>
                         <option value="">Pax</option>
                         {Array.from({ length: 5 }, (_, i) => (i + 1).toString())?.map((val: string) => {
                           return <option value={val}>{val}</option>
                         })}
                       </select>
-                    </div>
+                    </label>
                   </div>
                   {errors.startTime && <div className="text-danger text-sm -mt-2 ms-3">Date & Time is not selected</div>}
 
@@ -293,7 +306,7 @@ const NewAssignment = (props:any) => {
 
 
                       
-                  {branchId && <section className="flex items-center px-2 mt-3 gap-3 border-b-5 border-primary">
+                  {branchId && startTime && <section className="flex items-center px-2 mt-3 gap-3 border-b-5 border-primary">
                     {paxFields.map((paxField, paxIndex) => (
                       <Button key={paxField.id} size="sm" color={paxIndex === selectedTab ? "primary":"default"}
                         variant="solid" onPress={() => setSelectedTab(paxIndex)} style={{borderRadius: "2px"}}
@@ -301,7 +314,7 @@ const NewAssignment = (props:any) => {
                     ))}
                   </section>}
 
-                  {branchId && <div className="py-3">
+                  {branchId && startTime && <div className="py-3">
                       {paxFields.map((paxField, paxIndex) => (
                         <div key={paxField.id} style={{
                           visibility: paxIndex === selectedTab ? "visible" : "hidden",

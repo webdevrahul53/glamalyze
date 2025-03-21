@@ -134,7 +134,7 @@ export default function DataGrid(props:any) {
           selectionMode="single"  // Ensure single selection
           onSelectionChange={(keys) => {
             const selectedKey = Array.from(keys)[0]; // Extract the selected value
-            props?.updateStatus(user._id, {taskStatus: selectedKey})
+            props?.updateStatus(user.appointmentId, {taskStatus: selectedKey})
           }}>
           <DropdownItem key="Pending">Pending</DropdownItem>
           <DropdownItem key="CheckIn">Check In</DropdownItem>

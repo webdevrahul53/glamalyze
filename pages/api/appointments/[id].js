@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { connectDB } from "@/core/db";
 import { Appointments } from "../../../core/model/appointments";
 
@@ -8,7 +9,7 @@ export default async function handler(req, res) {
     
     try {
       const result = await Appointments.aggregate([
-        { $match: { bookingId: req.query["bookingId"] } },
+        { $match: { _id: new mongoose.Types.ObjectId(req.query["id"]) } },
         // { $lookup: { from: "branches", localField: "branchId", foreignField: "_id", as: "branch", },  },
         // { $lookup: { from: "customers", localField: "customerId", foreignField: "_id", as: "customer", },  },
         { $lookup: { from: "appointmentpaxes", localField: "paxId", foreignField: "_id", as: "pax", },  },

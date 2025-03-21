@@ -40,7 +40,8 @@ export default async function handler(req, res) {
   }
 
   if (req.method === "PUT") {
-    const { appointmentId, appointmentData } = req.body;
+    const appointmentData = req.body;
+    const appointmentId = req.body.appointmentId;
     const session = await mongoose.startSession();
     session.startTransaction();
   

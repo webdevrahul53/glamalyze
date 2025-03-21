@@ -59,8 +59,9 @@ export default async function handler(req, res) {
           serviceName: "$service.name", taskStatus: "$appointment.taskStatus", paymentStatus: "$appointment.paymentStatus", 
           duration: 1, price: 1, status: 1, createdAt: 1, updatedAt: 1 } },
           
+        { $sort: { createdAt: -1 } },
         { $skip: skip },
-        { $limit: limit }
+        { $limit: limit },
       ])
       
       // Execute both queries in parallel
