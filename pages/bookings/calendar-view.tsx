@@ -84,7 +84,7 @@ export default function CalendarViewBookings(){
 
 
   function generateTimeSlots(startTime: string, endTime: string, intervalMinutes: number, availableAssets:any, date: string) {
-    let slots = [];
+    const slots = [];
     let start = new Date(`${date}T${startTime}:00`);
     const end = new Date(`${date}T${endTime}:00`);
     
