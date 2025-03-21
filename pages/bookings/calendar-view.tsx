@@ -3,7 +3,7 @@ import React from 'react'
 import { PageTitle } from '@/core/common/page-title'
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-import { APPOINTMENTS_API_URL, ASSETS_API_URL } from '@/core/utilities/api-url';
+import { APPOINTMENT_SERVICES_API_URL, ASSETS_API_URL } from '@/core/utilities/api-url';
 import { BathIcon, BedIcon, ChairIcon, SofaIcon } from '@/core/utilities/svgIcons';
 import { Avatar, Tooltip } from '@heroui/react';
 
@@ -44,7 +44,7 @@ export default function CalendarViewBookings(){
 
   const getAppointments = async () => {
     try {
-      const response = await fetch(`${APPOINTMENTS_API_URL}/calendar`);
+      const response = await fetch(`${APPOINTMENT_SERVICES_API_URL}/calendar`);
       let data = await response.json();
       data = data?.map((item: any) => {
         const startDate = new Date(item.start);
@@ -54,7 +54,9 @@ export default function CalendarViewBookings(){
         return item
       })
       
-      const merged = mergeBookedSlots(assetList, data);
+      const merged = mergeBookedSlots(assetList, data || []);
+      console.log(merged);
+      
       setEvents(merged);
       // setEvents(data)
     } catch (error) {
@@ -76,6 +78,14 @@ export default function CalendarViewBookings(){
 
     // Combine booked slots and remaining empty slots
     const mergedSlots = [...filteredEmptySlots, ...bookedSlots];
+    
+    // Sort by status (true first), then by assetNumber
+    mergedSlots.sort((a, b) => {
+      if (b.status === true && a.status !== true) return 1; // Prioritize booked (true)
+      if (a.status === true && b.status !== true) return -1;
+      return Number(a.assetNumber) - Number(b.assetNumber); // Sort by assetNumber
+    });
+
 
     return mergedSlots;
   }

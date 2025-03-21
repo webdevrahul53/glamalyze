@@ -1,12 +1,13 @@
-import React from "react";
-import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Select, SelectItem } from "@heroui/react";
+import React, { Suspense } from "react";
+import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Progress, Select, SelectItem, useDisclosure } from "@heroui/react";
 import { DeleteIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
-import { APPOINTMENTS_API_URL, ASSETS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL } from "../utilities/api-url";
+import { APPOINTMENT_SERVICES_API_URL, APPOINTMENTS_API_URL, ASSETS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL } from "../utilities/api-url";
 import Link from "next/link";
 import { toast } from "react-toastify";
+import AddEditCustomer from "./add-edit-customer";
 
 const NewAssignment = (props:any) => {
     const { register, handleSubmit, watch, formState: { errors }, control, setValue, reset } = useForm({
@@ -25,7 +26,8 @@ const NewAssignment = (props:any) => {
     });
   
 
-    const [error, setError] = React.useState(null)
+    const {isOpen, onOpen, onOpenChange} = useDisclosure();
+    const handleOpen = () => { onOpen(); };
     const [loading, setLoading] = React.useState(false)
     const [branchList, setBranchList] = React.useState([]);
     const [employeeList, setEmployeeList] = React.useState([]);
@@ -45,9 +47,14 @@ const NewAssignment = (props:any) => {
     const currentDate = new Date();
 
     React.useEffect(() => {
+      if(props.bookings){
+        getBookingsById(props?.bookings?.bookingId)
+      }else {
+
+      }
       getCustomerList();
       getBranchList();
-    }, [])
+    }, [props.bookings])
 
 
     React.useEffect(() => {
@@ -59,6 +66,30 @@ const NewAssignment = (props:any) => {
       setValue("pax", [ [{serviceId: null, durationList: [], duration: null, price: null, assetId: null, assetType: null, selectedAsset: null, busyEmployees: [], employeeList: [], employeeId: null}] ])
     }, [startTime, branchId])
   
+
+    const getBookingsById = async (id: string) => {
+      try {
+        const branches = await fetch(`${APPOINTMENTS_API_URL}/${id}`)
+        let parsed = await branches.json();
+
+        parsed.pax = Object.values(
+          parsed.pax.reduce((acc: any, item: any) => {
+            acc[item.paxId] = acc[item.paxId] || [];
+            acc[item.paxId].push(item);
+            return acc;
+          }, {})
+        );
+
+        const {appointmentDate, startTime, branchId, customerId, pax} = parsed
+        reset({
+          appointmentDate: parseDate(new Date(appointmentDate).toISOString().split("T")[0]), 
+          startTime, branchId, customerId, pax, note: null
+        })
+        getBranchById(branchId)
+        
+      }catch(err:any) { toast.error(err.message) }
+
+    }
 
     
     // Helper function to get the next time slot
@@ -84,7 +115,7 @@ const NewAssignment = (props:any) => {
           const branches = await fetch(BRANCH_API_URL)
           const parsed = await branches.json();
           setBranchList(parsed);
-        }catch(err:any) { setError(err) }
+        }catch(err:any) { toast.error(err.message) }
     }
     
     const getBranchById = async (id: string) => {
@@ -93,19 +124,18 @@ const NewAssignment = (props:any) => {
           const parsed = await branches.json();
           setServiceList(parsed?.employeeServices)
           setEmployeeList(parsed?.groupEmployees)
-        }catch(err:any) { setError(err) }
+        }catch(err:any) { toast.error(err.message) }
     }
     const getCustomerList = async () => {
       try {
           const customers = await fetch(CUSTOMERS_API_URL)
           const parsed = await customers.json();
           setCustomerList(parsed);
-        }catch(err:any) { setError(err) }
+        }catch(err:any) { toast.error(err.message) }
     }
 
     const onPaxChange = (value: number) => {
       const prevPax = watch("pax") || []; // Get the current pax array
-    
       let updatedPax = [...prevPax]; // Clone the array
     
       if (updatedPax.length > value) {
@@ -149,21 +179,23 @@ const NewAssignment = (props:any) => {
       data.status = true;
         
       try {
-          const appointment = await fetch(APPOINTMENTS_API_URL, {
-              method: "POST",
-              body: JSON.stringify(data),
-              headers: { "Content-Type": "application/json" }
-          })
-          const parsed = await appointment.json();
-          console.log(parsed);
-          
-          setLoading(false)
-          if(parsed.status){
-            toast.error(null)
-            reset(); 
-            props.onOpenChange();
-            location.reload()
-          }else toast.error(parsed.message)
+        const appointmentId = props?.bookings?.appointmentId
+        let url = appointmentId ? `${APPOINTMENT_SERVICES_API_URL}/${appointmentId}` : APPOINTMENT_SERVICES_API_URL
+        const appointment = await fetch(url, {
+            method: appointmentId ? "PUT" : "POST",
+            body: JSON.stringify({appointmentId, appointmentData: data}),
+            headers: { "Content-Type": "application/json" }
+        })
+        const parsed = await appointment.json();
+        console.log(parsed);
+        
+        setLoading(false)
+        if(parsed.status){
+          toast.error(null)
+          reset(); 
+          props.onOpenChange();
+          location.reload()
+        }else toast.error(parsed.message)
         }catch(err:any) {
           setLoading(false)
           toast.error(err)
@@ -179,11 +211,16 @@ const NewAssignment = (props:any) => {
   
     return (
       <Drawer isOpen={props.isOpen} size="lg" placement={"right"} onOpenChange={props.onOpenChange}>
+        {isOpen && (
+        <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
+          <AddEditCustomer isOpen={isOpen} placement={"left"} onOpenChange={() => {onOpenChange(); getCustomerList()} }  />
+        </Suspense>
+        )}
         <form onSubmit={handleSubmit(onSubmit)} onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}>
           <DrawerContent>
             {(onClose) => (
               <>
-                <DrawerHeader className="flex flex-col gap-1"> {props.customer ? "Update":"New"} Assignment </DrawerHeader>
+                <DrawerHeader className="flex flex-col gap-1"> {props.bookings ? "Update":"New"} Assignment </DrawerHeader>
                 <DrawerBody> 
                 
                   <div className="flex ">
@@ -204,16 +241,22 @@ const NewAssignment = (props:any) => {
                         />
                       )}
                     />
-                    <Select {...register("startTime", {required: true})} label="Select Time">
-                      {timeList.map((value) => (
-                        <SelectItem key={value.key}>{value.label}</SelectItem>
-                      ))}
-                    </Select>
-                    <Select className="w-2/5" label="Pax" onChange={(event:any) => onPaxChange(+event.target.value)}>
-                      {Array.from({ length: 5 }, (_, i) => (i + 1).toString())?.map((val: string) => {
-                        return <SelectItem key={val}>{val}</SelectItem>
-                      })}
-                    </Select>
+                    <div className="w-2/5 border-2 p-3 px-2">
+                      <select className="w-100 outline-none pe-3" {...register("startTime", {required: true})}>
+                        <option value="">Select Time</option>
+                        {timeList.map((value) => (
+                          <option value={value.key}>{value.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="w-1/5 border-2 p-3 px-2">
+                      <select className="w-100 outline-none pe-3" value={pax.length} onChange={(event:any) => onPaxChange(+event.target.value)}>
+                        <option value="">Pax</option>
+                        {Array.from({ length: 5 }, (_, i) => (i + 1).toString())?.map((val: string) => {
+                          return <option value={val}>{val}</option>
+                        })}
+                      </select>
+                    </div>
                   </div>
                   {errors.startTime && <div className="text-danger text-sm -mt-2 ms-3">Date & Time is not selected</div>}
 
@@ -232,7 +275,7 @@ const NewAssignment = (props:any) => {
                     <Autocomplete {...register("customerId", {required: true})} defaultItems={customerList} label="Customer" 
                     labelPlacement="inside" placeholder="Select a customer" variant="bordered"
                     onSelectionChange={(item:any)=> setValue("customerId",item)}
-                    endContent={<Link href={"/customers"}> <Button size="sm"><PlusIcon width={10} />ADD</Button> </Link>}>
+                    endContent={<Button size="sm" onPress={() => handleOpen()}><PlusIcon width={10} />ADD</Button>}>
                     {(user:any) => (
                       <AutocompleteItem key={user._id} textValue={user.name}>
                         <div className="flex gap-2 items-center">
@@ -284,7 +327,7 @@ const NewAssignment = (props:any) => {
                   </div>
                   <Button color="primary" type="submit" size="lg" className={`w-full ${loading ? "bg-light text-dark":""}`} disabled={loading}> 
                     <SaveIcon width="15" color="white" />  
-                    {loading ? "Loading...": props.customer ? "Update Appointment" : "Save Appointment"} 
+                    {loading ? "Loading...": props.bookings ? "Update Appointment" : "Save Appointment"} 
                   </Button>
                   {/* <Button color="danger" variant="bordered" onPress={() => onDrawerClose()}> Close </Button> */}
                 </DrawerFooter>
@@ -360,7 +403,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
       
       const filteredEmployee = employeeList?.filter((item: any) => item.servicesId.includes(serviceId))
       setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, duration ? filteredEmployee : [])
-      setValue(`pax.${paxIndex}.${serviceIndex}.busyEmployees`, [...parsed.busyEmployeesWithSlots, ...selectedEmployeeIds])
+      setValue(`pax.${paxIndex}.${serviceIndex}.busyEmployees`, [...parsed?.busyEmployeesWithSlots || [], ...selectedEmployeeIds])
         
     }catch(err:any) { console.log(err) }
   }

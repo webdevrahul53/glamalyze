@@ -2,15 +2,19 @@
 import DataGrid from '@/core/common/data-grid'
 import { PageTitle } from '@/core/common/page-title'
 import SearchComponent from '@/core/common/search';
-import { APPOINTMENTS_API_URL } from '@/core/utilities/api-url';
+import { APPOINTMENT_SERVICES_API_URL, APPOINTMENTS_API_URL } from '@/core/utilities/api-url';
 import { DownloadIcon } from '@/core/utilities/svgIcons';
-import { Button } from '@heroui/react';
-import React from 'react'
+import { Button, Progress, useDisclosure } from '@heroui/react';
+import React, { lazy, Suspense } from 'react'
 import { toast } from 'react-toastify';
+const NewAssignment = lazy(() => import("@/core/drawer/new-assignment"));
 
 
 
 export default function Bookings(){
+  const {isOpen, onOpen, onOpenChange} = useDisclosure();
+  const handleOpen = () => { onOpen(); };
+  const [selectedBookings, setSelectedBookings] = React.useState(null)
   const [search, setSearch] = React.useState("")
   const [pageRefresh, setPageRefresh] = React.useState(false)
   
@@ -30,6 +34,11 @@ export default function Bookings(){
     }
   }
   
+  const onDrawerClose = () => {
+    setPageRefresh((val) => !val)
+    onOpenChange(); 
+    setSelectedBookings(null)
+  }
 
   return (
     <section className="">
@@ -44,8 +53,14 @@ export default function Bookings(){
             </div>
           </div>
 
-          <DataGrid columns={columns} api={APPOINTMENTS_API_URL} search={search} pageRefresh={pageRefresh} 
-          updateStatus={updateStatus} />
+          {isOpen && (
+          <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
+            <NewAssignment bookings={selectedBookings} isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
+          </Suspense>
+          )}
+
+          <DataGrid columns={columns} api={APPOINTMENT_SERVICES_API_URL} search={search} pageRefresh={pageRefresh} 
+          updateStatus={updateStatus} onEdit={(item:any) => {setSelectedBookings(item); handleOpen()}} />
           
         </div>
     </section>

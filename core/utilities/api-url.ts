@@ -2,6 +2,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export const BRANCH_API_URL = BASE_URL + "/api/branches"
 export const APPOINTMENTS_API_URL = BASE_URL + "/api/appointments"
+export const APPOINTMENT_SERVICES_API_URL = BASE_URL + "/api/appointment-services"
 export const BOOKINGS_API_URL = BASE_URL + "/api/bookings"
 export const SERVICES_API_URL = BASE_URL + "/api/services"
 export const CATEGORIES_API_URL = BASE_URL + "/api/categories"

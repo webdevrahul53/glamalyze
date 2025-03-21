@@ -82,7 +82,7 @@ const AddEditCustomer = (props:any) => {
   
   
     return (
-      <Drawer isOpen={props.isOpen} placement={"right"} onOpenChange={props.onOpenChange}>
+      <Drawer isOpen={props.isOpen} placement={props.placement} onOpenChange={props.onOpenChange}>
         <form onSubmit={handleSubmit(onSubmit)} onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}>
           <DrawerContent>
             {(onClose) => (

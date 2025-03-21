@@ -72,6 +72,8 @@ export default function DataGrid(props:any) {
   };
 
   const deleteUser = async (id:string) => {
+    const confirm = window.confirm("Are you sure to delete ?")
+    if(!confirm) return;
     try {
       await fetch(`${props.api}/${id}`, {method: "DELETE"});
       fetchUsers()

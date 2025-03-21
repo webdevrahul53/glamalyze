@@ -18,6 +18,13 @@ const AppointmentServicesSchema = new mongoose.Schema({
     price: { type: Number, required: true },
     status: { type: Boolean, required: true },
 
+    // useless but need to store for edit form
+    durationList: {type: []},
+    assetType: {type: String},
+    selectedAsset: {type: {}},
+    busyEmployees: {type: []},
+    employeeList: {type: []}, 
+
 }, { timestamps: true });
 
 // AppointmentServicesSchema.index({ name: 1 }, { unique: true });
