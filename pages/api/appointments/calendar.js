@@ -13,10 +13,12 @@ export default async function handler(req, res) {
         { $lookup: { from: "employees", localField: "employeeId", foreignField: "_id", as: "employee" } },
         { $lookup: { from: "services", localField: "serviceId", foreignField: "_id", as: "service" } },
         { $lookup: { from: "customers", localField: "appointment.customerId", foreignField: "_id", as: "customer" } },
+        { $lookup: { from: "assets", localField: "assetId", foreignField: "_id", as: "asset" } },
         { $unwind: { path: "$appointment", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$employee", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$service", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true }, },
+        { $unwind: { path: "$asset", preserveNullAndEmptyArrays: true }, },
         {
           $addFields: {
             parsedTime: {
@@ -51,7 +53,8 @@ export default async function handler(req, res) {
                 }
             }
         },
-        { $project: { _id: 1, customer: 1, bookingId: 1, startTime: 1, start: 1, end: 1, employee: 1, service: 1, duration: 1, price: 1, 
+        { $project: { _id: 1, customer: 1, bookingId: 1, assetType: "$asset.assetType", assetNumber: "$asset.assetNumber", 
+          startTime: 1, start: 1, end: 1, employee: 1, service: 1, duration: 1, price: 1, 
             status: 1 } },
       ]);
       

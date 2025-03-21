@@ -1,4 +1,4 @@
-import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, DotIcon, ListIcon, UserIcon, SettingIcon, UserGroupIcon } from "@/core/utilities/svgIcons";
+import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, DotIcon, ListIcon, UserIcon, SettingIcon, UserGroupIcon, ChairIcon } from "@/core/utilities/svgIcons";
 import Logo from "@/public/logo.svg";
 import Image from 'next/image'
 import Link from "next/link";
@@ -42,7 +42,7 @@ export default function Layout(props:any) {
     <div style={{display: "grid", gridTemplateColumns: "1fr 5fr"}}>
       {/* Left Side */}
       <div>
-        <Image src={Logo} alt="Logo" height={100} className="p-3 my-11 bg-primary" style={{width: "100%"}} />
+        <Image src={Logo} alt="Logo" height={100} className="bg-primary" style={{width: "100%", padding: "11px", marginTop: "45px", marginBottom: "20px"}} />
 
         <ListboxWrapper Icon={DashboardIcon} href={"/"} title="Dashboard"/>
         <ListboxWrapper Icon={CodeBranch} href={"/branches"} title="Branches" />
@@ -59,6 +59,7 @@ export default function Layout(props:any) {
 
         <ListboxWrapper Icon={PeopleIcon} href={"/staffs"} title="Staffs" />
         <ListboxWrapper Icon={UserGroupIcon} href={"/groups"} title="Groups" />
+        <ListboxWrapper Icon={ChairIcon} href={"/asset-management"} title="Asset Management" />
         <ListboxWrapper Icon={UserIcon} href={"/customers"} title="Customers" />
         <ListboxWrapper Icon={SettingIcon} href={"/setting"} title="Settings" />
       </div>

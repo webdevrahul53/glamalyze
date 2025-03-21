@@ -23,10 +23,12 @@ export default async function handler(req, res) {
         { $lookup: { from: "customers", localField: "appointment.customerId", foreignField: "_id", as: "customer", },  },
         { $lookup: { from: "employees", localField: "employeeId", foreignField: "_id", as: "employee" } },
         { $lookup: { from: "services", localField: "serviceId", foreignField: "_id", as: "service" } },
+        { $lookup: { from: "assets", localField: "assetId", foreignField: "_id", as: "asset" } },
         { $unwind: { path: "$appointment", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$employee", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$service", preserveNullAndEmptyArrays: true }, },
+        { $unwind: { path: "$asset", preserveNullAndEmptyArrays: true }, },
         {
           $addFields: {
             parsedTime: {
@@ -53,7 +55,7 @@ export default async function handler(req, res) {
             }
           }
         },
-        { $project: { _id: 1, start: 1, customer: 1, employee: 1, 
+        { $project: { _id: 1, start: 1, customer: 1, employee: 1, asset: 1, 
           serviceName: "$service.name", taskStatus: "$appointment.taskStatus", paymentStatus: "$appointment.paymentStatus", 
           duration: 1, price: 1, status: 1, createdAt: 1, updatedAt: 1 } },
           
@@ -122,6 +124,7 @@ export default async function handler(req, res) {
                     startTime: service.startTime,
                     serviceId: service.serviceId,
                     employeeId: service.employeeId,
+                    assetId: service.assetId,
                     duration: Number(service.duration),
                     price: service.price,
                     status: true
@@ -162,8 +165,7 @@ export default async function handler(req, res) {
     } catch (error) {
         await session.abortTransaction();
         session.endSession();
-        console.error("Transaction Failed:", error);
-        res.status(500).json(err) 
+        res.status(500).json(error) 
     }
 
   }

@@ -3,8 +3,8 @@ import React from 'react'
 import { PageTitle } from '@/core/common/page-title'
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-import { APPOINTMENTS_API_URL } from '@/core/utilities/api-url';
-import { ChairIcon } from '@/core/utilities/svgIcons';
+import { APPOINTMENTS_API_URL, ASSETS_API_URL } from '@/core/utilities/api-url';
+import { BathIcon, BedIcon, ChairIcon, SofaIcon } from '@/core/utilities/svgIcons';
 import { Avatar, Tooltip } from '@heroui/react';
 
 // Localizer (Using Moment.js)
@@ -16,16 +16,31 @@ export default function CalendarViewBookings(){
   const [events, setEvents] = React.useState<any[]>([]);
   const [currentDate, setCurrentDate] = React.useState(new Date());
   const [selectedBookingId, setSelectedBookingId] = React.useState<string | null>(null);
+  const [assetList, setAssetList] = React.useState<any[]>([])
+
+  React.useEffect(() => {
+    getAssetList();
+  },[])
 
   React.useEffect(() => {
     getAppointments();
-  },[])
+  },[assetList])
 
 
   const handleSelectEvent = (event: any) => {
     setSelectedBookingId(event.bookingId); // Store selected bookingId
   };
   
+  const getAssetList = async () => {
+    try {
+      const assets = await fetch(`${ASSETS_API_URL}`)
+      const parsed = await assets.json();
+      
+      const allSlots = generateTimeSlots("10:00", "18:00", 30, parsed, "2025-03-21");
+      setAssetList(allSlots)
+    }catch(err:any) { console.log(err) }
+  }
+
 
   const getAppointments = async () => {
     try {
@@ -39,113 +54,61 @@ export default function CalendarViewBookings(){
         return item
       })
       
-      // console.log();
-      const allSlots = generateTimeSlots(10, 18, 10, data);
-      
-      setEvents([...allSlots, ...data]); // Assuming API returns { users: [], totalPages: N }
+      const merged = mergeBookedSlots(assetList, data);
+      setEvents(merged);
       // setEvents(data)
     } catch (error) {
       console.error("Error fetching users:", error);
     }
   };
 
+  function mergeBookedSlots(emptySlots: any[], bookedSlots: any[]) {
+    // Filter out empty slots that overlap with booked slots
+    let filteredEmptySlots = emptySlots.filter((empty) => 
+      !bookedSlots.some(
+        (booked) =>
+          booked.assetType === empty.assetType &&
+          booked.assetNumber === empty.assetNumber &&
+          booked.start.getTime() < empty.end.getTime() && // Starts before empty slot ends
+          booked.end.getTime() > empty.start.getTime()    // Ends after empty slot starts
+        )
+      );
 
-  // const generateTimeSlots = (startHour:number, endHour:number, seatsPerSlot:number, bookedSlots: any) => {
-  //   const slots = [];
-  //   const currentTime = moment().set({ hour: startHour, minute: 0 });
-  
-  //   while (currentTime.hour() < endHour) {
-  //     const slotStart = currentTime.clone();
-  //     const slotEnd = currentTime.clone().add(30, "minutes");
-  
-  //     const startSlotMinutes = slotStart.hour() * 60 + slotStart.minutes(); 
-  //     const endSlotMinutes = startSlotMinutes + 30;
-  
-  //     const filteredBookings = bookedSlots.filter((booking:any) => {
-  //       const [startHours, startMinutes] = booking.startTime.split(":").map(Number);
-  //       // const [endHours, endMinutes] = booking.end.split("T")[1].split(":").map(Number);
-  //       const endHours = new Date(booking.end).getHours()
-  //       const endMinutes = new Date(booking.end).getMinutes()
-        
-  //       const bookingStart = startHours * 60 + startMinutes;
-  //       const bookingEnd = endHours * 60 + endMinutes;
-  
-  //       // Booking overlaps if it starts before slot ends and ends after slot starts
-  //       return bookingStart < endSlotMinutes && bookingEnd > startSlotMinutes;
-  //     });
-  
-  //     console.log(`Slot: ${slotStart.format("HH:mm")} - ${slotEnd.format("HH:mm")}, Bookings:`, filteredBookings);
-  
-  //     for (let i = 0; i < seatsPerSlot - filteredBookings.length; i++) {
-  //       slots.push({
-  //         start: slotStart.toDate(),
-  //         end: slotEnd.toDate(),
-  //       });
-  //     }
-  
-  //     currentTime.add(30, "minutes");
-  //   }
-  
-  //   return slots;
-  // };
+    // Combine booked slots and remaining empty slots
+    let mergedSlots = [...filteredEmptySlots, ...bookedSlots];
+
+    return mergedSlots;
+  }
 
 
 
-  const generateTimeSlots = (startHour:number, endHour:number, seatsPerSlot:number, bookedSlots: any) => {
-    const slots = [];
-    const currentTime = moment().set({ hour: startHour, minute: 0 });
-  
-    while (currentTime.hour() < endHour) {
-      const slotStart = currentTime.clone();
-      const slotEnd = currentTime.clone().add(30, "minutes");
-  
-      const startSlotMinutes = slotStart.hour() * 60 + slotStart.minutes(); 
-      const endSlotMinutes = startSlotMinutes + 30;
-  
-      // Step 1: Get all overlapping bookings
-      const overlappingBookings:any = bookedSlots.filter((booking:any) => {
-        const [startHours, startMinutes] = booking.startTime.split(":").map(Number);
-        const endHours = new Date(booking.end).getHours();
-        const endMinutes = new Date(booking.end).getMinutes();
-  
-        const bookingStart = startHours * 60 + startMinutes;
-        const bookingEnd = endHours * 60 + endMinutes;
-  
-        return bookingStart < endSlotMinutes && bookingEnd > startSlotMinutes;
-      });
-  
-      // Step 2: Determine actual seat occupancy
-      let occupiedSeats = 0;
-      let lastEndTime:any = null;
-  
-      overlappingBookings.sort((a:any, b:any) => new Date(a?.end).getTime() - new Date(b?.end).getTime()); // Sort by end time
-  
-      overlappingBookings.forEach((booking: any) => {
-        const bookingEndMinutes = new Date(booking.end).getHours() * 60 + new Date(booking.end).getMinutes();
-  
-        if (lastEndTime === null || bookingEndMinutes > lastEndTime) {
-          occupiedSeats++;
-          lastEndTime = bookingEndMinutes;
-        }
-      });
-  
-      console.log(`Slot: ${slotStart.format("HH:mm")} - ${slotEnd.format("HH:mm")}, Bookings:`, overlappingBookings, `Seats Occupied: ${occupiedSeats}`);
-  
-      // Step 3: Create available slots
-      for (let i = 0; i < seatsPerSlot - occupiedSeats; i++) {
-        slots.push({
-          start: slotStart.toDate(),
-          end: slotEnd.toDate(),
-        });
-      }
-  
-      currentTime.add(30, "minutes");
+
+  function generateTimeSlots(startTime: string, endTime: string, intervalMinutes: number, availableAssets:any, date: string) {
+    let slots = [];
+    let start = new Date(`${date}T${startTime}:00`);
+    let end = new Date(`${date}T${endTime}:00`);
+    
+    while (start < end) {
+      let slotEnd = new Date(start.getTime() + intervalMinutes * 60000);
+      
+      slots.push(
+        availableAssets.map((asset:any) => ({
+          title: `Seat ${asset.assetNumber}`,
+          start: new Date(start),
+          end: new Date(slotEnd),
+          assetId: asset._id,
+          assetType: asset.assetType,
+          assetNumber: asset.assetNumber,
+          status: false,
+        }))
+      );
+      
+      start = slotEnd;
     }
-  
-    return slots;
-  };
-  
-  
+    
+    return slots.flat();
+  }
+
 
   return (
     <section className="">
@@ -176,7 +139,7 @@ export default function CalendarViewBookings(){
                 const isBooked = event.bookingId;
                 document.documentElement.style.setProperty(
                   "--event-width",
-                  `calc(100% / 25 - 5px)`
+                  `calc(100% / ${assetList?.length} - 5px)`
                 ); // Pass events.length as a CSS variable
             
                 return {
@@ -187,7 +150,7 @@ export default function CalendarViewBookings(){
                     backgroundColor: "white",
                     border: isSelected && isBooked ? "3px solid blue" : "1px solid gray",
                     color: "black",
-                    width: `calc(100% / 25 - 5px)`, // Distribute width equally
+                    width: `calc(100% / ${assetList?.length} - 5px)`, // Distribute width equally
                     minWidth: "50px",
                     marginLeft: "5px",
                     marginRight: "5px",
@@ -221,8 +184,13 @@ const CustomEvent = (event: any) => {
       }
     >
       <div className="flex flex-col items-center gap-1">
-        <ChairIcon width={30} color={isBooked ? "black": "lightgray"} />
-        <small>{event.event.duration} m </small>
+        <small>{event?.event?.assetNumber}</small>
+        {event?.event?.assetType === "chair" && <ChairIcon width={30} color={isBooked ? "black": "lightgray"} />}
+        {event?.event?.assetType === "sofa" && <SofaIcon width={30} color={isBooked ? "black": "lightgray"} />}
+        {event?.event?.assetType === "bed" && <BedIcon width={30} color={isBooked ? "black": "lightgray"} />}
+        {event?.event?.assetType === "bath" && <BathIcon width={30} color={isBooked ? "black": "lightgray"} />}
+        
+        <small>{event.event.duration}m</small>
       </div>
     </Tooltip>
   </section>

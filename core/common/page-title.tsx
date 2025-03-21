@@ -13,7 +13,7 @@ export const PageTitle = ({title, showCalendarButton = false, showDatatableButto
   }
 
   return ( 
-    <div className="flex bg-primary text-white" style={{padding: "46px"}}>
+    <div className="flex bg-primary text-white" style={{padding: "40px"}}>
         <h1 className="text-4xl">{title}</h1>
         {isOpen && (
           <Suspense fallback={<CircularProgress color="primary" aria-label="Loading..." />}>

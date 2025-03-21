@@ -36,7 +36,7 @@ export default function AvatarSelect({field, data = [], label, keyName, onChange
                         <span className="text-small">{user[keyName]}</span>
                     </div>
                     {showStatus && <>
-                        {employee ? <span style={{fontSize: "10px"}} className={`bg-red-800 ms-auto text-white px-2 rounded`}>Busy till {employee.nextAvailableTime} </span> :
+                        {employee ? <span style={{fontSize: "10px"}} className={`bg-red-800 ms-auto text-white px-2 rounded`}>Busy {employee.nextAvailableTime && ("till " + employee.nextAvailableTime)} </span> :
                         <span style={{fontSize: "10px"}} className={`bg-green-800 ms-auto text-white px-2 rounded`}>Available</span>}
                     </>}
                     

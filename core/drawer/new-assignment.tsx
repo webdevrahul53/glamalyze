@@ -4,7 +4,7 @@ import { DeleteIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
-import { APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL } from "../utilities/api-url";
+import { APPOINTMENTS_API_URL, ASSETS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL } from "../utilities/api-url";
 import Link from "next/link";
 import { toast } from "react-toastify";
 
@@ -15,7 +15,7 @@ const NewAssignment = (props:any) => {
         startTime: null, 
         branchId: null, 
         customerId: null, 
-        pax: [ [{serviceId: null, durationList: [], duration: null, price: null, busyEmployees: [], employeeList: [], employeeId: null}] ],
+        pax: [ [{serviceId: null, durationList: [], duration: null, price: null, assetId: null, assetType: null, selectedAsset: null, busyEmployees: [], employeeList: [], employeeId: null}] ],
         note: null
       }
     });
@@ -56,7 +56,7 @@ const NewAssignment = (props:any) => {
     },[pax])
     
     React.useEffect(() => {
-      setValue("pax", [ [{serviceId: null, durationList: [], duration: null, price: null, busyEmployees: [], employeeList: [], employeeId: null}] ])
+      setValue("pax", [ [{serviceId: null, durationList: [], duration: null, price: null, assetId: null, assetType: null, selectedAsset: null, busyEmployees: [], employeeList: [], employeeId: null}] ])
     }, [startTime, branchId])
   
 
@@ -116,12 +116,10 @@ const NewAssignment = (props:any) => {
         while (updatedPax.length < value) {
           updatedPax.push([{ 
             serviceId: null, 
-            durationList: [], 
-            duration: null,  
             price: null, 
-            busyEmployees: [],
-            employeeList: [], 
-            employeeId: null 
+            duration: null, durationList: [], 
+            assetId: null, assetType: null, selectedAsset: null,
+            employeeId: null, employeeList: [], busyEmployees: [],
           }]);
         }
       }
@@ -315,9 +313,9 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
     setValue(`pax.${paxIndex}.${serviceIndex}.duration`, null)
     setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)
     setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, [])
-    
     const service = serviceList?.find((item: any) => item._id === id)
     setValue(`pax.${paxIndex}.${serviceIndex}.durationList`, service?.variants || [])
+    setValue(`pax.${paxIndex}.${serviceIndex}.assetType`, service?.assetType)
   }
 
   const onDurationSelection = (item: any, serviceIndex: number, durationList: any) => {
@@ -343,6 +341,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
     setValue(`pax.${paxIndex}.${serviceIndex}.startTime`, value)
     watch(`pax.${paxIndex}.${serviceIndex+1}`) && setValue(`pax.${paxIndex}.${serviceIndex+1}.serviceId`, null)
     getBusyEmployeesWithNextSlot(value, duration, serviceIndex)
+    getAvailableAssets(value, duration, serviceIndex)
   }
 
   const getBusyEmployeesWithNextSlot = async (time: string, duration: number, serviceIndex: number) => {
@@ -350,11 +349,52 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
       const branches = await fetch(`${APPOINTMENTS_API_URL}/busy-employees?startTime=${time}&duration=${duration}`)
       const parsed = await branches.json();
       const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
+      const pax = watch(`pax`)
+      let selectedEmployeeIds: string[] = []
+      for(var i in pax){
+        if(i != paxIndex){
+          selectedEmployeeIds.push(...pax[i].map((e:any) => ({employeeId: e.employeeId, nextAvailableTime: ""})))
+        }
+      }
+      console.log(selectedEmployeeIds);
+      
       const filteredEmployee = employeeList?.filter((item: any) => item.servicesId.includes(serviceId))
       setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, duration ? filteredEmployee : [])
-      setValue(`pax.${paxIndex}.${serviceIndex}.busyEmployees`, parsed.busyEmployeesWithSlots)
+      setValue(`pax.${paxIndex}.${serviceIndex}.busyEmployees`, [...parsed.busyEmployeesWithSlots, ...selectedEmployeeIds])
         
     }catch(err:any) { console.log(err) }
+  }
+
+  const getAvailableAssets = async (time: string, duration: number, serviceIndex: number) => {
+    try {
+      const assetType = watch(`pax.${paxIndex}.${serviceIndex}.assetType`)
+      const branches = await fetch(`${ASSETS_API_URL}/available-assets?startTime=${time}&duration=${duration}&assetType=${assetType}`)
+      const parsed = await branches.json();
+      
+      const pax = watch(`pax`)
+      let selectedAssetIds: string[] = []
+      for(var i in pax){
+        if(i != paxIndex){
+          selectedAssetIds.push(...pax[i].map((e:any) => e.assetId))
+        }
+      }
+      let seats = parsed?.availableAssets?.filter((item:any) => !selectedAssetIds.includes(item._id))
+      // console.log(selectedAssetIds, seats);
+      
+      if(seats?.length){
+        setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, seats?.[0]?._id)
+        setValue(`pax.${paxIndex}.${serviceIndex}.selectedAsset`, seats?.[0])
+      }else{
+        toast.error("Asset not available")
+      }
+      
+    }catch(err:any) { console.log(err) }
+  }
+
+  const onServiceRemoved = (serviceIndex: number) => {
+    const nextService = watch(`pax.${paxIndex}.${serviceIndex+1}`)
+    nextService && setValue(`pax.${paxIndex}.${serviceIndex+1}.serviceId`, null)
+    removeService(serviceIndex)
   }
 
   return (
@@ -364,12 +404,14 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
         const durationList = watch(`pax.${paxIndex}.${serviceIndex}.durationList`)
         // const servStartTime = watch(`pax.${paxIndex}.${serviceIndex}.startTime`)
         // const duration = watch(`pax.${paxIndex}.${serviceIndex}.duration`)
-        const price = watch(`pax.${paxIndex}.${serviceIndex}.price`)
+        // const price = watch(`pax.${paxIndex}.${serviceIndex}.price`)
         const paxEmployeeList = watch(`pax.${paxIndex}.${serviceIndex}.employeeList`)
         const busyEmployees = watch(`pax.${paxIndex}.${serviceIndex}.busyEmployees`)
+        const selectedAsset = watch(`pax.${paxIndex}.${serviceIndex}.selectedAsset`)
+        // const assetId = watch(`pax.${paxIndex}.${serviceIndex}.assetId`)
 
         return <div key={serviceField.id} className="flex flex-col gap-2">
-          {/* {servStartTime + "===" + duration + "===" + price + "==="} */}
+          {/* {servStartTime + "===" + duration + "===" + price + "===" + assetId} */}
           
           {errors.pax?.[paxIndex]?.[serviceIndex] && (
             <p className="text-danger text-sm ms-2"> Required fields are mandatory </p>
@@ -398,11 +440,13 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
               )}
             />
 
-            <Input className="w-3/5" type="text" label={"Amount"} readOnly value={price} />
+            <Input className="w-3/5" type="text" label={"Place"} readOnly value={selectedAsset?.assetType?.toUpperCase() + "-" + selectedAsset?.assetNumber} />
           </div>
           
+          {/* <input type="text" className="w-1/5" value={selectedAsset?.assetType?.toUpperCase() + "-" + selectedAsset?.assetNumber} /> */}
+          
 
-          {serviceFields.length > 1 && <button type="button" className="my-2" onClick={() => removeService(serviceIndex)}>❌ Remove Service</button>}
+          {serviceFields.length > 1 && <button type="button" className="my-2" onClick={() => onServiceRemoved(serviceIndex)}>❌ Remove Service</button>}
         </div>
         
         
