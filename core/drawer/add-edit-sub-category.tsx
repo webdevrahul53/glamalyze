@@ -7,10 +7,10 @@ import { Controller, useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelect from "../common/avatar-select";
 import { CATEGORIES_API_URL, SUBCATEGORIES_API_URL } from "../utilities/api-url";
+import { toast } from "react-toastify";
 
 const AddEditSubCategory = (props:any) => {
     const { register, handleSubmit, formState: { errors }, control, reset } = useForm();
-    const [error, setError] = React.useState(null)
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
     const [categoryList, setCategoryList] = React.useState([]);
@@ -52,7 +52,7 @@ const AddEditSubCategory = (props:any) => {
           const category = await fetch(CATEGORIES_API_URL)
           const parsed = await category.json();
           setCategoryList(parsed);
-        }catch(err:any) { setError(err) }
+        }catch(err:any) { toast.error(err.error) }
 
     }
   
@@ -69,14 +69,13 @@ const AddEditSubCategory = (props:any) => {
             
             setLoading(false)
             if(parsed.status){
-                setError(null)
                 reset(); 
                 setImagePreview(null);
                 props.onOpenChange();
-            }else setError(parsed.message)
+            }else toast.error(parsed.message)
           }catch(err:any) {
             setLoading(false)
-            setError(err)
+            toast.error(err.error)
           }
     }
 

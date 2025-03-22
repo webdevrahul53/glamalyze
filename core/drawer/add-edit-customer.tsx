@@ -10,7 +10,6 @@ import { CUSTOMERS_API_URL } from "../utilities/api-url";
 
 const AddEditCustomer = (props:any) => {
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
-    const [error, setError] = React.useState(null)
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false)
 
@@ -55,7 +54,6 @@ const AddEditCustomer = (props:any) => {
             
             setLoading(false)
             if(parsed.status){
-                setError(null)
                 reset(); 
                 setImagePreview(null);
                 props.onOpenChange();
@@ -90,39 +88,39 @@ const AddEditCustomer = (props:any) => {
                 <DrawerHeader className="flex flex-col gap-1"> {props.customer ? "Update":"New"} Customer</DrawerHeader>
                 <DrawerBody> 
   
+                    <div className="text-danger text-sm ms-2 -mt-2">
+                    </div>
                     {imagePreview ? (
-                        <img src={imagePreview} alt="Preview" width="120" height="100" />
-                      ) : (
-                        <label htmlFor="image" className="cursor-pointer">
+                      <img src={imagePreview} alt="Preview" width="120" height="100" />
+                    ) : (
+                      <label htmlFor="image" className="cursor-pointer">
                           <ImageIcon width="120" height="100" />
                         </label>
                       )}
   
   
                     <Input id="image" {...register("image", {required: props.customer ? false : true})} type="file" variant="flat" onChange={handleImageChange} />
+                    {errors.image && <div className="text-danger text-sm ms-2 -mt-2">Image is required</div>}
                     <Input {...register("firstname", {required: true})} label="First Name" placeholder="Enter First Name" type="text" variant="flat" />
+                    {errors.firstname && <div className="text-danger text-sm ms-2 -mt-2">First name is required</div>}
                     <Input {...register("lastname", {required: true})} label="Last Name" placeholder="Enter Last Name" type="text" variant="flat" />
+                    {errors.lastname && <div className="text-danger text-sm ms-2 -mt-2">Last name is required</div>}
                     <RadioGroup {...register("gender", {required: true})} className="my-3 mx-1" label="Gender" orientation="horizontal" defaultValue={props.customer?.gender}>
                       <Radio {...register("gender", {required: true})} value="male">Male</Radio>
                       <Radio {...register("gender", {required: true})} value="female">Female</Radio>
                       <Radio {...register("gender", {required: true})} value="intersex">Intersex</Radio>
                     </RadioGroup>
-                    {errors.gender && <div className="text-danger text-sm ms-3">Gender is required</div>}
+                    {errors.gender && <div className="text-danger text-sm ms-2 -mt-2">Gender is required</div>}
+                    {/* {errors.gender && <div className="text-danger text-sm ms-3">Gender is required</div>} */}
                     
                     <Input {...register("email", {required: true})} label="Email" placeholder="Enter Email" type="text" variant="flat" />
+                    {errors.email && <div className="text-danger text-sm ms-2 -mt-2">Email is required</div>}
                     <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="text" variant="flat" />
+                    {errors.phonenumber && <div className="text-danger text-sm ms-2 -mt-2">Phone Number is required</div>}
                     
                     <Checkbox {...register("status")} color="primary"> Active </Checkbox>
   
   
-                    <div className="text-danger">
-                      {errors.image && <div>Image is required</div>}
-                      {errors.firstname && <div>First name is required</div>}
-                      {errors.lastname && <div>Last name is required</div>}
-                      {errors.email && <div>Email is required</div>}
-                      {errors.phonenumber && <div>Phone Number is required</div>}
-                      {errors.gender && <div>Gender is required</div>}
-                    </div>
   
                 </DrawerBody>
                 <DrawerFooter style={{justifyContent: "start"}}>

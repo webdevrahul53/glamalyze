@@ -7,7 +7,6 @@ import React, { useEffect } from 'react'
 import {Accordion, AccordionItem, Avatar, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger} from "@heroui/react";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "../redux/userSlice/userSlice";
-import { Flip, ToastContainer } from "react-toastify";
 
 
 const ListboxWrapper = ({ Icon, title, href }: any) => {
@@ -98,7 +97,6 @@ export default function Layout(props:any) {
 
           {/* Body */}
           <section style={{height: `calc(100vh - ${navbarHeight}px)`, overflow: "auto"}}>
-            <ToastContainer hideProgressBar position="bottom-left" theme="colored" transition={Flip} />
             {props.children}
           </section>
         

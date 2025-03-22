@@ -11,7 +11,6 @@ import AvatarSelect from "../common/avatar-select";
 
 const AddEditAsset = (props:any) => {
     const { register, handleSubmit, formState: { errors }, control, reset } = useForm();
-    const [error, setError] = React.useState(null)
     const [branchList, setBranchList] = React.useState([]);
     const [loading, setLoading] = React.useState(false)
 
@@ -29,7 +28,7 @@ const AddEditAsset = (props:any) => {
         const branches = await fetch(BRANCH_API_URL)
         const parsed = await branches.json();
         setBranchList(parsed);
-      }catch(err:any) { setError(err) }
+      }catch(err:any) { toast.error(err.error) }
     }
     
     const onSubmit = async (data:any) => {
@@ -46,7 +45,6 @@ const AddEditAsset = (props:any) => {
         
         setLoading(false)
         if(parsed.status){
-            setError(null)
             reset(); 
             props.onOpenChange();
         }else toast.error(parsed.message)

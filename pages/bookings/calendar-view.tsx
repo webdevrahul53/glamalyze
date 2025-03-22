@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react'
+import React, { Suspense } from 'react'
 import { PageTitle } from '@/core/common/page-title'
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import { APPOINTMENT_SERVICES_API_URL, ASSETS_API_URL } from '@/core/utilities/api-url';
 import { BathIcon, BedIcon, ChairIcon, SofaIcon } from '@/core/utilities/svgIcons';
-import { Avatar, Tooltip } from '@heroui/react';
+import { Avatar, Progress, Tooltip, useDisclosure } from '@heroui/react';
+import NewAppointment from '@/core/drawer/new-appointment';
+import { taskStatusCSS } from '@/core/common/data-grid';
 
 // Localizer (Using Moment.js)
 const localizer = momentLocalizer(moment);
@@ -13,36 +15,36 @@ const localizer = momentLocalizer(moment);
 
 
 export default function CalendarViewBookings(){
+  const {isOpen, onOpen, onOpenChange} = useDisclosure();
+  const handleOpen = () => { onOpen(); };
   const [events, setEvents] = React.useState<any[]>([]);
   const [currentDate, setCurrentDate] = React.useState(new Date());
-  const [selectedBookingId, setSelectedBookingId] = React.useState<string | null>(null);
+  const [selectedBooking, setSelectedBooking] = React.useState<any>(null);
   const [assetList, setAssetList] = React.useState<any[]>([])
+  const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
     getAssetList();
-  },[])
-
-  React.useEffect(() => {
-    getAppointments();
-  },[assetList])
-
+  },[currentDate])
 
   const handleSelectEvent = (event: any) => {
-    setSelectedBookingId(event.bookingId); // Store selected bookingId
+    setSelectedBooking(event); // Store selected bookingId
   };
   
   const getAssetList = async () => {
+    setLoading(true)
     try {
       const assets = await fetch(`${ASSETS_API_URL}`)
       const parsed = await assets.json();
       
-      const allSlots = generateTimeSlots("10:00", "18:00", 30, parsed, "2025-03-21");
-      setAssetList(allSlots)
+      const date = currentDate.toISOString().split("T")[0]
+      const allSlots = generateTimeSlots("10:00", "18:00", 30, parsed, date);
+      getAppointments(allSlots);
     }catch(err:any) { console.log(err) }
   }
 
 
-  const getAppointments = async () => {
+  const getAppointments = async (allSlots:any) => {
     try {
       const response = await fetch(`${APPOINTMENT_SERVICES_API_URL}/calendar`);
       let data = await response.json();
@@ -54,12 +56,14 @@ export default function CalendarViewBookings(){
         return item
       })
       
-      const merged = mergeBookedSlots(assetList, data || []);
-      console.log(merged);
+      const merged = mergeBookedSlots(allSlots, data || []);
       
+      setAssetList(allSlots)
       setEvents(merged);
       // setEvents(data)
+      setLoading(false)
     } catch (error) {
+      setLoading(false)
       console.error("Error fetching users:", error);
     }
   };
@@ -120,12 +124,25 @@ export default function CalendarViewBookings(){
   }
 
 
+  const onDrawerClose = () => {
+    // setPageRefresh((val) => !val)
+    onOpenChange(); 
+    setSelectedBooking(null)
+  }
+
   return (
     <section className="">
         <PageTitle title="Bookings" showDatatableButton />
 
+        {isOpen && (
+          <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
+            <NewAppointment bookings={selectedBooking} isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
+          </Suspense>
+        )}
+
         <div className="bg-white rounded p-2" style={{margin: "-30px 40px"}}>
           <div style={{ height: 520 }}>
+            {loading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
             <Calendar
               localizer={localizer}
               events={events}
@@ -142,10 +159,11 @@ export default function CalendarViewBookings(){
               step={10} // Minutes per time slot (default: 30)
               timeslots={1} // Number of slots per hour (default: 2)
               onSelectEvent={handleSelectEvent}
-              onSelectSlot={(item: any) => console.log(item)}
+              onDoubleClickEvent={() => handleOpen()}
+              onSelectSlot={(item:any) => console.log(item)}
               components={{event: CustomEvent}}
               eventPropGetter={(event:any) => {
-                const isSelected = event.bookingId === selectedBookingId;
+                const isSelected = event.bookingId === selectedBooking?.bookingId;
                 const isBooked = event.bookingId;
                 document.documentElement.style.setProperty(
                   "--event-width",
@@ -181,17 +199,16 @@ export default function CalendarViewBookings(){
 const CustomEvent = (event: any) => {
   const isBooked = event.event.bookingId;
   return <section>
-    <Tooltip 
-      content={isBooked ?  <div className="p-4">
+    <Tooltip isDisabled={!isBooked}
+      content={<div className="p-4">
           <AvatarCard {...event?.event?.customer} />
-          <div className="text-xl fw-bolder mt-3">{event?.event?.start.toDateString()} </div>
-          <div className="text-lg">Booking Id: {event?.event?.bookingId}</div>
+          <div className="text-xl fw-bolder mt-3">{event?.event?.start.toDateString()} {event?.event?.startTime} </div>
+          {/* <div className="text-lg">Booking Id: {event?.event?.bookingId}</div> */}
           <div className="text-lg">Service: {event?.event?.service?.name}</div>
           <div className="text-lg">Price: Rs. {event?.event?.price}</div>
-          <div className="text-lg">Duration: {event?.event?.duration} min</div>
+          <span className={`${taskStatusCSS[event?.event?.taskStatus]} p-1 rounded text-center cursor-pointer float-right`}>{event?.event?.taskStatus}</span>
           {/* <AvatarCard {...event.event.employee} /> */}
-        </div> : <></>
-      }
+        </div>}
     >
       <div className="flex flex-col items-center gap-1">
         <small>{event?.event?.assetNumber}</small>

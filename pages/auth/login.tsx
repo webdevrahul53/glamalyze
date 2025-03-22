@@ -6,12 +6,12 @@ import { useRouter } from 'next/router';
 import React from 'react'
 import { useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
 
 export default function Login() {
     const dispatch = useDispatch();
     const router = useRouter();
     const { register, handleSubmit, formState: { errors } } = useForm();
-    const [error, setError] = React.useState(null)
     const [isLoading, setLoading] = React.useState(false)
 
 
@@ -30,12 +30,11 @@ export default function Login() {
             setLoading(false)
             if(parsedUser.status){
                 dispatch(setUser(parsedUser.data))
-                setError(null)
                 router.push("/")
-            }else setError(parsedUser.message)
+            }else toast.error(parsedUser.message)
         }catch(err:any) {
             setLoading(false)
-            setError(err)
+            toast.error(err.error)
         }
     }
 
@@ -48,7 +47,6 @@ export default function Login() {
             <Input className="my-4" {...register("password", {required: true})} label="Password" placeholder="Enter your password" type="password" variant="bordered" />
 
             <div className="pb-2 text-red-700">
-                {error && <div>{error}</div>}
                 {errors.email && <div>Email is required</div>}
                 {errors.password && <div>Password is required</div>}
             </div>

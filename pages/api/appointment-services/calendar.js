@@ -53,7 +53,8 @@ export default async function handler(req, res) {
                 }
             }
         },
-        { $project: { _id: 1, customer: 1, bookingId: 1, assetType: "$asset.assetType", assetNumber: "$asset.assetNumber", 
+        { $project: { _id: 1, appointmentId: 1, customer: 1, bookingId: 1, assetType: "$asset.assetType", assetNumber: "$asset.assetNumber", 
+          taskStatus: "$appointment.taskStatus", paymentStatus: "$appointment.paymentStatus",
           startTime: 1, start: 1, end: 1, employee: 1, service: 1, duration: 1, price: 1, 
             status: 1 } },
       ]);

@@ -7,7 +7,7 @@ import { DownloadIcon } from '@/core/utilities/svgIcons';
 import { Button, Progress, useDisclosure } from '@heroui/react';
 import React, { lazy, Suspense } from 'react'
 import { toast } from 'react-toastify';
-const NewAssignment = lazy(() => import("@/core/drawer/new-assignment"));
+const NewAppointment = lazy(() => import("@/core/drawer/new-appointment"));
 
 
 
@@ -55,7 +55,7 @@ export default function Bookings(){
 
           {isOpen && (
           <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
-            <NewAssignment bookings={selectedBookings} isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
+            <NewAppointment bookings={selectedBookings} isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
           </Suspense>
           )}
 

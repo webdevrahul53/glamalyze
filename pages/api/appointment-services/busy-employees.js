@@ -8,50 +8,59 @@ export default async function handler(req, res) {
   if (req.method === "GET") {
     const startTime = req.query["startTime"]
     const duration = req.query["duration"]
+    const appointmentDate = req.query["appointmentDate"]
     try {
         // Find busy employees with their latest booking time
         const busyEmployees = await AppointmentServices.aggregate([
-            {
-              $addFields: {
-                startDateTime: {
-                  $dateFromString: {
-                    dateString: { $concat: ["2023-01-01T", "$startTime", ":00.000Z"] },
-                    format: "%Y-%m-%dT%H:%M:%S.%LZ"
-                  }
+          {
+            $match: {
+              appointmentDate: {
+                $gte: new Date(`${appointmentDate}T00:00:00.000Z`),
+                $lt: new Date(`${appointmentDate}T23:59:59.999Z`)
+              }
+            }
+          },
+          {
+            $addFields: {
+              startDateTime: {
+                $dateFromString: {
+                  dateString: { $concat: ["2023-01-01T", "$startTime", ":00.000Z"] },
+                  format: "%Y-%m-%dT%H:%M:%S.%LZ"
                 }
               }
-            },
-            {
-              $match: {
-                $or: [
-                  {
-                    startDateTime: { $lte: new Date(`2023-01-01T${startTime}:00.000Z`) },
-                    $expr: { $gte: [{ $dateAdd: { startDate: "$startDateTime", unit: "minute", amount: { $toInt: "$duration" } } }, new Date(`2023-01-01T${startTime}:00.000Z`)] }
-                  },
-                  {
-                    startDateTime: {
-                      $gte: new Date(`2023-01-01T${startTime}:00.000Z`),
-                      $lt: new Date(`2023-01-01T${getNextTimeSlot(startTime, parseInt(duration))}:00.000Z`)
-                    }
+            }
+          },
+          {
+            $match: {
+              $or: [
+                {
+                  startDateTime: { $lte: new Date(`2023-01-01T${startTime}:00.000Z`) },
+                  $expr: { $gte: [{ $dateAdd: { startDate: "$startDateTime", unit: "minute", amount: { $toInt: "$duration" } } }, new Date(`2023-01-01T${startTime}:00.000Z`)] }
+                },
+                {
+                  startDateTime: {
+                    $gte: new Date(`2023-01-01T${startTime}:00.000Z`),
+                    $lt: new Date(`2023-01-01T${getNextTimeSlot(startTime, parseInt(duration))}:00.000Z`)
                   }
-                ]
-              }
-            },
-            {
-              $group: {
-                _id: "$employeeId",
-                lastBookingEndTime: {
-                  $max: {
-                    $dateAdd: {
-                      startDate: "$startDateTime",
-                      unit: "minute",
-                      amount: { $toInt: "$duration" }
-                    }
+                }
+              ]
+            }
+          },
+          {
+            $group: {
+              _id: "$employeeId",
+              lastBookingEndTime: {
+                $max: {
+                  $dateAdd: {
+                    startDate: "$startDateTime",
+                    unit: "minute",
+                    amount: { $toInt: "$duration" }
                   }
                 }
               }
             }
-          ]);
+          }
+        ]);
           
     
         // Format the output

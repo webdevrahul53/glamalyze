@@ -2,7 +2,7 @@ import React, { lazy, Suspense } from 'react'
 import { CalendarIcon, ListIcon, PlusIcon } from '../utilities/svgIcons'
 import { CircularProgress, useDisclosure } from '@heroui/react';
 import Link from 'next/link';
-const NewAssignment = lazy(() => import("@/core/drawer/new-assignment"));
+const NewAppointment = lazy(() => import("@/core/drawer/new-appointment"));
 
 export const PageTitle = ({title, showCalendarButton = false, showDatatableButton = false}: {title: string, showCalendarButton?: boolean, showDatatableButton?: boolean}) => {
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
@@ -17,13 +17,13 @@ export const PageTitle = ({title, showCalendarButton = false, showDatatableButto
         <h1 className="text-4xl">{title}</h1>
         {isOpen && (
           <Suspense fallback={<CircularProgress color="primary" aria-label="Loading..." />}>
-            <NewAssignment isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
+            <NewAppointment isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
           </Suspense>
         )}
         <div className="flex items-center ms-auto gap-3">
           <div className="flex items-center bg-secondary gap-2 p-3 px-6 rounded cursor-pointer" onClick={() => handleOpen()}>
               <PlusIcon  width={15} height={15} color="white" />
-              <div>Assignment</div>
+              <div>Appointment</div>
           </div>
           {showCalendarButton && <Link href={"/bookings/calendar-view"} className="flex items-center bg-light text-black gap-2 p-3 px-6 rounded cursor-pointer">
               <CalendarIcon  width={15} height={15} color="black" />

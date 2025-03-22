@@ -7,7 +7,12 @@ const EmployeesSchema = mongoose.Schema({
     image:{type:String},
     firstname:{type:String,required:true},
     lastname:{type:String,required:true},
-    phonenumber:{type:String,required:true},
+    phonenumber:{
+        type: String,
+        required: true,
+        unique: true,
+        match: [/^\+\d{1,3}[- ]?\d{7,12}$/, "Invalid international phone number"], 
+    },
     email:{
         type:String, required:true, unique:true,
         match:/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/

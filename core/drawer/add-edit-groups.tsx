@@ -3,12 +3,12 @@ import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardHeader, Check
 import { DeleteIcon, SaveIcon } from "../utilities/svgIcons";
 import { useForm } from "react-hook-form";
 import { BRANCH_API_URL, EMPLOYEES_API_URL, GROUP_API_URL } from "../utilities/api-url";
+import { toast } from "react-toastify";
 
 const AddEditGroup = (props:any) => {
     const { register, handleSubmit, control, formState: { errors }, reset } = useForm({
       defaultValues: {groupname: null, branchId: null, status: false}
     });
-    const [error, setError] = React.useState(null)
     const [loading, setLoading] = React.useState(false)
     const [branchList, setBranchList] = React.useState([]);
     const [employeeList, setEmployeeList] = React.useState([]);
@@ -31,7 +31,7 @@ const AddEditGroup = (props:any) => {
           const branches = await fetch(BRANCH_API_URL)
           const parsed = await branches.json();
           setBranchList(parsed);
-        }catch(err:any) { setError(err) }
+        }catch(err:any) { toast.error(err.error) }
     }
     
     const getEmployeeList = async () => {
@@ -39,7 +39,7 @@ const AddEditGroup = (props:any) => {
           const employee = await fetch(EMPLOYEES_API_URL)
           const parsed = await employee.json();
           setEmployeeList(parsed);
-        }catch(err:any) { setError(err) }
+        }catch(err:any) { toast.error(err.error) }
     }
 
     const onServiceSelection = (value: any) => {
@@ -65,14 +65,13 @@ const AddEditGroup = (props:any) => {
         
         setLoading(false)
         if(parsed.status){
-            setError(null)
             reset(); 
             props.onOpenChange();
             data?.branchId && assignGroupToBranch(data?.branchId, parsed?._id)
-        }else setError(parsed.message)
+        }else toast.error(parsed.message)
       }catch(err:any) {
         setLoading(false)
-        setError(err)
+        toast.error(err.error)
       }
   
     }
@@ -89,10 +88,10 @@ const AddEditGroup = (props:any) => {
         const parsed = await branch.json();
         if(parsed.status){
           setLoading(false)
-        }else setError(parsed.message)
+        }else toast.error(parsed.message)
       } catch (err:any) {
         setLoading(false)
-        setError(err)
+        toast.error(err.error)
       }
     }
 

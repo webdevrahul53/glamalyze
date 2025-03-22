@@ -112,7 +112,7 @@ export default async function handler(req, res) {
     }).catch(err=>{
         if (err.code === 11000) {
           // Duplicate key err
-          res.status(400).json({ status: false, message: "Email already exists" });
+          res.status(400).json({ status: false, message: "Duplicate Email or Phone Number" });
         } else {
           res.status(500).json({ status: false, message: err.message });
         }

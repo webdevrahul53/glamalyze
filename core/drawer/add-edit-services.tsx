@@ -7,6 +7,7 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelect from "../common/avatar-select";
 import { CATEGORIES_API_URL, SERVICES_API_URL, SUBCATEGORIES_API_URL } from "../utilities/api-url";
+import { toast } from "react-toastify";
 
 const AddEditServices = (props:any) => {
     const { register, handleSubmit, formState: { errors }, control, reset } = useForm({
@@ -14,7 +15,6 @@ const AddEditServices = (props:any) => {
     });
     const { fields, append, remove } = useFieldArray({ control, name: "variants" });
 
-    const [error, setError] = React.useState(null)
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
     const [categoryList, setCategoryList] = React.useState([]);
@@ -56,7 +56,7 @@ const AddEditServices = (props:any) => {
           const category = await fetch(CATEGORIES_API_URL)
           const parsed = await category.json();
           setCategoryList(parsed);
-        }catch(err:any) { setError(err) }
+        }catch(err:any) { toast.error(err.error) }
     }
     const getSubCategoryList = async (id:string) => {
       if(!id) return;
@@ -64,7 +64,7 @@ const AddEditServices = (props:any) => {
           const category = await fetch(`${SUBCATEGORIES_API_URL}?categoryId=${id}`)
           const parsed = await category.json();
           setSubCategoryList(parsed);
-        }catch(err:any) { setError(err) }
+        }catch(err:any) { toast.error(err.error) }
     }
   
     const saveServices = async (data:any) => {
@@ -80,14 +80,13 @@ const AddEditServices = (props:any) => {
             
             setLoading(false)
             if(parsed.status){
-                setError(null)
                 reset(); 
                 setImagePreview(null);
                 props.onOpenChange();
-            }else setError(parsed.message)
+            }else toast.error(parsed.message)
           }catch(err:any) {
             setLoading(false)
-            setError(err)
+            toast.error(err.error)
           }
     }
 

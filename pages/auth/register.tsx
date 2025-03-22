@@ -4,10 +4,10 @@ import Link from 'next/link'
 import { useRouter } from 'next/router';
 import React from 'react'
 import { useForm } from 'react-hook-form';
+import { toast } from 'react-toastify';
 
 export default function Register() {
   const { register, handleSubmit, formState: { errors } } = useForm();
-  const [error, setError] = React.useState('')
   const router = useRouter();
 
 
@@ -23,9 +23,9 @@ export default function Register() {
         const parsedUser = await user.json();
         if(parsedUser.status){
             router.push('/auth/login')
-        }else setError(parsedUser.message)
+        }else toast.error(parsedUser.message)
     }catch(err:any) {
-        setError(err)
+        toast.error(err.error)
     }
 }
 
@@ -40,7 +40,6 @@ export default function Register() {
         <Input className="my-4" {...register("password", {required: true})} label="Password" placeholder="Enter your password" type="password" variant="bordered" />
 
         <div className="pb-2 text-red-700">
-            {errors && <div>{error}</div>}
             {errors.name && <div>Name is required</div>}
             {errors.email && <div>Email is required</div>}
             {errors.password && <div>Password is required</div>}

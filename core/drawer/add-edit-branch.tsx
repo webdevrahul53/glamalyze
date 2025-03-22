@@ -8,11 +8,11 @@ import { v4 } from "uuid";
 import AvatarSelectMultiple from "../common/avatar-select-multiple";
 import AvatarSelect from "../common/avatar-select";
 import { BRANCH_API_URL, EMPLOYEES_API_URL, SERVICES_API_URL } from "../utilities/api-url";
+import { toast } from "react-toastify";
 
 
 const AddEditBranch = (props:any) => {
     const { register, handleSubmit, setValue, setError, formState: { errors }, control, reset } = useForm();
-    const [error, setErrors] = React.useState(null)
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
     const [serviceList, setServiceList] = React.useState([]);
@@ -65,7 +65,7 @@ const AddEditBranch = (props:any) => {
           const services = await fetch(SERVICES_API_URL)
           const parsed = await services.json();
           setServiceList(parsed);
-        }catch(err:any) { setErrors(err) }
+        }catch(err:any) { toast.error(err.error) }
     }
 
     const getEmployeeList = async () => {
@@ -73,7 +73,7 @@ const AddEditBranch = (props:any) => {
           const employees = await fetch(EMPLOYEES_API_URL)
           const parsed = await employees.json();
           setEmployeeList(parsed);
-        }catch(err:any) { setErrors(err) }
+        }catch(err:any) { toast.error(err.error) }
     }
   
     const savebranches = async (data:any) => {
@@ -89,14 +89,13 @@ const AddEditBranch = (props:any) => {
             
             setLoading(false)
             if(parsed.status){
-                setErrors(null)
                 reset(); 
                 setImagePreview(null);
                 props.onOpenChange();
-            }else setErrors(parsed.message)
+            }else toast.error(parsed.message)
           }catch(err:any) {
             setLoading(false)
-            setErrors(err)
+            toast.error(err.error)
           }
     }
 

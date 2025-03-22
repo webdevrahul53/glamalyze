@@ -18,7 +18,7 @@ const roleCSS: any = {
   Staff: "bg-red-100 text-red-800"
 }
 
-const statusCSS: any = {
+export const taskStatusCSS: any = {
   Pending: "bg-gray-200 text-gray-800 border-gray-500",
   CheckIn: "bg-teal-200 text-teal-800 border-teal-500",
   Checkout: "bg-purple-200 text-purple-800 border-purple-500",
@@ -128,7 +128,7 @@ export default function DataGrid(props:any) {
     }else if(columnKey === "taskStatus"){
       return <Dropdown >
         <DropdownTrigger>
-          <div className={`${statusCSS[cellValue]} p-1 rounded text-center cursor-pointer`}>{cellValue}</div>
+          <div className={`${taskStatusCSS[cellValue]} p-1 rounded text-center cursor-pointer`}>{cellValue}</div>
         </DropdownTrigger>
         <DropdownMenu aria-label="Static Actions" 
           selectionMode="single"  // Ensure single selection

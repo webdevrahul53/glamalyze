@@ -10,6 +10,7 @@ import { Provider } from "react-redux";
 import { store } from "@/core/redux/store";
 import React from "react";
 import AuthGuard from "@/core/utilities/authguard";
+import { Flip, ToastContainer } from "react-toastify";
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <Provider store={store}>
         <HeroUIProvider>
+          <ToastContainer hideProgressBar position="bottom-left" theme="colored" transition={Flip} />
           {authRoutes.includes(router.pathname) ? (
             <Component {...pageProps} />
           ) : (

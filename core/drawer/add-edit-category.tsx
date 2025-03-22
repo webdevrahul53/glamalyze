@@ -6,10 +6,10 @@ import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
 import { useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import { CATEGORIES_API_URL } from "../utilities/api-url";
+import { toast } from "react-toastify";
 
 const AddEditCategory = (props:any) => {
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
-    const [error, setError] = React.useState(null)
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false)
 
@@ -54,14 +54,13 @@ const AddEditCategory = (props:any) => {
             
             setLoading(false)
             if(parsed.status){
-                setError(null)
                 reset(); 
                 setImagePreview(null);
                 props.onOpenChange();
-            }else setError(parsed.message)
+            }else toast.error(parsed.message)
           }catch(err:any) {
             setLoading(false)
-            setError(err)
+            toast.error(err.error)
           }
     }
 

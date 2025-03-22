@@ -91,6 +91,8 @@ export default function Groups() {
                 </DropdownTrigger>
                 <DropdownMenu aria-label="Static Actions" selectionMode="single"
                   onSelectionChange={(keys) => {
+                    const confirm = window.confirm("Are you sure to proceed ?")
+                    if(!confirm) return;
                     const branchId = Array.from(keys)[0]; // Extract the selected value
                     selectedKeys.forEach((id: string) => (updateGroup(branchId, id)))
                     setPageRefresh((val) => !val)

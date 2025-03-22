@@ -12,7 +12,12 @@ const CustomersSchema = mongoose.Schema({
         type:String, required:true, unique:true,
         match:/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     },
-    phonenumber:{type:String,required:true},
+    phonenumber:{
+        type: String,
+        required: true,
+        unique: true,
+        match: [/^\+\d{1,3}[- ]?\d{7,12}$/, "Invalid international phone number"], 
+    },
     status:{type:Boolean,required:true},
 },{ timestamps: true })
 

@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from "react";
 import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Progress, Select, SelectItem, useDisclosure } from "@heroui/react";
-import { DeleteIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
+import { ChairIcon, CheckIcon, DeleteIcon, DoorOpenIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
@@ -18,7 +18,8 @@ const statusCSS: any = {
 }
 
 
-const NewAssignment = (props:any) => {
+const NewAppointment = (props:any) => {
+    const appointmentId = props?.bookings?.appointmentId;
     const { register, handleSubmit, watch, formState: { errors }, control, setValue, reset } = useForm({
       defaultValues: {
         appointmentDate: parseDate(new Date().toISOString().split("T")[0]), 
@@ -56,14 +57,24 @@ const NewAssignment = (props:any) => {
     const currentDate = new Date();
 
     React.useEffect(() => {
-      if(props.bookings){
-        getBookingsById(props?.bookings?.appointmentId)
+      if(appointmentId){
+        getBookingsById(appointmentId)
       }else {
 
       }
       getCustomerList();
       getBranchList();
-    }, [props.bookings])
+    }, [appointmentId])
+
+    // For calendar purpose
+    React.useEffect(() => {
+      if(!props?.bookings) return;
+      const date = parseDate(new Date(props?.bookings?.start)?.toISOString().split("T")[0])
+      const time: any = convertTo24HourFormat(new Date(props?.bookings?.start).toLocaleTimeString())
+      console.log(time)
+      setValue("appointmentDate", date)
+      setValue("startTime", time)
+    }, [props?.bookings])
 
 
     React.useEffect(() => {
@@ -77,6 +88,7 @@ const NewAssignment = (props:any) => {
   
 
     const getBookingsById = async (id: string) => {
+      if(!id) return;
       try {
         const branches = await fetch(`${APPOINTMENTS_API_URL}/${id}`)
         let parsed = await branches.json();
@@ -188,7 +200,6 @@ const NewAssignment = (props:any) => {
       // return;
         
       try {
-        const appointmentId = props?.bookings?.appointmentId
         let url = appointmentId ? `${APPOINTMENT_SERVICES_API_URL}/${appointmentId}` : APPOINTMENT_SERVICES_API_URL
         if(appointmentId) data.appointmentId = appointmentId;
         const appointment = await fetch(url, {
@@ -231,7 +242,7 @@ const NewAssignment = (props:any) => {
             {(onClose) => (
               <>
                 <DrawerHeader className="flex gap-1"> 
-                  <span>{props?.bookings ? "Update":"New"} Assignment</span>
+                  <span>{appointmentId ? "Update":"New"} Appointment</span>
                   <span className={`px-2 rounded ms-auto me-4 ${statusCSS[props?.bookings?.taskStatus]}`}> {props?.bookings?.taskStatus} </span>
                 </DrawerHeader>
                 <DrawerBody> 
@@ -338,11 +349,15 @@ const NewAssignment = (props:any) => {
                     <h5 className="text-xl">Subtotal :</h5>
                     <h5 className="text-xl">Rs. {totalAmount}</h5>
                   </div>
-                  <Button color="primary" type="submit" size="lg" className={`w-full ${loading ? "bg-light text-dark":""}`} disabled={loading}> 
-                    <SaveIcon width="15" color="white" />  
-                    {loading ? "Loading...": props.bookings ? "Update Appointment" : "Save Appointment"} 
-                  </Button>
-                  {/* <Button color="danger" variant="bordered" onPress={() => onDrawerClose()}> Close </Button> */}
+                  <div className="flex items-center gap-3">
+                    <Button color="primary" type="submit" className={`w-full ${loading ? "bg-light text-dark":""}`} disabled={loading}> 
+                      <SaveIcon width="15" color="white" />  
+                      {loading ? "Loading...": appointmentId ? "Update Appointment" : "Save Appointment"} 
+                    </Button>
+                    {props?.bookings?.taskStatus === "Pending" && <Button color="secondary" variant="bordered" className="w-full border-2 border-teal-600 text-xl text-teal-600"> <ChairIcon width="15" height="15" color="teal" /> Check In </Button>}
+                    {props?.bookings?.taskStatus === "CheckIn" && <Button color="secondary" variant="bordered" className="w-full border-2 border-purple-600 text-xl text-purple-600"> <DoorOpenIcon width="15" height="15" color="purple" /> Check Out </Button>}
+                    {props?.bookings?.taskStatus === "Checkout" && <Button variant="bordered" className="w-full border-2 border-green-600 text-xl text-green-600"> <CheckIcon width="15" height="15" color="green" /> Pay </Button>}
+                  </div>
                 </DrawerFooter>
               </>
             )}
@@ -352,7 +367,7 @@ const NewAssignment = (props:any) => {
     )
   }
 
-export default NewAssignment
+export default NewAppointment
 
 
 
@@ -402,7 +417,8 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
 
   const getBusyEmployeesWithNextSlot = async (time: string, duration: number, serviceIndex: number) => {
     try {
-      const branches = await fetch(`${APPOINTMENTS_API_URL}/busy-employees?startTime=${time}&duration=${duration}`)
+      const appointmentDate = new Date(watch("appointmentDate")).toISOString().split("T")[0]
+      const branches = await fetch(`${APPOINTMENT_SERVICES_API_URL}/busy-employees?appointmentDate=${appointmentDate}&startTime=${time}&duration=${duration}`)
       const parsed = await branches.json();
       const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
       const pax = watch(`pax`)
