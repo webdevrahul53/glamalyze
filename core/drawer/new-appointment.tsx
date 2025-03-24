@@ -108,6 +108,7 @@ const NewAppointment = (props:any) => {
         }
         console.log(formData)
         reset(formData)
+        setValue("pax", pax)
         getBranchById(branchId)
         
       }catch(err:any) { toast.error(err.message) }
