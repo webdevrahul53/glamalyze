@@ -102,11 +102,11 @@ const NewAppointment = (props:any) => {
         );
 
         const {appointmentDate, startTime, branchId, customerId, pax} = parsed
-        const formData = {
+        reset({
           appointmentDate: parseDate(new Date(appointmentDate).toISOString().split("T")[0]), 
           startTime, branchId, customerId, pax, note: null
-        }
-        getBranchById(branchId, formData)
+        })
+        getBranchById(branchId)
         
       }catch(err:any) { toast.error(err.message) }
 
@@ -139,15 +139,12 @@ const NewAppointment = (props:any) => {
         }catch(err:any) { toast.error(err.message) }
     }
     
-    const getBranchById = async (id: string, formData: any = null) => {
+    const getBranchById = async (id: string) => {
       try {
           const branches = await fetch(`${BRANCH_API_URL}/${id}`)
           const parsed = await branches.json();
-          setServiceList(() => parsed?.employeeServices)
-          setEmployeeList(() => parsed?.groupEmployees)
-          console.log(formData);
-          formData && reset(formData)
-          
+          setServiceList(parsed?.employeeServices)
+          setEmployeeList(parsed?.groupEmployees)
         }catch(err:any) { toast.error(err.message) }
     }
     const getCustomerList = async () => {
@@ -478,32 +475,30 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
 
       {serviceFields.map((serviceField, serviceIndex) => {
         const durationList = watch(`pax.${paxIndex}.${serviceIndex}.durationList`)
-        const servStartTime = watch(`pax.${paxIndex}.${serviceIndex}.startTime`)
-        const duration = watch(`pax.${paxIndex}.${serviceIndex}.duration`)
-        const price = watch(`pax.${paxIndex}.${serviceIndex}.price`)
+        // const servStartTime = watch(`pax.${paxIndex}.${serviceIndex}.startTime`)
+        // const duration = watch(`pax.${paxIndex}.${serviceIndex}.duration`)
+        // const price = watch(`pax.${paxIndex}.${serviceIndex}.price`)
         const paxEmployeeList = watch(`pax.${paxIndex}.${serviceIndex}.employeeList`)
         const busyEmployees = watch(`pax.${paxIndex}.${serviceIndex}.busyEmployees`)
         const selectedAsset = watch(`pax.${paxIndex}.${serviceIndex}.selectedAsset`)
         // const assetId = watch(`pax.${paxIndex}.${serviceIndex}.assetId`)
         const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
         const employeeId = watch(`pax.${paxIndex}.${serviceIndex}.employeeId`)
-        const selectedService = serviceList?.find((item:any) => item._id === serviceId)
-        const selectedEmployee = paxEmployeeList?.find((item:any) => item._id === employeeId)
 
         return <div key={serviceField.id} className="flex flex-col gap-2">
-          {servStartTime + "===" + duration + "===" + price + "===" + employeeId}
+          {/* {servStartTime + "===" + duration + "===" + price + "===" + employeeId} */}
           
           {errors.pax?.[paxIndex]?.[serviceIndex] && (
             <p className="text-danger text-sm ms-2"> Required fields are mandatory </p>
           )}
           <div className="flex items-center gap-2">
-            <Controller name={`pax.${paxIndex}.${serviceIndex}.serviceId`} control={control} rules={{required: true}}
+            {/* <Controller name={`pax.${paxIndex}.${serviceIndex}.serviceId`} control={control} rules={{required: true}}
               render={({ field }) => (
                 <AvatarSelect field={field} data={serviceList} label="Services" keyName="name" 
                   onChange={(id:string) => onServiceSelection(id, serviceIndex)} />
               )}
-            />
-            {/* {serviceId && serviceList?.length ? <ServiceCard {...selectedService} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, null)} /> : 
+            /> */}
+            {serviceId ? <ServiceCard {...serviceList?.find((item:any) => item._id === serviceId)} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, null)} /> : 
               <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.serviceId`, {required: true})} 
               defaultItems={serviceList} label="Services" 
               labelPlacement="inside" placeholder="Select a service" variant="bordered"
@@ -521,7 +516,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
                 </AutocompleteItem>
               )}
               
-            </Autocomplete>} */}
+            </Autocomplete>}
             
             <div className="w-2/5 border-2 rounded p-1">
               <select {...register(`pax.${paxIndex}.${serviceIndex}.duration`)} className="w-full py-3"
@@ -535,13 +530,13 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
           
           <div className="flex items-center gap-2">
 
-            <Controller name={`pax.${paxIndex}.${serviceIndex}.employeeId`} control={control} rules={{required: true}}
+            {/* <Controller name={`pax.${paxIndex}.${serviceIndex}.employeeId`} control={control} rules={{required: true}}
               render={({ field }) => (
                 <AvatarSelect field={field} data={paxEmployeeList} label="Staff" keyName="firstname" showStatus={true} disabledKeys={busyEmployees} />
               )}
-            />
+            /> */}
 
-            {/* {employeeId && paxEmployeeList?.length ? <ServiceCard {...selectedEmployee} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)} /> : 
+            {employeeId ? <ServiceCard {...paxEmployeeList?.find((item:any) => item._id === employeeId)} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)} /> : 
               <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.employeeId`, {required: true})} 
               defaultItems={paxEmployeeList || []} label="Staffs" 
               labelPlacement="inside" placeholder="Select staff" variant="bordered" disabledKeys={busyEmployees?.map((item:any) => item.employeeId)}
@@ -564,7 +559,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
                 </AutocompleteItem>
               }}
               
-            </Autocomplete>} */}
+            </Autocomplete>}
             
             <Input className="w-2/5" type="text" label={"Place"} readOnly value={selectedAsset ? selectedAsset?.assetType?.toUpperCase() + "-" + selectedAsset?.assetNumber : ""} />
           </div>
