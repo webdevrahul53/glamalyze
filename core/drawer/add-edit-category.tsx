@@ -9,7 +9,7 @@ import { CATEGORIES_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
 
 const AddEditCategory = (props:any) => {
-    const { register, handleSubmit, formState: { errors }, reset } = useForm();
+    const { register, handleSubmit, reset } = useForm();
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false)
 
@@ -22,8 +22,6 @@ const AddEditCategory = (props:any) => {
     }, [props.category])
 
     const onSubmit = async (data:any) => {
-        console.log(data);
-        
         let file = data.image[0]
         if(!file) return;
         setLoading(true)
@@ -97,15 +95,10 @@ const AddEditCategory = (props:any) => {
                       )}
   
   
-                    <Input id="image" {...register("image", {required: props.category ? false : true})} type="file" variant="flat" onChange={handleImageChange} />
-                    <Input {...register("categoryname", {required: true})} label="Category" placeholder="Enter Category Name" type="text" variant="flat" />
+                    <Input id="image" {...register("image", {required: props.category ? false : true})} type="file" variant="flat" onChange={handleImageChange} isRequired />
+                    <Input {...register("categoryname", {required: true})} label="Category" placeholder="Enter Category Name" type="text" variant="flat" isRequired />
                     <Checkbox {...register("status")} color="primary"> Active </Checkbox>
   
-  
-                    <div className="text-danger">
-                      {errors.image && <div>Image is required</div>}
-                      {errors.categoryname && <div>Category name is required</div>}
-                    </div>
   
                 </DrawerBody>
                 <DrawerFooter style={{justifyContent: "start"}}>

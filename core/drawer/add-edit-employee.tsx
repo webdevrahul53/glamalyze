@@ -10,7 +10,7 @@ import { EMPLOYEES_API_URL, SERVICES_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
 
 const AddEditEmployee = (props:any) => {
-    const { register, handleSubmit, watch, setValue, setError, formState: { errors }, control, reset } = useForm();
+    const { register, handleSubmit, setValue, control, reset } = useForm();
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
     const [serviceList, setServiceList] = React.useState([]);
@@ -60,8 +60,6 @@ const AddEditEmployee = (props:any) => {
     }
 
     const saveemployees = async (data:any) => {
-      console.log(data);
-      
       try {
         let url = data._id ? `${EMPLOYEES_API_URL}/${data._id}` : EMPLOYEES_API_URL
         const employees = await fetch(url, {
@@ -113,22 +111,14 @@ const AddEditEmployee = (props:any) => {
                   <div style={{display: "grid", gridTemplateColumns: "3fr 3fr", rowGap: 10, gap: 10, alignItems:"end"}}>
                     <div>
                       <div style={{display: "grid", gridTemplateColumns: "3fr 3fr", rowGap: 10, gap: 10}}>
-                        <div>
-                          <Input {...register("firstname", {required: true})} label="First Name" placeholder="Enter First Name" type="text" variant="flat" />
-                          {errors.firstname && <div className="text-danger text-sm ms-3">First Name is required</div>}
-                        </div>
-                        <div>
-                          <Input {...register("lastname", {required: true})} label="Last Name" placeholder="Enter Last Name" type="text" variant="flat" />
-                          {errors.lastname && <div className="text-danger text-sm ms-3">Last Name is required</div>}
-                        </div>
+                        <Input {...register("firstname", {required: true})} label="First Name" placeholder="Enter First Name" type="text" variant="flat" isRequired />
+                        <Input {...register("lastname", {required: true})} label="Last Name" placeholder="Enter Last Name" type="text" variant="flat" isRequired />
                       </div>
-                      <RadioGroup {...register("gender", {required: true})} className="my-3 mx-1" label="Gender" orientation="horizontal" defaultValue={props.employees?.gender}>
+                      <RadioGroup {...register("gender", {required: true})} className="my-3 mx-1" label="Gender" orientation="horizontal" defaultValue={props.employees?.gender} isRequired>
                         <Radio {...register("gender", {required: true})} value="male"className="border-3 border-gray-400 rounded px-4 mx-0">Male</Radio>
                         <Radio {...register("gender", {required: true})} value="female"className="border-3 border-gray-400 rounded px-4 mx-0">Female</Radio>
                         <Radio {...register("gender", {required: true})} value="intersex" className="border-3 border-gray-400 rounded px-4 mx-0">Intersex</Radio>
                       </RadioGroup>
-                      {errors.gender && <div className="text-danger text-sm ms-3">Gender is required</div>}
-
                     </div>
                     <div>
                       <div className="flex items-end">
@@ -157,22 +147,15 @@ const AddEditEmployee = (props:any) => {
 
 
                   <div style={{display: "grid", gridTemplateColumns: "2fr 2fr 4fr", rowGap: 10, gap: 10}}>
-                    <div>
-                      <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="text" variant="flat" />
-                      {errors.phonenumber && <div className="text-danger text-sm ms-3">Phone Number is required</div>}
-                    </div>
-                    <div>
-                      <Input {...register("email", {required: true})} label="Email" placeholder="Enter Email" type="text" variant="flat" />
-                      {errors.email && <div className="text-danger text-sm ms-3">Email is required</div>}
-                    </div>
+                    <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="text" variant="flat" isRequired />
+                    <Input {...register("email", {required: true})} label="Email" placeholder="Enter Email" type="email" variant="flat" isRequired />
                     <div style={{pointerEvents: props?.employees ? "none":"all"}}>
                       <Input label="Password" placeholder="Enter Password" type={isVisible ? "text" : "password"} tabIndex={-1}
                         {...register("password", {required: true})} variant="flat" disabled={props.employees} endContent={
                         <button tabIndex={-1} aria-label="toggle password visibility" className="focus:outline-none" type="button" onClick={toggleVisibility} >
                           {isVisible ? ( <EyeSlashFilledIcon className="text-2xl text-red-400 pointer-events-none" /> ) : ( <EyeFilledIcon className="text-2xl text-default-400 pointer-events-none " /> )}
                         </button>
-                      } />
-                      {errors.password && <div className="text-danger text-sm ms-3">Password is required</div>}
+                      } isRequired />
                     </div>
                   </div>
 
@@ -181,7 +164,6 @@ const AddEditEmployee = (props:any) => {
                       <AvatarSelectMultiple field={field} data={serviceList} label="Services" keyName="name" />
                     )}
                   />
-                  {errors.servicesId && <div className="text-danger text-sm ms-3">Service is required</div>}
                   
 
                   <div style={{display: "grid", gridTemplateColumns: "3fr 3fr", rowGap: 10, gap: 10}}>

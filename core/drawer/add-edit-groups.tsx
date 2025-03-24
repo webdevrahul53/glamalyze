@@ -6,11 +6,10 @@ import { BRANCH_API_URL, EMPLOYEES_API_URL, GROUP_API_URL } from "../utilities/a
 import { toast } from "react-toastify";
 
 const AddEditGroup = (props:any) => {
-    const { register, handleSubmit, control, formState: { errors }, reset } = useForm({
+    const { register, handleSubmit, reset } = useForm({
       defaultValues: {groupname: null, branchId: null, status: false}
     });
     const [loading, setLoading] = React.useState(false)
-    const [branchList, setBranchList] = React.useState([]);
     const [employeeList, setEmployeeList] = React.useState([]);
     const [employeesId, setEmployeesId] = React.useState<any>([])
 
@@ -22,18 +21,9 @@ const AddEditGroup = (props:any) => {
         }
         else reset({groupname:null, branchId: null, status: false})
 
-        getBranchList();
         getEmployeeList();
     }, [props.group])
 
-    const getBranchList = async () => {
-      try {
-          const branches = await fetch(BRANCH_API_URL)
-          const parsed = await branches.json();
-          setBranchList(parsed);
-        }catch(err:any) { toast.error(err.error) }
-    }
-    
     const getEmployeeList = async () => {
       try {
           const employee = await fetch(EMPLOYEES_API_URL)
@@ -113,7 +103,7 @@ const AddEditGroup = (props:any) => {
                 <DrawerBody> 
   
   
-                    <Input {...register("groupname", {required: true})} label="Group Name" placeholder="Enter Group Name" type="text" variant="flat" />
+                    <Input {...register("groupname", {required: true})} label="Group Name" placeholder="Enter Group Name" type="text" variant="flat" isRequired />
                     
                     <Autocomplete defaultItems={employeeList} placeholder="Add Staffs"
                       onSelectionChange={onServiceSelection} disabledKeys={employeesId?.map((item:any) => item._id)} >
@@ -126,12 +116,6 @@ const AddEditGroup = (props:any) => {
                     </div>
 
                     <Checkbox {...register("status")} color="primary"> Active </Checkbox>
-  
-  
-                    <div className="text-danger">
-                      {errors.groupname && <div>Group name is required</div>}
-                      {errors.branchId && <div>Branch is required</div>}
-                    </div>
   
                 </DrawerBody>
                 <DrawerFooter style={{justifyContent: "start"}}>

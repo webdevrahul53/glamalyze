@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from "react";
 import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Progress, Select, SelectItem, useDisclosure } from "@heroui/react";
-import { ChairIcon, CheckIcon, DeleteIcon, DoorOpenIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
+import { ChairIcon, CheckIcon, CloseIcon, DeleteIcon, DoorOpenIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
@@ -269,7 +269,7 @@ const NewAppointment = (props:any) => {
                       <select id="startTime" className="w-100 outline-none pe-3" {...register("startTime", {required: true})}>
                         <option value="">Select Time</option>
                         {timeList.map((value) => (
-                          <option value={value.key}>{value.label}</option>
+                          <option key={value.key} value={value.key}>{value.label}</option>
                         ))}
                       </select>
                     </label>
@@ -277,7 +277,7 @@ const NewAppointment = (props:any) => {
                       <select id="paxValue" className="w-100 outline-none pe-3" value={pax.length} onChange={(event:any) => onPaxChange(+event.target.value)}>
                         <option value="">Pax</option>
                         {Array.from({ length: 5 }, (_, i) => (i + 1).toString())?.map((val: string) => {
-                          return <option value={val}>{val}</option>
+                          return <option key={val} value={val}>{val}</option>
                         })}
                       </select>
                     </label>
@@ -381,6 +381,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
   
 
   const onServiceSelection = (id: string, serviceIndex: number) => {
+    setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, id)
     setValue(`pax.${paxIndex}.${serviceIndex}.duration`, null)
     setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)
     setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, [])
@@ -428,7 +429,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
           selectedEmployeeIds.push(...pax[i].map((e:any) => ({employeeId: e.employeeId, nextAvailableTime: ""})))
         }
       }
-      console.log(selectedEmployeeIds);
+      console.log(selectedEmployeeIds, parsed?.busyEmployeesWithSlots);
       
       const filteredEmployee = employeeList?.filter((item: any) => item.servicesId.includes(serviceId))
       setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, duration ? filteredEmployee : [])
@@ -481,38 +482,86 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
         const busyEmployees = watch(`pax.${paxIndex}.${serviceIndex}.busyEmployees`)
         const selectedAsset = watch(`pax.${paxIndex}.${serviceIndex}.selectedAsset`)
         // const assetId = watch(`pax.${paxIndex}.${serviceIndex}.assetId`)
+        const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
+        const employeeId = watch(`pax.${paxIndex}.${serviceIndex}.employeeId`)
 
         return <div key={serviceField.id} className="flex flex-col gap-2">
-          {/* {servStartTime + "===" + duration + "===" + price + "===" + assetId} */}
+          {/* {servStartTime + "===" + duration + "===" + price + "===" + employeeId} */}
           
           {errors.pax?.[paxIndex]?.[serviceIndex] && (
             <p className="text-danger text-sm ms-2"> Required fields are mandatory </p>
           )}
           <div className="flex items-center gap-2">
-            <Controller name={`pax.${paxIndex}.${serviceIndex}.serviceId`} control={control} rules={{required: true}}
+            {/* <Controller name={`pax.${paxIndex}.${serviceIndex}.serviceId`} control={control} rules={{required: true}}
               render={({ field }) => (
                 <AvatarSelect field={field} data={serviceList} label="Services" keyName="name" 
                   onChange={(id:string) => onServiceSelection(id, serviceIndex)} />
               )}
-            />
+            /> */}
+            {serviceId ? <ServiceCard {...serviceList?.find((item:any) => item._id === serviceId)} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, null)} /> : 
+              <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.serviceId`, {required: true})} 
+              defaultItems={serviceList} label="Services" 
+              labelPlacement="inside" placeholder="Select a service" variant="bordered"
+              onSelectionChange={(id:string) => onServiceSelection(id, serviceIndex)}
+              >
+              {(user:any) => (
+                <AutocompleteItem key={user._id} textValue={user.name}>
+                  <div className="flex gap-2 items-center">
+                    <Avatar alt={user.name} className="flex-shrink-0" size="sm" src={user.image} />
+                    <div className="flex flex-col">
+                      <span className="text-small">{user.name}</span>
+                      <span className="text-tiny text-default-400">{user.email}</span>
+                    </div>
+                  </div>
+                </AutocompleteItem>
+              )}
+              
+            </Autocomplete>}
             
-            <select {...register(`pax.${paxIndex}.${serviceIndex}.duration`)} className="w-3/5 border-2 py-3"
-              onChange={(item: any) => onDurationSelection(item, serviceIndex, durationList)}>
-                <option value="">Select Duration</option>
-              {durationList?.map((item:any) => <option value={item.serviceDuration}>{item.serviceDuration} min</option>)}
-            </select>
+            <div className="w-2/5 border-2 rounded p-1">
+              <select {...register(`pax.${paxIndex}.${serviceIndex}.duration`)} className="w-full py-3"
+                onChange={(item: any) => onDurationSelection(item, serviceIndex, durationList)}>
+                  <option value="">Duration</option>
+                {durationList?.map((item:any, index: number) => <option key={index} value={item.serviceDuration}>{item.serviceDuration} min</option>)}
+              </select>
+            </div>
 
           </div>
           
           <div className="flex items-center gap-2">
 
-            <Controller name={`pax.${paxIndex}.${serviceIndex}.employeeId`} control={control} rules={{required: true}}
+            {/* <Controller name={`pax.${paxIndex}.${serviceIndex}.employeeId`} control={control} rules={{required: true}}
               render={({ field }) => (
                 <AvatarSelect field={field} data={paxEmployeeList} label="Staff" keyName="firstname" showStatus={true} disabledKeys={busyEmployees} />
               )}
-            />
+            /> */}
 
-            <Input className="w-3/5" type="text" label={"Place"} readOnly value={selectedAsset?.assetType?.toUpperCase() + "-" + selectedAsset?.assetNumber} />
+            {employeeId ? <ServiceCard {...paxEmployeeList?.find((item:any) => item._id === employeeId)} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)} /> : 
+              <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.employeeId`, {required: true})} 
+              defaultItems={paxEmployeeList || []} label="Staffs" 
+              labelPlacement="inside" placeholder="Select staff" variant="bordered" disabledKeys={busyEmployees?.map((item:any) => item.employeeId)}
+              onSelectionChange={(id:string) => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, id)}
+              >
+              {(user:any) => {
+                
+                const employee = busyEmployees?.find((item:any) => item.employeeId == user._id);
+                return <AutocompleteItem key={user._id} textValue={user.firstname + " " + user.lastname}>
+                  <div className="flex gap-2 items-center">
+                    <Avatar alt={user.firstname} className="flex-shrink-0" size="sm" src={user.image} />
+                    <div className="flex flex-col">
+                      <span className="text-small">{user.firstname + " " + user.lastname}</span>
+                      <span className="text-tiny text-default-400">{user.email}</span>
+                    </div>
+                    
+                    {employee ? <span style={{fontSize: "10px"}} className={`bg-red-800 ms-auto text-white px-2 rounded`}>Busy {employee.nextAvailableTime && ("till " + employee.nextAvailableTime)} </span> :
+                        <span style={{fontSize: "10px"}} className={`bg-green-800 ms-auto text-white px-2 rounded`}>Available</span>}
+                  </div>
+                </AutocompleteItem>
+              }}
+              
+            </Autocomplete>}
+            
+            <Input className="w-2/5" type="text" label={"Place"} readOnly value={selectedAsset ? selectedAsset?.assetType?.toUpperCase() + "-" + selectedAsset?.assetNumber : ""} />
           </div>
           
           {/* <input type="text" className="w-1/5" value={selectedAsset?.assetType?.toUpperCase() + "-" + selectedAsset?.assetNumber} /> */}
@@ -532,6 +581,27 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
     </div>
   );
 };
+
+
+const ServiceCard = (props:any) => {
+  const name = props?.name ? props?.name : props?.firstname + " " + props?.lastname
+  return (
+    <Card className="w-full shadow-sm border-2">
+      <CardHeader className="justify-between">
+        <div className="flex gap-3">
+          <Avatar isBordered radius="full" size="sm" src={props.image} />
+          <div className="flex flex-col gap-1 items-start justify-center">
+            <h4 className="text-small font-semibold leading-none text-default-600">{name}</h4>
+            <h5 className="text-small tracking-tight text-default-400"> <strong> {props.email}</strong> </h5>
+          </div>
+        </div>
+        <div className="cursor-pointer" onClick={props.onDelete}>
+          <CloseIcon width="20" height="20" />  
+        </div> 
+      </CardHeader>
+    </Card>
+  );
+}
 
 
 

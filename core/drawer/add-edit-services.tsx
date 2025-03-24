@@ -10,7 +10,7 @@ import { CATEGORIES_API_URL, SERVICES_API_URL, SUBCATEGORIES_API_URL } from "../
 import { toast } from "react-toastify";
 
 const AddEditServices = (props:any) => {
-    const { register, handleSubmit, formState: { errors }, control, reset } = useForm({
+    const { register, handleSubmit, control, reset } = useForm({
       defaultValues: { image: null, categoryId: null, subCategoryId: null, name: null, assetType: null, variants: [{serviceDuration: null, defaultPrice: null}], description:null, status: false }
     });
     const { fields, append, remove } = useFieldArray({ control, name: "variants" });
@@ -123,27 +123,20 @@ const AddEditServices = (props:any) => {
                       )}
   
   
-                    <Input id="image" {...register("image", {required: props.services ? false : true})} type="file" variant="flat" onChange={handleImageChange} />
-                    {errors.image && <div className="text-danger text-sm -mt-2 ms-3">Image is required</div>}
-
+                    <Input id="image" {...register("image", {required: props.services ? false : true})} type="file" variant="flat" onChange={handleImageChange} isRequired />
                     <Controller name="categoryId" control={control}
                       render={({ field }) => (
-                        <AvatarSelect field={field} data={categoryList} label="Category" keyName="categoryname" onChange={(id:string) => getSubCategoryList(id)}  />
-                      )}
-                      />
-                    {errors.categoryId && <div className="text-danger text-sm -mt-2 ms-3">Category is required</div>}
-                    
-                    <Controller name="subCategoryId" control={control}
-                      render={({ field }) => (
-                        <AvatarSelect field={field} data={subCategoryList} label="Sub Category" keyName="subcategoryname" />
+                        <AvatarSelect field={field} data={categoryList} label="Category" keyName="categoryname" onChange={(id:string) => getSubCategoryList(id)} isRequired />
                       )}
                     />
-                    {errors.subCategoryId && <div className="text-danger text-sm -mt-2 ms-3">Sub category name is required</div>}
+                    <Controller name="subCategoryId" control={control}
+                      render={({ field }) => (
+                        <AvatarSelect field={field} data={subCategoryList} label="Sub Category" keyName="subcategoryname" isRequired />
+                      )}
+                    />
                     
-                    <Input {...register("name", {required: true})} label="Name" placeholder="Enter Name" type="text" variant="flat" />
-                    {errors.name && <div className="text-danger text-sm -mt-2 ms-3">Name is required</div>}
-
-                    <Select {...register("assetType", {required: true})} label="Asset Type" placeholder="Select Asset Type">
+                    <Input {...register("name", {required: true})} label="Name" placeholder="Enter Name" type="text" variant="flat" isRequired />
+                    <Select {...register("assetType", {required: true})} label="Asset Type" placeholder="Select Asset Type" isRequired>
                       <SelectItem key={"chair"}>Chair</SelectItem>
                       <SelectItem key={"bed"}>Bed</SelectItem>
                       <SelectItem key={"sofa"}>Sofa</SelectItem>
@@ -153,8 +146,8 @@ const AddEditServices = (props:any) => {
 
                     {fields.map((field, index) => (
                       <div key={field.id} className="flex items-center gap-2" >
-                        <Input {...register(`variants.${index}.serviceDuration`, {required: true})} label="Duration (Mins)" placeholder="Enter Duration" type="number" variant="flat" />
-                        <Input {...register(`variants.${index}.defaultPrice`, {required: true})} label="Price (Rs)" placeholder="Enter Price" type="number" variant="flat" />
+                        <Input {...register(`variants.${index}.serviceDuration`, {required: true})} label="Duration (Mins)" placeholder="Enter Duration" type="number" variant="flat" isRequired />
+                        <Input {...register(`variants.${index}.defaultPrice`, {required: true})} label="Price (Rs)" placeholder="Enter Price" type="number" variant="flat" isRequired />
                         {fields.length > 1 && <button type="button" onClick={() => remove(index)}>❌</button>}
                       </div>
                     ))}

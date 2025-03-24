@@ -10,7 +10,7 @@ import { ASSETS_API_URL, BRANCH_API_URL } from "../utilities/api-url";
 import AvatarSelect from "../common/avatar-select";
 
 const AddEditAsset = (props:any) => {
-    const { register, handleSubmit, formState: { errors }, control, reset } = useForm();
+    const { register, handleSubmit, control, reset } = useForm();
     const [branchList, setBranchList] = React.useState([]);
     const [loading, setLoading] = React.useState(false)
 
@@ -76,11 +76,11 @@ const AddEditAsset = (props:any) => {
   
                     <Controller name="branchId" control={control} rules={{required: true}}
                       render={({ field }) => (
-                        <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname" />
+                        <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname" isRequired={true} />
                       )}
                     />
 
-                    <Select {...register("assetType", {required: true})} label="Type">
+                    <Select {...register("assetType", {required: true})} label="Type" isRequired>
                       <SelectItem key={"chair"}>Chair</SelectItem>
                       <SelectItem key={"sofa"}>Sofa</SelectItem>
                       <SelectItem key={"bed"}>Bed</SelectItem>
@@ -88,16 +88,10 @@ const AddEditAsset = (props:any) => {
                     </Select>
 
                     
-                    <Input {...register("assetNumber", {required: true})} label="Asset Number" placeholder="Enter Asset Number" type="text" variant="flat" />
+                    <Input {...register("assetNumber", {required: true})} label="Asset Number" placeholder="Enter Asset Number" type="text" variant="flat" isRequired />
                     
                     <Checkbox {...register("status")} color="primary"> Active </Checkbox>
   
-  
-                    <div className="text-danger">
-                      {errors.branchId && <div>Branch is required</div>}
-                      {errors.assetType && <div>Type is required</div>}
-                      {errors.assetNumber && <div>Asset Number is required</div>}
-                    </div>
   
                 </DrawerBody>
                 <DrawerFooter style={{justifyContent: "start"}}>

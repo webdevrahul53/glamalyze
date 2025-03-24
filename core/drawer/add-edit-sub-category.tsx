@@ -10,7 +10,7 @@ import { CATEGORIES_API_URL, SUBCATEGORIES_API_URL } from "../utilities/api-url"
 import { toast } from "react-toastify";
 
 const AddEditSubCategory = (props:any) => {
-    const { register, handleSubmit, formState: { errors }, control, reset } = useForm();
+    const { register, handleSubmit, control, reset } = useForm();
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
     const [categoryList, setCategoryList] = React.useState([]);
@@ -112,25 +112,15 @@ const AddEditSubCategory = (props:any) => {
                       )}
   
   
-                    <Input id="image" {...register("image", {required: props.subcategory ? false : true})} type="file" variant="flat" onChange={handleImageChange} />
-                    
+                    <Input id="image" {...register("image", {required: props.subcategory ? false : true})} type="file" variant="flat" onChange={handleImageChange} isRequired />
                     
                     <Controller name="categoryId" control={control}
                       render={({ field }) => (
-                        <AvatarSelect field={field} label="Category" data={categoryList} keyName="categoryname" />
+                        <AvatarSelect field={field} label="Category" data={categoryList} keyName="categoryname" isRequired />
                       )}
                     />
-
-
-                    <Input {...register("subcategoryname", {required: true})} label="Sub Category" placeholder="Enter Sub Category Name" type="text" variant="flat" />
+                    <Input {...register("subcategoryname", {required: true})} label="Sub Category" placeholder="Enter Sub Category Name" type="text" variant="flat" isRequired />
                     <Checkbox {...register("status")} color="primary"> Active </Checkbox>
-  
-                    <div className="text-danger">
-                      {errors.image && <div>Image is required</div>}
-                      {errors.subcategoryname && <div>Sub category name is required</div>}
-                      {errors.categoryId && <div>Category is required</div>}
-                    </div>
-  
 
                 </DrawerBody>
                 <DrawerFooter style={{justifyContent: "start"}}>
