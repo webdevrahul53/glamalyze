@@ -82,9 +82,9 @@ const NewAppointment = (props:any) => {
       setTotalAmount(totalSum)
     },[pax])
     
-    React.useEffect(() => {
+    const resetPax = () => {
       setValue("pax", [ [{serviceId: null, durationList: [], duration: null, price: null, assetId: null, assetType: null, selectedAsset: null, busyEmployees: [], employeeList: [], employeeId: null}] ])
-    }, [startTime, branchId])
+    }
   
 
     const getBookingsById = async (id: string) => {
@@ -106,15 +106,12 @@ const NewAppointment = (props:any) => {
           appointmentDate: parseDate(new Date(appointmentDate).toISOString().split("T")[0]), 
           startTime, branchId, customerId, pax, note: null
         }
-        console.log(formData)
         reset(formData)
         getBranchById(branchId)
         
       }catch(err:any) { toast.error(err.message) }
 
     }
-
-    console.log(watch("pax"))
 
     
     // Helper function to get the next time slot
@@ -235,7 +232,7 @@ const NewAppointment = (props:any) => {
   
   
     return (
-      <Drawer isOpen={props.isOpen} size="xl" placement={"right"} onOpenChange={props.onOpenChange}>
+      <Drawer isOpen={props.isOpen} size="lg" placement={"right"} onOpenChange={props.onOpenChange}>
         {isOpen && (
         <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
           <AddEditCustomer isOpen={isOpen} placement={"left"} onOpenChange={() => {onOpenChange(); getCustomerList()} }  />
@@ -265,12 +262,15 @@ const NewAppointment = (props:any) => {
                       render={({ field }) => (
                         <DatePicker
                           {...field} hideTimeZone showMonthAndYearPickers label="Date & Time" variant="bordered"
-                          defaultValue={field.value} onChange={(date) => field.onChange(date)} // Ensure React Hook Form updates the state
+                          defaultValue={field.value} onChange={(date) => {
+                            field.onChange(date)
+                            resetPax();
+                          }} // Ensure React Hook Form updates the state
                         />
                       )}
                     />
                     <label htmlFor="startTime" className="w-2/5 border-2 p-3 px-2">
-                      <select id="startTime" className="w-100 outline-none pe-3" {...register("startTime", {required: true})}>
+                      <select id="startTime" className="w-100 outline-none pe-3" {...register("startTime", {required: true})} onChange={() => resetPax()}>
                         <option value="">Select Time</option>
                         {timeList.map((value) => (
                           <option key={value.key} value={value.key}>{value.label}</option>
@@ -291,7 +291,10 @@ const NewAppointment = (props:any) => {
 
                   {branchList.length ? <Controller name="branchId" control={control} rules={{required: true}}
                     render={({ field }) => (
-                      <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname" onChange={getBranchById} />
+                      <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname" onChange={(id:string) => {
+                        resetPax();
+                        getBranchById(id)
+                      } } />
                     )}
                     /> : <></>}
                   {errors.branchId && <div className="text-danger text-sm -mt-2 ms-3">Branch is required</div>}
