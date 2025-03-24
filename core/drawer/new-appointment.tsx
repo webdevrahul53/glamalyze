@@ -102,10 +102,12 @@ const NewAppointment = (props:any) => {
         );
 
         const {appointmentDate, startTime, branchId, customerId, pax} = parsed
-        reset({
+        const formData = {
           appointmentDate: parseDate(new Date(appointmentDate).toISOString().split("T")[0]), 
           startTime, branchId, customerId, pax, note: null
-        })
+        }
+        console.log(formData)
+        reset(formData)
         getBranchById(branchId)
         
       }catch(err:any) { toast.error(err.message) }
