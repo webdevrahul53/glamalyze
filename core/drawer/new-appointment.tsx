@@ -143,8 +143,8 @@ const NewAppointment = (props:any) => {
       try {
           const branches = await fetch(`${BRANCH_API_URL}/${id}`)
           const parsed = await branches.json();
-          setServiceList(parsed?.employeeServices)
-          setEmployeeList(parsed?.groupEmployees)
+          setServiceList(() => parsed?.employeeServices)
+          setEmployeeList(() => parsed?.groupEmployees)
           console.log(formData);
           formData && reset(formData)
           
@@ -487,6 +487,8 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
         // const assetId = watch(`pax.${paxIndex}.${serviceIndex}.assetId`)
         const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
         const employeeId = watch(`pax.${paxIndex}.${serviceIndex}.employeeId`)
+        const selectedService = serviceList?.find((item:any) => item._id === serviceId)
+        const selectedEmployee = paxEmployeeList?.find((item:any) => item._id === employeeId)
 
         return <div key={serviceField.id} className="flex flex-col gap-2">
           {servStartTime + "===" + duration + "===" + price + "===" + employeeId}
@@ -501,7 +503,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
                   onChange={(id:string) => onServiceSelection(id, serviceIndex)} />
               )}
             /> */}
-            {serviceId ? <ServiceCard {...serviceList?.find((item:any) => item._id === serviceId)} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, null)} /> : 
+            {serviceId && serviceList?.length ? <ServiceCard {...selectedService} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, null)} /> : 
               <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.serviceId`, {required: true})} 
               defaultItems={serviceList} label="Services" 
               labelPlacement="inside" placeholder="Select a service" variant="bordered"
@@ -539,7 +541,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
               )}
             /> */}
 
-            {employeeId ? <ServiceCard {...paxEmployeeList?.find((item:any) => item._id === employeeId)} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)} /> : 
+            {employeeId && paxEmployeeList?.length ? <ServiceCard {...selectedEmployee} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)} /> : 
               <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.employeeId`, {required: true})} 
               defaultItems={paxEmployeeList || []} label="Staffs" 
               labelPlacement="inside" placeholder="Select staff" variant="bordered" disabledKeys={busyEmployees?.map((item:any) => item.employeeId)}
