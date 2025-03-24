@@ -108,12 +108,13 @@ const NewAppointment = (props:any) => {
         }
         console.log(formData)
         reset(formData)
-        setValue("pax", pax)
         getBranchById(branchId)
         
       }catch(err:any) { toast.error(err.message) }
 
     }
+
+    console.log(watch("pax"))
 
     
     // Helper function to get the next time slot
@@ -234,7 +235,7 @@ const NewAppointment = (props:any) => {
   
   
     return (
-      <Drawer isOpen={props.isOpen} size="lg" placement={"right"} onOpenChange={props.onOpenChange}>
+      <Drawer isOpen={props.isOpen} size="xl" placement={"right"} onOpenChange={props.onOpenChange}>
         {isOpen && (
         <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
           <AddEditCustomer isOpen={isOpen} placement={"left"} onOpenChange={() => {onOpenChange(); getCustomerList()} }  />
