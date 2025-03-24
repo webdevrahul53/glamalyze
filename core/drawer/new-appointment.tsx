@@ -497,13 +497,13 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
             <p className="text-danger text-sm ms-2"> Required fields are mandatory </p>
           )}
           <div className="flex items-center gap-2">
-            {/* <Controller name={`pax.${paxIndex}.${serviceIndex}.serviceId`} control={control} rules={{required: true}}
+            <Controller name={`pax.${paxIndex}.${serviceIndex}.serviceId`} control={control} rules={{required: true}}
               render={({ field }) => (
                 <AvatarSelect field={field} data={serviceList} label="Services" keyName="name" 
                   onChange={(id:string) => onServiceSelection(id, serviceIndex)} />
               )}
-            /> */}
-            {serviceId && serviceList?.length ? <ServiceCard {...selectedService} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, null)} /> : 
+            />
+            {/* {serviceId && serviceList?.length ? <ServiceCard {...selectedService} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, null)} /> : 
               <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.serviceId`, {required: true})} 
               defaultItems={serviceList} label="Services" 
               labelPlacement="inside" placeholder="Select a service" variant="bordered"
@@ -521,7 +521,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
                 </AutocompleteItem>
               )}
               
-            </Autocomplete>}
+            </Autocomplete>} */}
             
             <div className="w-2/5 border-2 rounded p-1">
               <select {...register(`pax.${paxIndex}.${serviceIndex}.duration`)} className="w-full py-3"
@@ -535,13 +535,13 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
           
           <div className="flex items-center gap-2">
 
-            {/* <Controller name={`pax.${paxIndex}.${serviceIndex}.employeeId`} control={control} rules={{required: true}}
+            <Controller name={`pax.${paxIndex}.${serviceIndex}.employeeId`} control={control} rules={{required: true}}
               render={({ field }) => (
                 <AvatarSelect field={field} data={paxEmployeeList} label="Staff" keyName="firstname" showStatus={true} disabledKeys={busyEmployees} />
               )}
-            /> */}
+            />
 
-            {employeeId && paxEmployeeList?.length ? <ServiceCard {...selectedEmployee} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)} /> : 
+            {/* {employeeId && paxEmployeeList?.length ? <ServiceCard {...selectedEmployee} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)} /> : 
               <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.employeeId`, {required: true})} 
               defaultItems={paxEmployeeList || []} label="Staffs" 
               labelPlacement="inside" placeholder="Select staff" variant="bordered" disabledKeys={busyEmployees?.map((item:any) => item.employeeId)}
@@ -564,7 +564,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
                 </AutocompleteItem>
               }}
               
-            </Autocomplete>}
+            </Autocomplete>} */}
             
             <Input className="w-2/5" type="text" label={"Place"} readOnly value={selectedAsset ? selectedAsset?.assetType?.toUpperCase() + "-" + selectedAsset?.assetNumber : ""} />
           </div>
