@@ -102,11 +102,11 @@ const NewAppointment = (props:any) => {
         );
 
         const {appointmentDate, startTime, branchId, customerId, pax} = parsed
-        reset({
+        const formData = {
           appointmentDate: parseDate(new Date(appointmentDate).toISOString().split("T")[0]), 
           startTime, branchId, customerId, pax, note: null
-        })
-        getBranchById(branchId)
+        }
+        getBranchById(branchId, formData)
         
       }catch(err:any) { toast.error(err.message) }
 
@@ -139,12 +139,15 @@ const NewAppointment = (props:any) => {
         }catch(err:any) { toast.error(err.message) }
     }
     
-    const getBranchById = async (id: string) => {
+    const getBranchById = async (id: string, formData: any = null) => {
       try {
           const branches = await fetch(`${BRANCH_API_URL}/${id}`)
           const parsed = await branches.json();
           setServiceList(parsed?.employeeServices)
           setEmployeeList(parsed?.groupEmployees)
+          console.log(formData);
+          formData && reset(formData)
+          
         }catch(err:any) { toast.error(err.message) }
     }
     const getCustomerList = async () => {
