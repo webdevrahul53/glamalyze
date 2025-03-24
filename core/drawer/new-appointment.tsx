@@ -475,9 +475,9 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
 
       {serviceFields.map((serviceField, serviceIndex) => {
         const durationList = watch(`pax.${paxIndex}.${serviceIndex}.durationList`)
-        // const servStartTime = watch(`pax.${paxIndex}.${serviceIndex}.startTime`)
-        // const duration = watch(`pax.${paxIndex}.${serviceIndex}.duration`)
-        // const price = watch(`pax.${paxIndex}.${serviceIndex}.price`)
+        const servStartTime = watch(`pax.${paxIndex}.${serviceIndex}.startTime`)
+        const duration = watch(`pax.${paxIndex}.${serviceIndex}.duration`)
+        const price = watch(`pax.${paxIndex}.${serviceIndex}.price`)
         const paxEmployeeList = watch(`pax.${paxIndex}.${serviceIndex}.employeeList`)
         const busyEmployees = watch(`pax.${paxIndex}.${serviceIndex}.busyEmployees`)
         const selectedAsset = watch(`pax.${paxIndex}.${serviceIndex}.selectedAsset`)
@@ -486,7 +486,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
         const employeeId = watch(`pax.${paxIndex}.${serviceIndex}.employeeId`)
 
         return <div key={serviceField.id} className="flex flex-col gap-2">
-          {/* {servStartTime + "===" + duration + "===" + price + "===" + employeeId} */}
+          {servStartTime + "===" + duration + "===" + price + "===" + employeeId}
           
           {errors.pax?.[paxIndex]?.[serviceIndex] && (
             <p className="text-danger text-sm ms-2"> Required fields are mandatory </p>
