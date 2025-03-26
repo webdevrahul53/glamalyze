@@ -270,7 +270,10 @@ const NewAppointment = (props:any) => {
                       )}
                     />
                     <label htmlFor="startTime" className="w-2/5 border-2 p-3 px-2">
-                      <select id="startTime" className="w-100 outline-none pe-3" {...register("startTime", {required: true})} onChange={() => resetPax()}>
+                      <select id="startTime" className="w-100 outline-none pe-3" {...register("startTime", {required: true})} onChange={(event:any) => {
+                        setValue("startTime", event.target.value)
+                        resetPax()
+                      }}>
                         <option value="">Select Time</option>
                         {timeList.map((value) => (
                           <option key={value.key} value={value.key}>{value.label}</option>
