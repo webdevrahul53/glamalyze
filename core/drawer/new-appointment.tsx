@@ -1,11 +1,12 @@
 import React, { lazy, Suspense } from "react";
-import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Progress, Select, SelectItem, useDisclosure } from "@heroui/react";
+import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Progress, Textarea, useDisclosure } from "@heroui/react";
 import { ChairIcon, CheckIcon, CloseIcon, DeleteIcon, DoorOpenIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
-import { APPOINTMENT_SERVICES_API_URL, APPOINTMENTS_API_URL, ASSETS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL } from "../utilities/api-url";
+import { APPOINTMENT_SERVICES_API_URL, APPOINTMENTS_API_URL, ASSETS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, SERVICES_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
+import moment from "moment";
 const AddEditCustomer = lazy(() => import("@/core/drawer/add-edit-customer"));
 
 
@@ -40,6 +41,7 @@ const NewAppointment = (props:any) => {
     const handleOpen = () => { onOpen(); };
     const [loading, setLoading] = React.useState(false)
     const [branchList, setBranchList] = React.useState([]);
+    const [allServiceList, setAllServiceList] = React.useState([]);
     const [employeeList, setEmployeeList] = React.useState([]);
     const [customerList, setCustomerList] = React.useState([]);
     const [serviceList, setServiceList] = React.useState([]);
@@ -64,6 +66,7 @@ const NewAppointment = (props:any) => {
       }
       getCustomerList();
       getBranchList();
+      getServiceList();
     }, [appointmentId])
 
     // For calendar purpose
@@ -140,6 +143,14 @@ const NewAppointment = (props:any) => {
         }catch(err:any) { toast.error(err.message) }
     }
     
+    const getServiceList = async () => {
+      try {
+          const services = await fetch(SERVICES_API_URL)
+          const parsed = await services.json();
+          setAllServiceList(parsed);
+        }catch(err:any) { toast.error(err.message) }
+    }
+    
     const getBranchById = async (id: string) => {
       try {
           const branches = await fetch(`${BRANCH_API_URL}/${id}`)
@@ -196,6 +207,7 @@ const NewAppointment = (props:any) => {
       data = {...data, totalAmount}
       data.appointmentDate = data.appointmentDate?.toString();
       data.startTime = convertTo24HourFormat(data.startTime);
+      data.taskStatus = props?.bookings?.taskStatus === "Pending" ? "CheckedIn": props?.bookings?.taskStatus === "CheckedIn" ? "CheckedOut" : props?.bookings?.taskStatus === "CheckedOut" ? "Completed" : "Pending";
       data.status = true;
       // console.log(data);
       // return;
@@ -232,7 +244,7 @@ const NewAppointment = (props:any) => {
   
   
     return (
-      <Drawer isOpen={props.isOpen} size="lg" placement={"right"} onOpenChange={props.onOpenChange}>
+      <Drawer isOpen={props.isOpen} size="2xl" placement={"right"} onOpenChange={props.onOpenChange}>
         {isOpen && (
         <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
           <AddEditCustomer isOpen={isOpen} placement={"left"} onOpenChange={() => {onOpenChange(); getCustomerList()} }  />
@@ -242,55 +254,41 @@ const NewAppointment = (props:any) => {
           <DrawerContent>
             {(onClose) => (
               <>
-                <DrawerHeader className="flex gap-1"> 
-                  <span>{appointmentId ? "Update":"New"} Appointment</span>
-                  <span className={`px-2 rounded ms-auto me-4 ${statusCSS[props?.bookings?.taskStatus]}`}> {props?.bookings?.taskStatus} </span>
+                <DrawerHeader className="flex items-center gap-1"> 
+                  <span> {props?.bookings?.taskStatus === "Pending" ? "BOOKING CONFIRMED": props?.bookings?.taskStatus === "CheckedIn" ? "CHECKED IN" : props?.bookings?.taskStatus === "CheckedOut" ? "CHECKED OUT" : props?.bookings?.taskStatus === "Completed" ? "COMPLETED" : "NEW APPOINTMENT"} </span>
+                  {/* <span className={`px-2 rounded ms-auto me-4 ${statusCSS[props?.bookings?.taskStatus]}`}> {props?.bookings?.taskStatus} </span> */}
+                  <div className="flex items-center gap-3 ms-auto me-4">
+                    {!props?.bookings && <Button color="primary" type="submit" size="lg" className={`w-full ${loading ? "bg-light text-dark":""}`} disabled={loading}> 
+                      <SaveIcon width="15" color="white" />  
+                      {loading ? "Loading...": "Save"} 
+                    </Button>}
+                    {props?.bookings?.taskStatus === "Pending" && <Button type="submit" size="lg" color="secondary" disabled={loading} variant="solid" className={`border-2 bg-${loading?"gray-200 text-dark":"teal-600 text-white"} text-xl`}> <ChairIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Check In"} </Button>}
+                    {props?.bookings?.taskStatus === "CheckedIn" && <Button type="submit" size="lg" color="secondary" disabled={loading} variant="solid" className={`border-2 bg-${loading?"gray-200 text-dark":"purple-600 text-white"} text-xl`}> <DoorOpenIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Check Out"} </Button>}
+                    {props?.bookings?.taskStatus === "CheckedOut" && <Button type="submit" size="lg" variant="solid" disabled={loading} className={`border-2 bg-${loading?"gray-200 text-dark":"green-600 text-white"} text-xl`}> <CheckIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Pay"} </Button>}
+                    {props?.bookings?.taskStatus === "Completed" && <Button type="button" size="lg" variant="solid" disabled={loading} className={`border-2 bg-${loading?"gray-200 text-dark":"green-600 text-white"} text-xl`}> <CheckIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Complete"} </Button>}
+                  </div>
+                  
                 </DrawerHeader>
                 <DrawerBody> 
                 
-                  <div className="flex ">
+                  {/* <div className="flex ">
                     <div className="w-1/2 p-2 border border-3">
                       <span>On</span> <i><strong> {new Date(appointmentDate?.toString()).toDateString()} </strong>  </i> 
                     </div>
                     <div className="w-1/2 p-2 border border-3">
                       <span>At</span> <i><strong> {startTime} </strong>  </i> 
                     </div>
-                  </div>
+                  </div> */}
 
-                  <div className="flex items-center gap-2">
-                    <Controller name="appointmentDate" control={control}
-                      render={({ field }) => (
-                        <DatePicker
-                          {...field} hideTimeZone showMonthAndYearPickers label="Date & Time" variant="bordered"
-                          defaultValue={field.value} onChange={(date) => {
-                            field.onChange(date)
-                            resetPax();
-                          }} // Ensure React Hook Form updates the state
-                        />
-                      )}
-                    />
-                    <label htmlFor="startTime" className="w-2/5 border-2 p-3 px-2">
-                      <select id="startTime" className="w-100 outline-none pe-3" {...register("startTime", {required: true})} onChange={(event:any) => {
-                        setValue("startTime", event.target.value)
-                        resetPax()
-                      }}>
-                        <option value="">Select Time</option>
-                        {timeList.map((value) => (
-                          <option key={value.key} value={value.key}>{value.label}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label htmlFor="paxValue" className="w-1/5 border-2 p-3 px-2">
-                      <select id="paxValue" className="w-100 outline-none pe-3" value={pax.length} onChange={(event:any) => onPaxChange(+event.target.value)}>
-                        <option value="">Pax</option>
-                        {Array.from({ length: 5 }, (_, i) => (i + 1).toString())?.map((val: string) => {
-                          return <option key={val} value={val}>{val}</option>
-                        })}
-                      </select>
-                    </label>
-                  </div>
-                  {errors.startTime && <div className="text-danger text-sm -mt-2 ms-3">Date & Time is not selected</div>}
 
+
+                  <section className="flex items-center gap-0">
+                    <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${!props?.bookings && "bg-primary text-white"}`}>NEW APPOINTMENT</small>
+                    <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${props?.bookings?.taskStatus === "Pending" && "bg-gray-300"}`}>BOOKING CONFIRMED</small>
+                    <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${props?.bookings?.taskStatus === "CheckedIn" && "bg-teal-600 text-white"}`}>CHECKED IN</small>
+                    <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${props?.bookings?.taskStatus === "CheckedOut" && "bg-purple-600 text-white"}`}>CHECKED OUT</small>
+                    <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${props?.bookings?.taskStatus === "Completed" && "bg-success-600 text-white"}`}>JOB COMPLETE</small>
+                  </section>
 
                   {branchList.length ? <Controller name="branchId" control={control} rules={{required: true}}
                     render={({ field }) => (
@@ -305,7 +303,7 @@ const NewAppointment = (props:any) => {
 
 
 
-                  {customerId ? <AvatarCard {...customerList?.find((e:any) => e._id === customerId) || {}} onDelete={() => setValue("customerId", null)}  /> : 
+                  {customerId ? <ServiceCard {...customerList?.find((e:any) => e._id === customerId) || {}} onDelete={() => setValue("customerId", null)}  /> : 
                     <Autocomplete {...register("customerId", {required: true})} defaultItems={customerList} label="Customer" 
                     labelPlacement="inside" placeholder="Select a customer" variant="bordered"
                     onSelectionChange={(item:any)=> setValue("customerId",item)}
@@ -325,6 +323,41 @@ const NewAppointment = (props:any) => {
                   </Autocomplete>}
                   {errors.customerId && <div className="text-danger text-sm -mt-2 ms-3">Customer is required</div>}
 
+                  <div className="flex items-center gap-2">
+                    <Controller name="appointmentDate" control={control}
+                      render={({ field }) => (
+                        <DatePicker
+                          {...field} hideTimeZone showMonthAndYearPickers label="Date & Time" variant="bordered"
+                          defaultValue={field.value} onChange={(date) => {
+                            field.onChange(date)
+                            resetPax();
+                          }} // Ensure React Hook Form updates the state
+                        />
+                      )}
+                    />
+                    <label htmlFor="startTime" className="w-1/4 border-2 p-3 px-2">
+                      <select id="startTime" className="w-100 outline-none pe-3" {...register("startTime", {required: true})} 
+                      onChange={(event:any) => {
+                        setValue("startTime", event.target.value)
+                        resetPax()
+                      }}>
+                        <option value="">Select Time</option>
+                        {timeList.map((value) => (
+                          <option key={value.key} value={value.key}>{value.label}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="w-1/2 text-center p-3 border-2 rounded"> {moment(appointmentDate.toString()).format('dddd')} </div>
+                    <label htmlFor="paxValue" className="w-1/4 border-2 p-3 px-2">
+                      <select id="paxValue" className="w-100 outline-none pe-3" value={pax.length} onChange={(event:any) => onPaxChange(+event.target.value)}>
+                        <option value="">Pax</option>
+                        {Array.from({ length: 5 }, (_, i) => (i + 1).toString())?.map((val: string) => {
+                          return <option key={val} value={val}>{val}</option>
+                        })}
+                      </select>
+                    </label>
+                  </div>
+                  {errors.startTime && <div className="text-danger text-sm -mt-2 ms-3">Date & Time is not selected</div>}
 
                       
                   {branchId && startTime && <section className="flex items-center px-2 mt-3 gap-3 border-b-5 border-primary">
@@ -342,7 +375,7 @@ const NewAppointment = (props:any) => {
                           height: paxIndex === selectedTab ? "100%" : "0"
                           }}>
                           {/* <h1> Person {paxIndex + 1} </h1> */}
-                          <ServiceList control={control} paxIndex={paxIndex} register={register} errors={errors} watch={watch} setValue={setValue} startTime={startTime} serviceList={serviceList} employeeList={employeeList} getNextTimeSlot={getNextTimeSlot} convertTo24HourFormat={convertTo24HourFormat} />
+                          <ServiceList control={control} paxIndex={paxIndex} register={register} errors={errors} watch={watch} setValue={setValue} startTime={startTime} serviceList={serviceList} allServiceList={allServiceList} employeeList={employeeList} getNextTimeSlot={getNextTimeSlot} convertTo24HourFormat={convertTo24HourFormat} />
                         </div>
                       ))}
                       
@@ -353,13 +386,13 @@ const NewAppointment = (props:any) => {
 
                 </DrawerBody>
                 <DrawerFooter style={{justifyContent: "start", flexDirection: "column"}}>
-                  {/* <Textarea {...register("note")} label="Note" placeholder="Enter Note" /> */}
+                  <Textarea {...register("note")} label="Note" placeholder="Enter Note" />
                   
                   <div className="flex items-center justify-between">
                     <h5 className="text-xl">Subtotal :</h5>
                     <h5 className="text-xl">Rs. {totalAmount}</h5>
                   </div>
-                  <div className="flex items-center gap-3">
+                  {/* <div className="flex items-center gap-3">
                     <Button color="primary" type="submit" className={`w-full ${loading ? "bg-light text-dark":""}`} disabled={loading}> 
                       <SaveIcon width="15" color="white" />  
                       {loading ? "Loading...": appointmentId ? "Update Appointment" : "Save Appointment"} 
@@ -367,7 +400,7 @@ const NewAppointment = (props:any) => {
                     {props?.bookings?.taskStatus === "Pending" && <Button color="secondary" variant="bordered" className="w-full border-2 border-teal-600 text-xl text-teal-600"> <ChairIcon width="15" height="15" color="teal" /> Check In </Button>}
                     {props?.bookings?.taskStatus === "CheckIn" && <Button color="secondary" variant="bordered" className="w-full border-2 border-purple-600 text-xl text-purple-600"> <DoorOpenIcon width="15" height="15" color="purple" /> Check Out </Button>}
                     {props?.bookings?.taskStatus === "Checkout" && <Button variant="bordered" className="w-full border-2 border-green-600 text-xl text-green-600"> <CheckIcon width="15" height="15" color="green" /> Pay </Button>}
-                  </div>
+                  </div> */}
                 </DrawerFooter>
               </>
             )}
@@ -383,7 +416,7 @@ export default NewAppointment
 
   
 // Separate component to handle nested "serviceIds" array
-const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, startTime, serviceList, employeeList, getNextTimeSlot }: any) => {
+const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, startTime, serviceList, allServiceList, employeeList, getNextTimeSlot }: any) => {
   const { fields: serviceFields, append: addService, remove: removeService } = useFieldArray({
     control,
     name: `pax.${paxIndex}`,
@@ -487,7 +520,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
         const durationList = watch(`pax.${paxIndex}.${serviceIndex}.durationList`)
         // const servStartTime = watch(`pax.${paxIndex}.${serviceIndex}.startTime`)
         // const duration = watch(`pax.${paxIndex}.${serviceIndex}.duration`)
-        // const price = watch(`pax.${paxIndex}.${serviceIndex}.price`)
+        const price = watch(`pax.${paxIndex}.${serviceIndex}.price`)
         const paxEmployeeList = watch(`pax.${paxIndex}.${serviceIndex}.employeeList`)
         const busyEmployees = watch(`pax.${paxIndex}.${serviceIndex}.busyEmployees`)
         const selectedAsset = watch(`pax.${paxIndex}.${serviceIndex}.selectedAsset`)
@@ -501,83 +534,88 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
           {errors.pax?.[paxIndex]?.[serviceIndex] && (
             <p className="text-danger text-sm ms-2"> Required fields are mandatory </p>
           )}
-          <div className="flex items-center gap-2">
-            {/* <Controller name={`pax.${paxIndex}.${serviceIndex}.serviceId`} control={control} rules={{required: true}}
-              render={({ field }) => (
-                <AvatarSelect field={field} data={serviceList} label="Services" keyName="name" 
-                  onChange={(id:string) => onServiceSelection(id, serviceIndex)} />
-              )}
-            /> */}
-            {serviceId ? <ServiceCard {...serviceList?.find((item:any) => item._id === serviceId)} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, null)} /> : 
-              <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.serviceId`, {required: true})} 
-              defaultItems={serviceList} label="Services" 
-              labelPlacement="inside" placeholder="Select a service" variant="bordered"
-              onSelectionChange={(id:string) => onServiceSelection(id, serviceIndex)}
-              >
-              {(user:any) => (
-                <AutocompleteItem key={user._id} textValue={user.name}>
-                  <div className="flex gap-2 items-center">
-                    <Avatar alt={user.name} className="flex-shrink-0" size="sm" src={user.image} />
-                    <div className="flex flex-col">
-                      <span className="text-small">{user.name}</span>
-                      <span className="text-tiny text-default-400">{user.email}</span>
-                    </div>
+          {serviceId ? <ServiceCard {...allServiceList?.find((item:any) => item._id === serviceId)} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, null)} /> : 
+            <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.serviceId`, {required: true})} 
+            defaultItems={serviceList} label="Services" 
+            labelPlacement="inside" placeholder="Select a service" variant="bordered"
+            onSelectionChange={(id:string) => onServiceSelection(id, serviceIndex)}
+            >
+            {(user:any) => (
+              <AutocompleteItem key={user._id} textValue={user.name}>
+                <div className="flex gap-2 items-center">
+                  <Avatar alt={user.name} className="flex-shrink-0" size="sm" src={user.image} />
+                  <div className="flex flex-col">
+                    <span className="text-small">{user.name}</span>
+                    <span className="text-tiny text-default-400">{user.email}</span>
                   </div>
-                </AutocompleteItem>
-              )}
-              
-            </Autocomplete>}
+                </div>
+              </AutocompleteItem>
+            )}
             
-            <div className="w-2/5 border-2 rounded p-1">
-              <select {...register(`pax.${paxIndex}.${serviceIndex}.duration`)} className="w-full py-3"
+          </Autocomplete>}
+          
+          {/* <Controller name={`pax.${paxIndex}.${serviceIndex}.serviceId`} control={control} rules={{required: true}}
+            render={({ field }) => (
+              <AvatarSelect field={field} data={serviceList} label="Services" keyName="name" 
+                onChange={(id:string) => onServiceSelection(id, serviceIndex)} />
+            )}
+          /> */}
+
+
+          {/* <Controller name={`pax.${paxIndex}.${serviceIndex}.employeeId`} control={control} rules={{required: true}}
+            render={({ field }) => (
+              <AvatarSelect field={field} data={paxEmployeeList} label="Staff" keyName="firstname" showStatus={true} disabledKeys={busyEmployees} />
+            )}
+          /> */}
+          
+          <div className="flex items-center gap-2">
+            <div className="w-1/2 border-2 rounded p-1">
+              <select {...register(`pax.${paxIndex}.${serviceIndex}.duration`)} className="w-full py-3 outline-none"
                 onChange={(item: any) => onDurationSelection(item, serviceIndex, durationList)}>
                   <option value="">Duration</option>
                 {durationList?.map((item:any, index: number) => <option key={index} value={item.serviceDuration}>{item.serviceDuration} min</option>)}
               </select>
             </div>
-
-          </div>
-          
-          <div className="flex items-center gap-2">
-
-            {/* <Controller name={`pax.${paxIndex}.${serviceIndex}.employeeId`} control={control} rules={{required: true}}
-              render={({ field }) => (
-                <AvatarSelect field={field} data={paxEmployeeList} label="Staff" keyName="firstname" showStatus={true} disabledKeys={busyEmployees} />
-              )}
-            /> */}
-
-            {employeeId ? <ServiceCard {...paxEmployeeList?.find((item:any) => item._id === employeeId)} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)} /> : 
-              <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.employeeId`, {required: true})} 
-              defaultItems={paxEmployeeList || []} label="Staffs" 
-              labelPlacement="inside" placeholder="Select staff" variant="bordered" disabledKeys={busyEmployees?.map((item:any) => item.employeeId)}
-              onSelectionChange={(id:string) => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, id)}
-              >
-              {(user:any) => {
-                
-                const employee = busyEmployees?.find((item:any) => item.employeeId == user._id);
-                return <AutocompleteItem key={user._id} textValue={user.firstname + " " + user.lastname}>
-                  <div className="flex gap-2 items-center">
-                    <Avatar alt={user.firstname} className="flex-shrink-0" size="sm" src={user.image} />
-                    <div className="flex flex-col">
-                      <span className="text-small">{user.firstname + " " + user.lastname}</span>
-                      <span className="text-tiny text-default-400">{user.email}</span>
-                    </div>
-                    
-                    {employee ? <span style={{fontSize: "10px"}} className={`bg-red-800 ms-auto text-white px-2 rounded`}>Busy {employee.nextAvailableTime && ("till " + employee.nextAvailableTime)} </span> :
-                        <span style={{fontSize: "10px"}} className={`bg-green-800 ms-auto text-white px-2 rounded`}>Available</span>}
-                  </div>
-                </AutocompleteItem>
-              }}
-              
-            </Autocomplete>}
             
-            <Input className="w-2/5" type="text" label={"Place"} readOnly value={selectedAsset ? selectedAsset?.assetType?.toUpperCase() + "-" + selectedAsset?.assetNumber : ""} />
+            <Input className="w-1/2" type="text" label={"Place"} readOnly value={selectedAsset ? selectedAsset?.assetType?.toUpperCase() + "-" + selectedAsset?.assetNumber : ""} />
           </div>
+
+
+          {employeeId ? <ServiceCard {...paxEmployeeList?.find((item:any) => item._id === employeeId)} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)} /> : 
+            <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.employeeId`, {required: true})} 
+            defaultItems={paxEmployeeList || []} label="Staffs" 
+            labelPlacement="inside" placeholder="Select staff" variant="bordered" disabledKeys={busyEmployees?.map((item:any) => item.employeeId)}
+            onSelectionChange={(id:string) => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, id)}
+            >
+            {(user:any) => {
+              
+              const employee = busyEmployees?.find((item:any) => item.employeeId == user._id);
+              return <AutocompleteItem key={user._id} textValue={user.firstname + " " + user.lastname}>
+                <div className="flex gap-2 items-center">
+                  <Avatar alt={user.firstname} className="flex-shrink-0" size="sm" src={user.image} />
+                  <div className="flex flex-col">
+                    <span className="text-small">{user.firstname + " " + user.lastname}</span>
+                    <span className="text-tiny text-default-400">{user.email}</span>
+                  </div>
+                  
+                  {employee ? <span style={{fontSize: "10px"}} className={`bg-red-800 ms-auto text-white px-2 rounded`}>Busy {employee.nextAvailableTime && ("till " + employee.nextAvailableTime)} </span> :
+                      <span style={{fontSize: "10px"}} className={`bg-green-800 ms-auto text-white px-2 rounded`}>Available</span>}
+                </div>
+              </AutocompleteItem>
+            }}
+            
+          </Autocomplete>}
+
           
+          <div className="flex items-center justify-between gap-2 px-2">
+            <button type="button" className="my-2" onClick={() => onServiceRemoved(serviceIndex)}>❌ Remove </button>
+            <strong>Rs. {price || 0}</strong>
+          </div>
+
+          <hr className="py-3" />
           {/* <input type="text" className="w-1/5" value={selectedAsset?.assetType?.toUpperCase() + "-" + selectedAsset?.assetNumber} /> */}
           
 
-          {serviceFields.length > 1 && <button type="button" className="my-2" onClick={() => onServiceRemoved(serviceIndex)}>❌ Remove Service</button>}
         </div>
         
         
@@ -596,13 +634,13 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
 const ServiceCard = (props:any) => {
   const name = props?.name ? props?.name : props?.firstname + " " + props?.lastname
   return (
-    <Card className="w-full shadow-sm border-2">
+    <Card className="w-full flex-shrink-0 shadow-sm border-2">
       <CardHeader className="justify-between">
         <div className="flex gap-3">
           <Avatar isBordered radius="full" size="sm" src={props.image} />
           <div className="flex flex-col gap-1 items-start justify-center">
             <h4 className="text-small font-semibold leading-none text-default-600">{name}</h4>
-            <h5 className="text-small tracking-tight text-default-400"> <strong> {props.email}</strong> </h5>
+            <h5 className="text-small tracking-tight text-default-400"> <strong> {props.email || props.createdAt}</strong> </h5>
           </div>
         </div>
         <div className="cursor-pointer" onClick={props.onDelete}>

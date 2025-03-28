@@ -3,7 +3,7 @@ import React from "react";
 import { imageDb } from "../utilities/firebaseConfig";
 import { Button, Checkbox, CheckboxGroup, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Radio, RadioGroup, Textarea } from "@heroui/react";
 import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelectMultiple from "../common/avatar-select-multiple";
 import AvatarSelect from "../common/avatar-select";
@@ -12,11 +12,17 @@ import { toast } from "react-toastify";
 
 
 const AddEditBranch = (props:any) => {
-    const { register, handleSubmit, setValue, setError, formState: { errors }, control, reset } = useForm();
+    const { register, handleSubmit, setValue, setError, formState: { errors }, control, reset } = useForm({
+      defaultValues: {image: null, branchname:null, gender: "unisex", managerId: null, servicesId: [], contactnumber: null, email: null, address: null,
+        landmark: null, country: null, city: null, state: null, postalcode:null, latitude: null, longitude: null, paymentmethods: [], 
+        description: null, status: false}
+    });
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
     const [serviceList, setServiceList] = React.useState([]);
     const [employeeList, setEmployeeList] = React.useState([]);
+
+    const gender = useWatch({ control, name: "gender" });
 
     React.useEffect(() => {
         if(props.branches) {
@@ -27,7 +33,7 @@ const AddEditBranch = (props:any) => {
             getEmployeeList()
         }
         else {
-          reset({image: null, branchname:null, gender: null, managerId: null, servicesId: [], contactnumber: null, email: null, address: null,
+          reset({image: null, branchname:null, gender: "unisex", managerId: null, servicesId: [], contactnumber: null, email: null, address: null,
             landmark: null, country: null, city: null, state: null, postalcode:null, latitude: null, longitude: null, paymentmethods: [], 
             description: null, status: false})
           getServiceList();
@@ -129,7 +135,7 @@ const AddEditBranch = (props:any) => {
                     <div>
                       <Input {...register("branchname", {required: true})} label="Branch Name" placeholder="Enter Branch Name" type="text" variant="flat" isRequired />
                       
-                      <RadioGroup {...register("gender", {required: true})} className="my-3 mx-1" label="Gender" orientation="horizontal" defaultValue={props.branches?.gender} isRequired>
+                      <RadioGroup {...register("gender", {required: true})} className="my-3 mx-1" label="Gender" orientation="horizontal" defaultValue={props.branches?.gender || gender} isRequired>
                         <Radio value="unisex" className="border-3 border-gray-400 rounded px-4 mx-0">Unisex</Radio>
                         <Radio value="female" className="border-3 border-gray-400 rounded px-4 mx-0">Female</Radio>
                         <Radio value="male" className="border-3 border-gray-400 rounded px-4 mx-0">Male</Radio>

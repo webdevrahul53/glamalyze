@@ -211,13 +211,13 @@ const CustomEvent = (event: any) => {
         </div>}
     >
       <div className="flex flex-col items-center gap-1">
-        <small>{event?.event?.assetNumber}</small>
+        <small>{event.event.duration}m</small>
         {event?.event?.assetType === "chair" && <ChairIcon width={30} color={isBooked ? "black": "lightgray"} />}
         {event?.event?.assetType === "sofa" && <SofaIcon width={30} color={isBooked ? "black": "lightgray"} />}
         {event?.event?.assetType === "bed" && <BedIcon width={30} color={isBooked ? "black": "lightgray"} />}
         {event?.event?.assetType === "bath" && <BathIcon width={30} color={isBooked ? "black": "lightgray"} />}
         
-        <small>{event.event.duration}m</small>
+        <small>{event?.event?.assetNumber}</small>
       </div>
     </Tooltip>
   </section>

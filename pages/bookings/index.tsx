@@ -78,7 +78,7 @@ export const columns = [
   {name: "SERVICES", uid: "serviceName"},
   {name: "STATUS", uid: "taskStatus"},
   // {name: "STATUS", uid: "status"},
-  {name: "PAYMENT STATUS", uid: "paymentStatus"},
+  // {name: "PAYMENT STATUS", uid: "paymentStatus"},
   // {name: "UPDATED AT", uid: "updatedAt"},
   {name: "ACTIONS", uid: "actions"},
 ];

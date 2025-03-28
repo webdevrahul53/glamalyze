@@ -2,9 +2,10 @@
 
 import React from "react";
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, User, Tooltip, Chip, Button, AvatarGroup, Avatar, 
-  Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Pagination, Progress } from "@heroui/react";
+  Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Pagination, Progress} from "@heroui/react";
 import { BathIcon, BedIcon, ChairIcon, DeleteIcon, EditIcon, SofaIcon } from "../utilities/svgIcons";
-import { ArrayType, AvatarGroupType, AvatarType, AvatarType2, BoxButtonType, DateType, RoleType } from "../utilities/table-types";
+import { ArrayType, AvatarGroupType, AvatarType, AvatarType2, BoxButtonType, DateOnlyType, DateType, RoleType } from "../utilities/table-types";
+import moment from "moment";
 
 const statusColorMap:any = {
   Active: "success",
@@ -20,8 +21,8 @@ const roleCSS: any = {
 
 export const taskStatusCSS: any = {
   Pending: "bg-gray-200 text-gray-800 border-gray-500",
-  CheckIn: "bg-teal-200 text-teal-800 border-teal-500",
-  Checkout: "bg-purple-200 text-purple-800 border-purple-500",
+  CheckedIn: "bg-teal-200 text-teal-800 border-teal-500",
+  CheckedOut: "bg-purple-200 text-purple-800 border-purple-500",
   Completed: "bg-green-200 text-green-800 border-green-500",
   Cancelled: "bg-red-200 text-red-800 border-red-500",
 }
@@ -46,16 +47,17 @@ export default function DataGrid(props:any) {
   const [page, setPage] = React.useState(1);
   const [users, setUsers] = React.useState([]);
   const [totalPages, setTotalPages] = React.useState(1);
+  const [selectedRowsPerPage, setSelectedRowsPerPage] = React.useState("10");
   const [loading, setLoading] = React.useState(false);
 
-  const rowsPerPage = 5; // Change this according to API support
 
   // Fetch data from API based on the page
   React.useEffect(() => {
     fetchUsers();
   }, [page, props.search, props.pageRefresh]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (rowsPerPage: string = "10") => {
+    setSelectedRowsPerPage(rowsPerPage)
     setLoading(true);
     try {
       const response = await fetch(
@@ -137,8 +139,8 @@ export default function DataGrid(props:any) {
             props?.updateStatus(user.appointmentId, {taskStatus: selectedKey})
           }}>
           <DropdownItem key="Pending">Pending</DropdownItem>
-          <DropdownItem key="CheckIn">Check In</DropdownItem>
-          <DropdownItem key="Checkout">Check Out</DropdownItem>
+          <DropdownItem key="CheckedIn">Check In</DropdownItem>
+          <DropdownItem key="CheckedOut">Check Out</DropdownItem>
           <DropdownItem key="Completed">Completed</DropdownItem>
           <DropdownItem key="Cancelled" className="text-danger" color="danger">
             Cancelled
@@ -158,6 +160,9 @@ export default function DataGrid(props:any) {
     }else if(DateType.includes(columnKey)){
       const formattedDateTime = formatDateTime(cellValue);
       return formattedDateTime
+    }else if(DateOnlyType.includes(columnKey)){
+      const formattedDate = moment(cellValue).toDate().toDateString();
+      return formattedDate
     }else if(RoleType.includes(columnKey)){
       return <span className={`p-1 px-2 rounded ${roleCSS[cellValue]}`}>{cellValue}</span>
     }else if(BoxButtonType.includes(columnKey)){
@@ -205,36 +210,45 @@ export default function DataGrid(props:any) {
   return (
     <>
       {loading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
-      <Table isStriped selectionMode="multiple" aria-label="Example table with custom cells"
-        onSelectionChange={(keys) => props?.onKeysSelection && props?.onKeysSelection(keys === "all" ? users.map((item:any) => item._id) : keys) }
-        bottomContent={
-          <div className="flex w-full justify-center">
-            <Pagination
-              isCompact
-              showControls
-              showShadow
-              color="secondary"
-              page={page}
-              total={totalPages}
-              onChange={(newPage) => setPage(newPage)}
-            />
+      <section>
+        <div style={{maxHeight: "calc(100vh - 300px)", overflow: "auto"}}>
+          <Table isStriped selectionMode="multiple" aria-label="Example table with custom cells" style={{borderRadius: 0}}
+            onSelectionChange={(keys) => props?.onKeysSelection && props?.onKeysSelection(keys === "all" ? users.map((item:any) => item._id) : keys) }>
+            <TableHeader columns={props.columns}>
+              {(column:any) => (
+                <TableColumn key={column.uid} align={column.uid === "actions" ? "center" : "start"}>
+                  {column.name}
+                </TableColumn>
+              )}
+            </TableHeader>
+            <TableBody items={users}>
+              {(item:any) => (
+                <TableRow key={item._id}>
+                  {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="flex w-full justify-center gap-3 py-3">
+          <div className="border-2 px-2">
+            <select className="py-2 pe-4 outline-none" value={selectedRowsPerPage} onChange={(event:any) => fetchUsers(event.target.value)}>
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
           </div>
-        }>
-        <TableHeader columns={props.columns}>
-          {(column:any) => (
-            <TableColumn key={column.uid} align={column.uid === "actions" ? "center" : "start"}>
-              {column.name}
-            </TableColumn>
-          )}
-        </TableHeader>
-        <TableBody items={users}>
-          {(item:any) => (
-            <TableRow key={item._id}>
-              {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+          <Pagination
+            isCompact
+            showControls
+            showShadow
+            color="secondary"
+            page={page}
+            total={totalPages}
+            onChange={(newPage) => setPage(newPage)}
+          />
+        </div>
+      </section>
     </>
   );
 }

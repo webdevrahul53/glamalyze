@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
       if(!req.query.page || !req.query.limit) {
         const result = await Services.aggregate([
-          { $project: { _id: 1, image: 1, name: 1, variants: 1, assetType: 1} }
+          { $project: { _id: 1, image: 1, name: 1, variants: 1, assetType: 1, createdAt: 1} }
         ])
         res.status(200).json(result)
       }else {

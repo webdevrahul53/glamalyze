@@ -7,6 +7,8 @@ const GroupsSchema = mongoose.Schema({
     groupname:{type:String,required:true, unique: true},
     branchId: {type: mongoose.Schema.Types.ObjectId, ref: "Branches"},
     employeesId:[{type:mongoose.Schema.Types.ObjectId, ref: "Employees"}],
+    effectiveFrom:{type:Date},
+    effectiveTo:{type:Date},
     status:{type:Boolean,required:true},
 },{ timestamps: true })
 

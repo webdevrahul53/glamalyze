@@ -3,32 +3,35 @@ import React from "react";
 import { imageDb } from "../utilities/firebaseConfig";
 import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Radio, RadioGroup } from "@heroui/react";
 import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { v4 } from "uuid";
 import { toast } from "react-toastify";
 import { CUSTOMERS_API_URL } from "../utilities/api-url";
 
 const AddEditCustomer = (props:any) => {
-    const { register, handleSubmit, reset } = useForm();
+    const { register, handleSubmit, setValue, control, reset } = useForm({
+      defaultValues: {image: null, firstname: null, lastname: null, gender: "male", email: null, phonenumber: null, status: false}
+    });
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false)
+
+    const gender = useWatch({ control, name: "gender" });
+
 
     React.useEffect(() => {
         if(props.customer) {
             reset(props.customer)
             setImagePreview(props.customer.image)
         }
-        else reset({image: null, firstname:null, lastname: null, email: null, phonenumber: null, gender:null, status: false})
+        else reset({image: null, firstname:null, lastname: null, email: null, phonenumber: null, gender: "male", status: false})
     }, [props.customer])
 
     const onSubmit = async (data:any) => {
-        console.log(data);
-        
-        let file = data.image[0]
-        if(!file) return;
-        setLoading(true)
-
-        if(typeof data.image === "string") saveCustomer(data);
+      console.log(data);
+      
+      setLoading(true)
+      let file = data?.image?.[0]
+      if(!file || typeof data.image === "string") saveCustomer(data)
         else {
             const imageRef = ref(imageDb, `spa-management-system/customers/${v4()}`)
             uploadBytes(imageRef, file).then(() => {
@@ -90,28 +93,34 @@ const AddEditCustomer = (props:any) => {
   
                     <div className="text-danger text-sm ms-2 -mt-2">
                     </div>
+                    
                     {imagePreview ? (
-                      <img src={imagePreview} alt="Preview" width="120" height="100" />
+                      <label htmlFor="image" className="cursor-pointer"><img src={imagePreview} alt="Preview" width="120" height="100" /></label>
                     ) : (
-                      <label htmlFor="image" className="cursor-pointer">
+                        <label htmlFor="image" className="cursor-pointer">
                           <ImageIcon width="120" height="100" />
                         </label>
                       )}
+                    <div className="flex items-center gap-1 ms-2 mb-3">
+                      <Button type="button" color="primary"><label htmlFor="image" className="cursor-pointer">Upload</label></Button>
+                      <Button type="button" color="danger" variant="bordered" onPress={() => {setValue("image", null); setImagePreview(null)}}>Remove</Button>
+                    </div>
   
   
-                    <Input id="image" {...register("image", {required: props.customer ? false : true})} type="file" variant="flat" onChange={handleImageChange} isRequired />
+                    <Input id="image" {...register("image")} type="file" variant="flat" onChange={handleImageChange} />
                     <Input {...register("firstname", {required: true})} label="First Name" placeholder="Enter First Name" type="text" variant="flat" isRequired />
                     <Input {...register("lastname", {required: true})} label="Last Name" placeholder="Enter Last Name" type="text" variant="flat" isRequired />
-                    <RadioGroup {...register("gender", {required: true})} className="my-3 mx-1" label="Gender" orientation="horizontal" defaultValue={props.customer?.gender} isRequired>
-                      <Radio {...register("gender", {required: true})} value="male">Male</Radio>
-                      <Radio {...register("gender", {required: true})} value="female">Female</Radio>
-                      <Radio {...register("gender", {required: true})} value="intersex">Intersex</Radio>
-                    </RadioGroup>
-                    
-                    <Input {...register("email", {required: true})} label="Email" placeholder="Enter Email" type="email" variant="flat" isRequired />
                     <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="tel" variant="flat" isRequired />
-                    
+
+                    <Input {...register("email")} label="Email" placeholder="Enter Email" type="email" variant="flat" />
+                    <RadioGroup {...register("gender")} className="my-3 mx-1" label="Gender" orientation="horizontal" defaultValue={props.customer?.gender || gender}>
+                      <Radio {...register("gender")} value="male">Male</Radio>
+                      <Radio {...register("gender")} value="female">Female</Radio>
+                      <Radio {...register("gender")} value="intersex">Intersex</Radio>
+                    </RadioGroup>
                     <Checkbox {...register("status")} color="primary"> Active </Checkbox>
+                    
+                    
   
   
   

@@ -3,7 +3,8 @@ const AvatarType2 = ["branch:branchname", "manager:firstname", "customer:firstna
 const AvatarGroupType = ["groupEmployees", "employee", "serviceId"]
 const ArrayType = ["variants:serviceDuration", "variants:defaultPrice"]
 const DateType = ["createdAt", "updatedAt", "start"]
+const DateOnlyType = ["effectiveFrom", "effectiveTo"]
 const BoxButtonType = ["totalServices", "employeesCount"]
 const RoleType = ["role"]
 
-export {AvatarType, AvatarType2, AvatarGroupType, ArrayType, DateType, BoxButtonType, RoleType}
+export {AvatarType, AvatarType2, AvatarGroupType, ArrayType, DateType, DateOnlyType, BoxButtonType, RoleType}

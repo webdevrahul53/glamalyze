@@ -7,6 +7,7 @@ export default function AvatarSelect({field, data = [], label, keyName, onChange
     
   return (
     <Select
+        className={field.value ? "avatar-select-label-css": ""}
         {...field} isRequired={isRequired}
         items={data}
         label={label}
@@ -17,7 +18,7 @@ export default function AvatarSelect({field, data = [], label, keyName, onChange
         renderValue={(items:any) =>
         items?.map((item:any) => (
             <div key={item.key} className="flex items-center gap-2">
-            <Avatar alt={item.data[keyName]} className="flex-shrink-0" size="sm" src={item.data.image} style={{width: 22, height: 22}} />
+            <Avatar alt={item.data[keyName]} className="flex-shrink-0" size="sm" src={item.data.image} style={{width: 35, height: 35, marginBottom: 15}} />
             <div className="flex flex-col">
                 <span>{item.data[keyName]}</span>
                 {/* {item.data.email && <span className="text-default-500 text-tiny">{item.data.email}</span>} */}

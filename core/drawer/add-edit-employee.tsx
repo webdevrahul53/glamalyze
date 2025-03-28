@@ -3,19 +3,23 @@ import React from "react";
 import { imageDb } from "../utilities/firebaseConfig";
 import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Radio, RadioGroup } from "@heroui/react";
 import { EyeFilledIcon, EyeSlashFilledIcon, ImageIcon, SaveIcon } from "../utilities/svgIcons";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelectMultiple from "../common/avatar-select-multiple";
 import { EMPLOYEES_API_URL, SERVICES_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
 
 const AddEditEmployee = (props:any) => {
-    const { register, handleSubmit, setValue, control, reset } = useForm();
+    const { register, handleSubmit, setValue, control, reset } = useForm({
+      defaultValues: {image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: null, 
+        aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, isVisibleInCalendar: null, status: null}
+    });
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
     const [serviceList, setServiceList] = React.useState([]);
     const [isVisible, setIsVisible] = React.useState(false);
-  
+
+    const gender = useWatch({ control, name: "gender" });
     const toggleVisibility = () => setIsVisible(!isVisible);
 
     React.useEffect(() => {
@@ -26,7 +30,7 @@ const AddEditEmployee = (props:any) => {
             getServiceList()
         }
         else {
-          reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: null, servicesId: null, 
+          reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: null, 
             aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, isVisibleInCalendar: null, status: null})
           getServiceList();
         }
@@ -114,7 +118,7 @@ const AddEditEmployee = (props:any) => {
                         <Input {...register("firstname", {required: true})} label="First Name" placeholder="Enter First Name" type="text" variant="flat" isRequired />
                         <Input {...register("lastname", {required: true})} label="Last Name" placeholder="Enter Last Name" type="text" variant="flat" isRequired />
                       </div>
-                      <RadioGroup {...register("gender", {required: true})} className="my-3 mx-1" label="Gender" orientation="horizontal" defaultValue={props.employees?.gender} isRequired>
+                      <RadioGroup {...register("gender", {required: true})} className="my-3 mx-1" label="Gender" orientation="horizontal" defaultValue={props.employees?.gender || gender} isRequired>
                         <Radio {...register("gender", {required: true})} value="male"className="border-3 border-gray-400 rounded px-4 mx-0">Male</Radio>
                         <Radio {...register("gender", {required: true})} value="female"className="border-3 border-gray-400 rounded px-4 mx-0">Female</Radio>
                         <Radio {...register("gender", {required: true})} value="intersex" className="border-3 border-gray-400 rounded px-4 mx-0">Intersex</Radio>
