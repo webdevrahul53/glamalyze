@@ -11,7 +11,7 @@ import { toast } from 'react-toastify';
 export default function Login() {
     const dispatch = useDispatch();
     const router = useRouter();
-    const { register, handleSubmit, formState: { errors } } = useForm();
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm();
     const [isLoading, setLoading] = React.useState(false)
 
 
@@ -38,6 +38,11 @@ export default function Login() {
         }
     }
 
+    const onCopy = () => {
+        setValue("email", "rahulkr.dev53@gmail.com")
+        setValue("password", "password")
+    }
+
 
     return (
         <form className="w-1/3 m-auto my-6 p-3" onSubmit={handleSubmit(onSubmit)}>
@@ -54,6 +59,14 @@ export default function Login() {
             <Button type="submit" color="primary" className={`${isLoading ? "bg-light text-dark":""}`} disabled={isLoading}>{isLoading ? "Loading ..." : "Sign In"}</Button>
 
             <Link href={"/auth/register"}> <Button className="ms-3" variant="bordered" color="primary">Register</Button> </Link>
+
+            <div className="my-3 p-2 border-2 rounded flex items-center">
+                <div>
+                    <div>Email: rahulkr.dev53@gmail.com</div>
+                    <div>Password: password</div>
+                </div>
+                <Button className="ms-auto" onPress={() => onCopy()}>Copy</Button>
+            </div>
             
         </form>
     )
