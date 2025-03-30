@@ -3,7 +3,7 @@ import React, { Suspense } from 'react'
 import { PageTitle } from '@/core/common/page-title'
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-import { APPOINTMENT_SERVICES_API_URL, ASSETS_API_URL } from '@/core/utilities/api-url';
+import { APPOINTMENT_SERVICES_API_URL } from '@/core/utilities/api-url';
 import { BathIcon, BedIcon, ChairIcon, SofaIcon } from '@/core/utilities/svgIcons';
 import { Avatar, Progress, Tooltip, useDisclosure } from '@heroui/react';
 import NewAppointment from '@/core/drawer/new-appointment';
@@ -18,35 +18,23 @@ export default function CalendarViewBookings(){
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const handleOpen = () => { onOpen(); };
   const [events, setEvents] = React.useState<any[]>([]);
-  const [currentDate, setCurrentDate] = React.useState(new Date());
+  const [calendarDate, setCalendarDate] = React.useState(new Date());
   const [selectedBooking, setSelectedBooking] = React.useState<any>(null);
-  const [assetList, setAssetList] = React.useState<any[]>([])
+  const [selectedTime, setSelectedTime] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
-    getAssetList();
-  },[currentDate])
+    getAppointments()
+  },[calendarDate])
 
   const handleSelectEvent = (event: any) => {
     setSelectedBooking(event); // Store selected bookingId
   };
-  
-  const getAssetList = async () => {
-    setLoading(true)
-    try {
-      const assets = await fetch(`${ASSETS_API_URL}`)
-      const parsed = await assets.json();
-      
-      const date = currentDate.toISOString().split("T")[0]
-      const allSlots = generateTimeSlots("10:00", "18:00", 30, parsed, date);
-      getAppointments(allSlots);
-    }catch(err:any) { console.log(err) }
-  }
 
-
-  const getAppointments = async (allSlots:any) => {
+  const getAppointments = async () => {
     try {
-      const response = await fetch(`${APPOINTMENT_SERVICES_API_URL}/calendar`);
+      const date = calendarDate.toISOString().split("T")[0];
+      const response = await fetch(`${APPOINTMENT_SERVICES_API_URL}/calendar?appointmentDate=${date}`);
       let data = await response.json();
       data = data?.map((item: any) => {
         const startDate = new Date(item.start);
@@ -56,73 +44,13 @@ export default function CalendarViewBookings(){
         return item
       })
       
-      const merged = mergeBookedSlots(allSlots, data || []);
-      
-      setAssetList(allSlots)
-      setEvents(merged);
-      // setEvents(data)
+      setEvents(data)
       setLoading(false)
     } catch (error) {
       setLoading(false)
       console.error("Error fetching users:", error);
     }
   };
-
-  function mergeBookedSlots(emptySlots: any[], bookedSlots: any[]) {
-    // Filter out empty slots that overlap with booked slots
-    const filteredEmptySlots = emptySlots.filter((empty) => 
-      !bookedSlots.some(
-        (booked) =>
-          booked.assetType === empty.assetType &&
-          booked.assetNumber === empty.assetNumber &&
-          booked.start.getTime() < empty.end.getTime() && // Starts before empty slot ends
-          booked.end.getTime() > empty.start.getTime()    // Ends after empty slot starts
-        )
-      );
-
-    // Combine booked slots and remaining empty slots
-    const mergedSlots = [...filteredEmptySlots, ...bookedSlots];
-    
-    // Sort by status (true first), then by assetNumber
-    mergedSlots.sort((a, b) => {
-      if (b.status === true && a.status !== true) return 1; // Prioritize booked (true)
-      if (a.status === true && b.status !== true) return -1;
-      return Number(a.assetNumber) - Number(b.assetNumber); // Sort by assetNumber
-    });
-
-
-    return mergedSlots;
-  }
-
-
-
-
-  function generateTimeSlots(startTime: string, endTime: string, intervalMinutes: number, availableAssets:any, date: string) {
-    const slots = [];
-    let start = new Date(`${date}T${startTime}:00`);
-    const end = new Date(`${date}T${endTime}:00`);
-    
-    while (start < end) {
-      const slotEnd = new Date(start.getTime() + intervalMinutes * 60000);
-      
-      slots.push(
-        availableAssets.map((asset:any) => ({
-          title: `Seat ${asset.assetNumber}`,
-          start: new Date(start),
-          end: new Date(slotEnd),
-          assetId: asset._id,
-          assetType: asset.assetType,
-          assetNumber: asset.assetNumber,
-          status: false,
-        }))
-      );
-      
-      start = slotEnd;
-    }
-    
-    return slots.flat();
-  }
-
 
   const onDrawerClose = () => {
     // setPageRefresh((val) => !val)
@@ -136,7 +64,7 @@ export default function CalendarViewBookings(){
 
         {isOpen && (
           <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
-            <NewAppointment bookings={selectedBooking} isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
+            <NewAppointment bookings={selectedBooking} selectedTime={selectedTime} isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}  />
           </Suspense>
         )}
 
@@ -146,8 +74,8 @@ export default function CalendarViewBookings(){
             <Calendar
               localizer={localizer}
               events={events}
-              date={currentDate}
-              onNavigate={(newDate) => setCurrentDate(newDate)} // Fix navigation
+              date={calendarDate}
+              onNavigate={(newDate) => setCalendarDate(newDate)} // Fix navigation
               selectable
               startAccessor="start"
               endAccessor="end"
@@ -156,18 +84,23 @@ export default function CalendarViewBookings(){
               style={{ height: '100%' }}
               min={new Date(2025, 2, 16, 10, 0)} // 10 AM
               max={new Date(2025, 2, 16, 18, 0)} // 6 PM
-              step={10} // Minutes per time slot (default: 30)
-              timeslots={1} // Number of slots per hour (default: 2)
+              step={30} // Minutes per time slot (default: 30)
+              timeslots={2} // Number of slots per hour (default: 2)
+              dayLayoutAlgorithm={"no-overlap"} // Ensures events are rendered in order
               onSelectEvent={handleSelectEvent}
               onDoubleClickEvent={() => handleOpen()}
-              onSelectSlot={(item:any) => console.log(item)}
+              onSelectSlot={(event: any) => {
+                setSelectedTime(event.start)
+                setSelectedBooking(null)
+                handleOpen()
+              }}
               components={{event: CustomEvent}}
               eventPropGetter={(event:any) => {
                 const isSelected = event.bookingId === selectedBooking?.bookingId;
                 const isBooked = event.bookingId;
                 document.documentElement.style.setProperty(
                   "--event-width",
-                  `calc(100% / ${assetList?.length} - 5px)`
+                  `calc(100% / ${events?.length} - 5px)`
                 ); // Pass events.length as a CSS variable
             
                 return {
@@ -178,7 +111,7 @@ export default function CalendarViewBookings(){
                     backgroundColor: "white",
                     border: isSelected && isBooked ? "3px solid blue" : "1px solid gray",
                     color: "black",
-                    width: `calc(100% / ${assetList?.length} - 5px)`, // Distribute width equally
+                    width: `calc(100% / ${events?.length} - 5px)`, // Distribute width equally
                     minWidth: "50px",
                     marginLeft: "5px",
                     marginRight: "5px",
@@ -210,12 +143,14 @@ const CustomEvent = (event: any) => {
           {/* <AvatarCard {...event.event.employee} /> */}
         </div>}
     >
-      <div className="flex flex-col items-center gap-1">
+      <div className={`flex ${event.event.duration < 40 ? "flex-row":"flex-col h-full justify-center"} items-center gap-1`}>
         <small>{event.event.duration}m</small>
-        {event?.event?.assetType === "chair" && <ChairIcon width={30} color={isBooked ? "black": "lightgray"} />}
-        {event?.event?.assetType === "sofa" && <SofaIcon width={30} color={isBooked ? "black": "lightgray"} />}
-        {event?.event?.assetType === "bed" && <BedIcon width={30} color={isBooked ? "black": "lightgray"} />}
-        {event?.event?.assetType === "bath" && <BathIcon width={30} color={isBooked ? "black": "lightgray"} />}
+        <div>
+          {event?.event?.assetType === "chair" && <ChairIcon width={20} color={isBooked ? "black": "lightgray"} />}
+          {event?.event?.assetType === "sofa" && <SofaIcon width={20} color={isBooked ? "black": "lightgray"} />}
+          {event?.event?.assetType === "bed" && <BedIcon width={20} color={isBooked ? "black": "lightgray"} />}
+          {event?.event?.assetType === "bath" && <BathIcon width={20} color={isBooked ? "black": "lightgray"} />}
+        </div>
         
         <small>{event?.event?.assetNumber}</small>
       </div>

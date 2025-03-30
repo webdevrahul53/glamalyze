@@ -31,6 +31,10 @@ body {
   padding: 0 10px;
 }
 
+/* Increase time slot height */
+.rbc-time-slot {
+  min-height: 50px !important; /* Adjust height as needed */
+}
 
 /* Make all events the same width */
 .rbc-event {
@@ -42,6 +46,8 @@ body {
 /* Add spacing between overlapping events */
 .rbc-event-content {
   padding: 5px;
+  display: flex;
+  justify-content: center;
 }
 
 /* Ensure events align properly in a row */

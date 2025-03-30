@@ -37,7 +37,8 @@ const AddEditServices = (props:any) => {
     const onSubmit = async (data:any) => {
       console.log(data);
       setLoading(true)
-      if(typeof data.image === "string") saveServices(data);
+      let file = data?.image?.[0]
+      if(!file || typeof data.image === "string") saveServices(data)
       else {
           let file = data?.image[0]
           const imageRef = ref(imageDb, `spa-management-system/services/${v4()}`)
@@ -123,7 +124,7 @@ const AddEditServices = (props:any) => {
                       )}
   
   
-                    <Input id="image" {...register("image", {required: props.services ? false : true})} type="file" variant="flat" onChange={handleImageChange} isRequired />
+                    <Input id="image" {...register("image")} type="file" variant="flat" onChange={handleImageChange} />
                     <Controller name="categoryId" control={control}
                       render={({ field }) => (
                         <AvatarSelect field={field} data={categoryList} label="Category" keyName="categoryname" onChange={(id:string) => getSubCategoryList(id)} isRequired />

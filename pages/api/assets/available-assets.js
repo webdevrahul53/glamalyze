@@ -6,6 +6,7 @@ export default async function handler(req, res) {
   await connectDB();
 
   if (req.method === "GET") {
+    const appointmentDate = req.query["appointmentDate"]
     const startTime = req.query["startTime"];
     const duration = req.query["duration"];
     const assetType = req.query["assetType"];
@@ -16,6 +17,16 @@ export default async function handler(req, res) {
 
       // Step 2: Find busy assets using AppointmentServices
       const busyAssets = await AppointmentServices.aggregate([
+        {
+          $match: {
+            $expr: {
+              $eq: [
+                { $dateToString: { format: "%Y-%m-%d", date: "$appointmentDate" } },
+                appointmentDate
+              ]
+            }
+          }
+        },
         {
           $addFields: {
             startDateTime: {
@@ -31,11 +42,11 @@ export default async function handler(req, res) {
             $or: [
               {
                 startDateTime: { $lte: new Date(`2023-01-01T${startTime}:00.000Z`) },
-                $expr: { $gte: [{ $dateAdd: { startDate: "$startDateTime", unit: "minute", amount: { $toInt: "$duration" } } }, new Date(`2023-01-01T${startTime}:00.000Z`)] }
+                $expr: { $gt: [{ $dateAdd: { startDate: "$startDateTime", unit: "minute", amount: { $toInt: "$duration" } } }, new Date(`2023-01-01T${startTime}:00.000Z`)] }
               },
               {
                 startDateTime: {
-                  $gte: new Date(`2023-01-01T${startTime}:00.000Z`),
+                  $gt: new Date(`2023-01-01T${startTime}:00.000Z`),
                   $lt: new Date(`2023-01-01T${getNextTimeSlot(startTime, parseInt(duration))}:00.000Z`)
                 }
               }

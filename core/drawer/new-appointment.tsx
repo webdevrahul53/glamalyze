@@ -71,14 +71,14 @@ const NewAppointment = (props:any) => {
 
     // For calendar purpose
     React.useEffect(() => {
-      if(!props?.bookings) return;
-      const date = parseDate(new Date(props?.bookings?.start)?.toISOString().split("T")[0])
-      const time: any = convertTo24HourFormat(new Date(props?.bookings?.start).toLocaleTimeString())
-      console.log(time)
+      const dateValue = props?.bookings?.start || props?.selectedTime || currentDate
+      const date = parseDate(new Date(dateValue)?.toISOString().split("T")[0])
+      const time: any = convertAndRoundTo30Minutes(new Date(dateValue).toLocaleTimeString())
+      console.log(time);
+      
       setValue("appointmentDate", date)
       setValue("startTime", time)
-    }, [props?.bookings])
-
+    }, [props?.bookings, props?.selectedTime])
 
     React.useEffect(() => {
       const totalSum = pax.flat().reduce((sum, item: any) => sum + (item?.price || 0), 0);
@@ -190,23 +190,34 @@ const NewAppointment = (props:any) => {
       setValue("pax", updatedPax); // Update the form field
     };
 
-    const convertTo24HourFormat = (timeStr: string) => {
+    const convertAndRoundTo30Minutes = (timeStr: string) => {
+      // Convert 12-hour format to 24-hour format
       const [time, modifier] = timeStr.split(" ");
-      let [hours, minutes] = time.split(":");
-      if (modifier === "PM" && hours !== "12") {
-        hours = String(parseInt(hours, 10) + 12);
+      let [hours, minutes] = time.split(":").map(Number);
+    
+      if (modifier === "PM" && hours !== 12) {
+        hours += 12;
       }
-      if (modifier === "AM" && hours === "12") {
-        hours = "00";
+      if (modifier === "AM" && hours === 12) {
+        hours = 0;
       }
-      return `${hours}:${minutes}`;
+    
+      // Round minutes to nearest 30-minute slot
+      if (minutes < 15) minutes = 0;
+      else if (minutes < 45) minutes = 30;
+      else {
+        minutes = 0;
+        hours = (hours + 1) % 24; // Handle 24-hour wrap
+      }
+    
+      return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
     };
   
     const onSubmit = async (data:any) => {
       setLoading(true)
       data = {...data, totalAmount}
       data.appointmentDate = data.appointmentDate?.toString();
-      data.startTime = convertTo24HourFormat(data.startTime);
+      data.startTime = convertAndRoundTo30Minutes(data.startTime);
       data.taskStatus = props?.bookings?.taskStatus === "Pending" ? "CheckedIn": props?.bookings?.taskStatus === "CheckedIn" ? "CheckedOut" : props?.bookings?.taskStatus === "CheckedOut" ? "Completed" : "Pending";
       data.status = true;
       // console.log(data);
@@ -264,8 +275,8 @@ const NewAppointment = (props:any) => {
                     </Button>}
                     {props?.bookings?.taskStatus === "Pending" && <Button type="submit" size="lg" color="secondary" disabled={loading} variant="solid" className={`border-2 bg-${loading?"gray-200 text-dark":"teal-600 text-white"} text-xl`}> <ChairIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Check In"} </Button>}
                     {props?.bookings?.taskStatus === "CheckedIn" && <Button type="submit" size="lg" color="secondary" disabled={loading} variant="solid" className={`border-2 bg-${loading?"gray-200 text-dark":"purple-600 text-white"} text-xl`}> <DoorOpenIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Check Out"} </Button>}
-                    {props?.bookings?.taskStatus === "CheckedOut" && <Button type="submit" size="lg" variant="solid" disabled={loading} className={`border-2 bg-${loading?"gray-200 text-dark":"green-600 text-white"} text-xl`}> <CheckIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Pay"} </Button>}
-                    {props?.bookings?.taskStatus === "Completed" && <Button type="button" size="lg" variant="solid" disabled={loading} className={`border-2 bg-${loading?"gray-200 text-dark":"green-600 text-white"} text-xl`}> <CheckIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Complete"} </Button>}
+                    {props?.bookings?.taskStatus === "CheckedOut" && <Button type="submit" size="lg" variant="solid" disabled={loading} className={`border-2 ${loading?"bg-gray-200":"bg-green-600"} text-xl text-white`}> <CheckIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Pay"} </Button>}
+                    {props?.bookings?.taskStatus === "Completed" && <Button type="button" size="lg" variant="solid" disabled={loading} className={`border-2 ${loading?"bg-gray-200":"bg-green-600"} text-xl text-white`}> <CheckIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Complete"} </Button>}
                   </div>
                   
                 </DrawerHeader>
@@ -375,7 +386,7 @@ const NewAppointment = (props:any) => {
                           height: paxIndex === selectedTab ? "100%" : "0"
                           }}>
                           {/* <h1> Person {paxIndex + 1} </h1> */}
-                          <ServiceList control={control} paxIndex={paxIndex} register={register} errors={errors} watch={watch} setValue={setValue} startTime={startTime} serviceList={serviceList} allServiceList={allServiceList} employeeList={employeeList} getNextTimeSlot={getNextTimeSlot} convertTo24HourFormat={convertTo24HourFormat} />
+                          <ServiceList control={control} paxIndex={paxIndex} register={register} errors={errors} watch={watch} setValue={setValue} startTime={startTime} serviceList={serviceList} allServiceList={allServiceList} employeeList={employeeList} getNextTimeSlot={getNextTimeSlot} />
                         </div>
                       ))}
                       
@@ -483,8 +494,9 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
 
   const getAvailableAssets = async (time: string, duration: number, serviceIndex: number) => {
     try {
+      const appointmentDate = new Date(watch("appointmentDate")).toISOString().split("T")[0]
       const assetType = watch(`pax.${paxIndex}.${serviceIndex}.assetType`)
-      const branches = await fetch(`${ASSETS_API_URL}/available-assets?startTime=${time}&duration=${duration}&assetType=${assetType}`)
+      const branches = await fetch(`${ASSETS_API_URL}/available-assets?appointmentDate=${appointmentDate}&startTime=${time}&duration=${duration}&assetType=${assetType}`)
       const parsed = await branches.json();
       
       const pax = watch(`pax`)
@@ -584,7 +596,8 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
           {employeeId ? <ServiceCard {...paxEmployeeList?.find((item:any) => item._id === employeeId)} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)} /> : 
             <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.employeeId`, {required: true})} 
             defaultItems={paxEmployeeList || []} label="Staffs" 
-            labelPlacement="inside" placeholder="Select staff" variant="bordered" disabledKeys={busyEmployees?.map((item:any) => item.employeeId)}
+            labelPlacement="inside" placeholder="Select staff" variant="bordered" 
+            disabledKeys={busyEmployees?.map((item:any) => item.employeeId)}
             onSelectionChange={(id:string) => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, id)}
             >
             {(user:any) => {

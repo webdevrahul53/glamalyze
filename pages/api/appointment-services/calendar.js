@@ -8,7 +8,18 @@ export default async function handler(req, res) {
     
     try {
 
+      const appointmentDate = req.query.appointmentDate
       const result = await AppointmentServices.aggregate([
+        {
+          $match: {
+            $expr: {
+              $eq: [
+                { $dateToString: { format: "%Y-%m-%d", date: "$appointmentDate" } },
+                appointmentDate
+              ]
+            }
+          }
+        },
         { $lookup: { from: "appointments", localField: "appointmentId", foreignField: "_id", as: "appointment", },  },
         { $lookup: { from: "employees", localField: "employeeId", foreignField: "_id", as: "employee" } },
         { $lookup: { from: "services", localField: "serviceId", foreignField: "_id", as: "service" } },
@@ -57,6 +68,7 @@ export default async function handler(req, res) {
           taskStatus: "$appointment.taskStatus", paymentStatus: "$appointment.paymentStatus",
           startTime: 1, start: 1, end: 1, employee: 1, service: 1, duration: 1, price: 1, 
             status: 1 } },
+        { $sort: { assetNumber: 1 } },
       ]);
       
       
