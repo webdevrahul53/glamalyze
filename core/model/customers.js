@@ -6,7 +6,7 @@ const CustomersSchema = mongoose.Schema({
     _id:mongoose.Schema.Types.ObjectId,
     image:{type:String},
     firstname:{type:String,required:true},
-    lastname:{type:String,required:true},
+    lastname:{type:String},
     gender:{type:String,required:true},
     email:{
         type:String, unique:true,

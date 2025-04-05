@@ -109,14 +109,14 @@ const AddEditCustomer = (props:any) => {
   
                     <Input id="image" {...register("image")} type="file" variant="flat" onChange={handleImageChange} />
                     <Input {...register("firstname", {required: true})} label="First Name" placeholder="Enter First Name" type="text" variant="flat" isRequired />
-                    <Input {...register("lastname", {required: true})} label="Last Name" placeholder="Enter Last Name" type="text" variant="flat" isRequired />
+                    <Input {...register("lastname")} label="Last Name" placeholder="Enter Last Name" type="text" variant="flat" />
                     <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="tel" variant="flat" isRequired />
 
                     <Input {...register("email")} label="Email" placeholder="Enter Email" type="email" variant="flat" />
                     <RadioGroup {...register("gender")} className="my-3 mx-1" label="Gender" orientation="horizontal" defaultValue={props.customer?.gender || gender}>
                       <Radio {...register("gender")} value="male">Male</Radio>
                       <Radio {...register("gender")} value="female">Female</Radio>
-                      <Radio {...register("gender")} value="intersex">Intersex</Radio>
+                      <Radio {...register("gender")} value="other">Other</Radio>
                     </RadioGroup>
                     <Checkbox {...register("status")} color="primary"> Active </Checkbox>
                     

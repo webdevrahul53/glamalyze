@@ -211,7 +211,7 @@ export default function DataGrid(props:any) {
     <>
       {loading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
       <section>
-        <div style={{maxHeight: "calc(100vh - 300px)", overflow: "auto"}}>
+        <div style={{maxHeight: "calc(100vh - 250px)", overflow: "auto"}}>
           <Table isStriped selectionMode="multiple" aria-label="Example table with custom cells" style={{borderRadius: 0}}
             onSelectionChange={(keys) => props?.onKeysSelection && props?.onKeysSelection(keys === "all" ? users.map((item:any) => item._id) : keys) }>
             <TableHeader columns={props.columns}>

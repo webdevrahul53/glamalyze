@@ -3,7 +3,7 @@ import React, { Suspense } from 'react'
 import { PageTitle } from '@/core/common/page-title'
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-import { APPOINTMENT_SERVICES_API_URL } from '@/core/utilities/api-url';
+import { APPOINTMENT_SERVICES_API_URL, ASSETS_API_URL } from '@/core/utilities/api-url';
 import { BathIcon, BedIcon, ChairIcon, SofaIcon } from '@/core/utilities/svgIcons';
 import { Avatar, Progress, Tooltip, useDisclosure } from '@heroui/react';
 import NewAppointment from '@/core/drawer/new-appointment';
@@ -25,11 +25,24 @@ export default function CalendarViewBookings(){
 
   React.useEffect(() => {
     getAppointments()
+    // getAssets()
   },[calendarDate])
 
   const handleSelectEvent = (event: any) => {
     setSelectedBooking(event); // Store selected bookingId
   };
+
+  // const getAssets = async () => {
+  //   try {
+  //     const response = await fetch(`${ASSETS_API_URL}`);
+  //     let data = await response.json();
+  //     console.log(data);
+  //     setLoading(false)
+  //   } catch (error) {
+  //     setLoading(false)
+  //     console.error("Error fetching users:", error);
+  //   }
+  // };
 
   const getAppointments = async () => {
     try {
@@ -69,7 +82,7 @@ export default function CalendarViewBookings(){
         )}
 
         <div className="bg-white rounded p-2" style={{margin: "-30px 40px"}}>
-          <div style={{ height: 520 }}>
+          <div style={{ height: 570 }}>
             {loading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
             <Calendar
               localizer={localizer}
@@ -100,7 +113,7 @@ export default function CalendarViewBookings(){
                 const isBooked = event.bookingId;
                 document.documentElement.style.setProperty(
                   "--event-width",
-                  `calc(100% / ${events?.length} - 5px)`
+                  `calc(100% / ${events?.length <= 8 ? 8 : events?.length} - 5px)`
                 ); // Pass events.length as a CSS variable
             
                 return {
@@ -111,7 +124,7 @@ export default function CalendarViewBookings(){
                     backgroundColor: "white",
                     border: isSelected && isBooked ? "3px solid blue" : "1px solid gray",
                     color: "black",
-                    width: `calc(100% / ${events?.length} - 5px)`, // Distribute width equally
+                    width: `calc(100% / ${events?.length <= 8 ? 8 : events?.length} - 5px)`, // Distribute width equally
                     minWidth: "50px",
                     marginLeft: "5px",
                     marginRight: "5px",

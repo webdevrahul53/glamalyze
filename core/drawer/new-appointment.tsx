@@ -20,14 +20,13 @@ const statusCSS: any = {
 
 
 const NewAppointment = (props:any) => {
-    const appointmentId = props?.bookings?.appointmentId;
     const { register, handleSubmit, watch, formState: { errors }, control, setValue, reset } = useForm({
       defaultValues: {
         appointmentDate: parseDate(new Date().toISOString().split("T")[0]), 
         startTime: null, 
         branchId: null, 
         customerId: null, 
-        pax: [ [{serviceId: null, durationList: [], duration: null, price: null, assetId: null, assetType: null, selectedAsset: null, busyEmployees: [], employeeList: [], employeeId: null}] ],
+        pax: [ [{serviceId: null, durationList: [], duration: null, price: null, assetId: null, assetType: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: null}] ],
         note: null
       }
     });
@@ -40,6 +39,7 @@ const NewAppointment = (props:any) => {
     const {isOpen, onOpen, onOpenChange} = useDisclosure();
     const handleOpen = () => { onOpen(); };
     const [loading, setLoading] = React.useState(false)
+    const [selectedAppointment, setSelectedAppointment] = React.useState<any>();
     const [branchList, setBranchList] = React.useState([]);
     const [allServiceList, setAllServiceList] = React.useState([]);
     const [employeeList, setEmployeeList] = React.useState([]);
@@ -59,26 +59,27 @@ const NewAppointment = (props:any) => {
     const currentDate = new Date();
 
     React.useEffect(() => {
-      if(appointmentId){
-        getBookingsById(appointmentId)
+      if(props?.bookings?.appointmentId){
+        getBookingsById(props?.bookings?.appointmentId)
       }else {
 
       }
       getCustomerList();
       getBranchList();
       getServiceList();
-    }, [appointmentId])
+    }, [props?.bookings])
 
     // For calendar purpose
     React.useEffect(() => {
-      const dateValue = props?.bookings?.start || props?.selectedTime || currentDate
+      const dateValue = selectedAppointment?.appointmentDate || props?.selectedTime || currentDate
+      const timeValue = selectedAppointment?.startTime || new Date(props?.selectedTime || currentDate).toLocaleTimeString()
       const date = parseDate(new Date(dateValue)?.toISOString().split("T")[0])
-      const time: any = convertAndRoundTo30Minutes(new Date(dateValue).toLocaleTimeString())
-      console.log(time);
+      const time: any = convertAndRoundTo30Minutes(timeValue)
+      // console.log(time);
       
       setValue("appointmentDate", date)
       setValue("startTime", time)
-    }, [props?.bookings, props?.selectedTime])
+    }, [selectedAppointment, props?.selectedTime])
 
     React.useEffect(() => {
       const totalSum = pax.flat().reduce((sum, item: any) => sum + (item?.price || 0), 0);
@@ -86,7 +87,7 @@ const NewAppointment = (props:any) => {
     },[pax])
     
     const resetPax = () => {
-      setValue("pax", [ [{serviceId: null, durationList: [], duration: null, price: null, assetId: null, assetType: null, selectedAsset: null, busyEmployees: [], employeeList: [], employeeId: null}] ])
+      setValue("pax", [ [{serviceId: null, durationList: [], duration: null, price: null, assetId: null, assetType: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: null}] ])
     }
   
 
@@ -95,6 +96,7 @@ const NewAppointment = (props:any) => {
       try {
         const branches = await fetch(`${APPOINTMENTS_API_URL}/${id}`)
         let parsed = await branches.json();
+        setSelectedAppointment(parsed)
 
         parsed.pax = Object.values(
           parsed.pax.reduce((acc: any, item: any) => {
@@ -181,7 +183,7 @@ const NewAppointment = (props:any) => {
             serviceId: null, 
             price: null, 
             duration: null, durationList: [], 
-            assetId: null, assetType: null, selectedAsset: null,
+            assetId: null, assetType: null, assetList: [],
             employeeId: null, employeeList: [], busyEmployees: [],
           }]);
         }
@@ -218,12 +220,13 @@ const NewAppointment = (props:any) => {
       data = {...data, totalAmount}
       data.appointmentDate = data.appointmentDate?.toString();
       data.startTime = convertAndRoundTo30Minutes(data.startTime);
-      data.taskStatus = props?.bookings?.taskStatus === "Pending" ? "CheckedIn": props?.bookings?.taskStatus === "CheckedIn" ? "CheckedOut" : props?.bookings?.taskStatus === "CheckedOut" ? "Completed" : "Pending";
+      data.taskStatus = selectedAppointment?.taskStatus === "Pending" ? "CheckedIn": selectedAppointment?.taskStatus === "CheckedIn" ? "CheckedOut" : selectedAppointment?.taskStatus === "CheckedOut" ? "Completed" : "Pending";
       data.status = true;
       // console.log(data);
       // return;
         
       try {
+        const appointmentId = selectedAppointment?.appointmentId
         let url = appointmentId ? `${APPOINTMENT_SERVICES_API_URL}/${appointmentId}` : APPOINTMENT_SERVICES_API_URL
         if(appointmentId) data.appointmentId = appointmentId;
         const appointment = await fetch(url, {
@@ -236,10 +239,11 @@ const NewAppointment = (props:any) => {
         
         setLoading(false)
         if(parsed.status){
-          toast.error(null)
-          reset(); 
-          props.onOpenChange();
-          location.reload()
+          getBookingsById(parsed?.appointment?._id)
+          // toast.error(null)
+          // reset(); 
+          // props.onOpenChange();
+          // location.reload()
         }else toast.error(parsed.message)
         }catch(err:any) {
           setLoading(false)
@@ -266,17 +270,17 @@ const NewAppointment = (props:any) => {
             {(onClose) => (
               <>
                 <DrawerHeader className="flex items-center gap-1"> 
-                  <span> {props?.bookings?.taskStatus === "Pending" ? "BOOKING CONFIRMED": props?.bookings?.taskStatus === "CheckedIn" ? "CHECKED IN" : props?.bookings?.taskStatus === "CheckedOut" ? "CHECKED OUT" : props?.bookings?.taskStatus === "Completed" ? "COMPLETED" : "NEW APPOINTMENT"} </span>
-                  {/* <span className={`px-2 rounded ms-auto me-4 ${statusCSS[props?.bookings?.taskStatus]}`}> {props?.bookings?.taskStatus} </span> */}
+                  <span> {selectedAppointment?.taskStatus === "Pending" ? "BOOKING CONFIRMED": selectedAppointment?.taskStatus === "CheckedIn" ? "CHECKED IN" : selectedAppointment?.taskStatus === "CheckedOut" ? "CHECKED OUT" : selectedAppointment?.taskStatus === "Completed" ? "COMPLETED" : "NEW APPOINTMENT"} </span>
+                  {/* <span className={`px-2 rounded ms-auto me-4 ${statusCSS[selectedAppointment?.taskStatus]}`}> {selectedAppointment?.taskStatus} </span> */}
                   <div className="flex items-center gap-3 ms-auto me-4">
-                    {!props?.bookings && <Button color="primary" type="submit" size="lg" className={`w-full ${loading ? "bg-light text-dark":""}`} disabled={loading}> 
+                    {!selectedAppointment && <Button color="primary" type="submit" size="lg" className={`w-full ${loading ? "bg-light text-dark":""}`} disabled={loading}> 
                       <SaveIcon width="15" color="white" />  
                       {loading ? "Loading...": "Save"} 
                     </Button>}
-                    {props?.bookings?.taskStatus === "Pending" && <Button type="submit" size="lg" color="secondary" disabled={loading} variant="solid" className={`border-2 bg-${loading?"gray-200 text-dark":"teal-600 text-white"} text-xl`}> <ChairIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Check In"} </Button>}
-                    {props?.bookings?.taskStatus === "CheckedIn" && <Button type="submit" size="lg" color="secondary" disabled={loading} variant="solid" className={`border-2 bg-${loading?"gray-200 text-dark":"purple-600 text-white"} text-xl`}> <DoorOpenIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Check Out"} </Button>}
-                    {props?.bookings?.taskStatus === "CheckedOut" && <Button type="submit" size="lg" variant="solid" disabled={loading} className={`border-2 ${loading?"bg-gray-200":"bg-green-600"} text-xl text-white`}> <CheckIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Pay"} </Button>}
-                    {props?.bookings?.taskStatus === "Completed" && <Button type="button" size="lg" variant="solid" disabled={loading} className={`border-2 ${loading?"bg-gray-200":"bg-green-600"} text-xl text-white`}> <CheckIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Complete"} </Button>}
+                    {selectedAppointment?.taskStatus === "Pending" && <Button type="submit" size="lg" color="secondary" disabled={loading} variant="solid" className={`border-2 bg-${loading?"gray-200 text-dark":"teal-600 text-white"} text-xl`}> <ChairIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Check In"} </Button>}
+                    {selectedAppointment?.taskStatus === "CheckedIn" && <Button type="submit" size="lg" color="secondary" disabled={loading} variant="solid" className={`border-2 bg-${loading?"gray-200 text-dark":"purple-600 text-white"} text-xl`}> <DoorOpenIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Check Out"} </Button>}
+                    {selectedAppointment?.taskStatus === "CheckedOut" && <Button type="submit" size="lg" variant="solid" disabled={loading} className={`border-2 ${loading?"bg-gray-200":"bg-green-600"} text-xl text-white`}> <CheckIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Pay"} </Button>}
+                    {selectedAppointment?.taskStatus === "Completed" && <Button type="button" size="lg" variant="solid" disabled={loading} className={`border-2 ${loading?"bg-gray-200":"bg-green-600"} text-xl text-white`}> <CheckIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Complete"} </Button>}
                   </div>
                   
                 </DrawerHeader>
@@ -294,11 +298,11 @@ const NewAppointment = (props:any) => {
 
 
                   <section className="flex items-center gap-0">
-                    <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${!props?.bookings && "bg-primary text-white"}`}>NEW APPOINTMENT</small>
-                    <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${props?.bookings?.taskStatus === "Pending" && "bg-gray-300"}`}>BOOKING CONFIRMED</small>
-                    <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${props?.bookings?.taskStatus === "CheckedIn" && "bg-teal-600 text-white"}`}>CHECKED IN</small>
-                    <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${props?.bookings?.taskStatus === "CheckedOut" && "bg-purple-600 text-white"}`}>CHECKED OUT</small>
-                    <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${props?.bookings?.taskStatus === "Completed" && "bg-success-600 text-white"}`}>JOB COMPLETE</small>
+                    <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${!selectedAppointment && "bg-primary text-white"}`}>NEW APPOINTMENT</small>
+                    <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${selectedAppointment?.taskStatus === "Pending" && "bg-gray-300"}`}>BOOKING CONFIRMED</small>
+                    <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${selectedAppointment?.taskStatus === "CheckedIn" && "bg-teal-600 text-white"}`}>CHECKED IN</small>
+                    <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${selectedAppointment?.taskStatus === "CheckedOut" && "bg-purple-600 text-white"}`}>CHECKED OUT</small>
+                    <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${selectedAppointment?.taskStatus === "Completed" && "bg-success-600 text-white"}`}>JOB COMPLETE</small>
                   </section>
 
                   {branchList.length ? <Controller name="branchId" control={control} rules={{required: true}}
@@ -408,9 +412,9 @@ const NewAppointment = (props:any) => {
                       <SaveIcon width="15" color="white" />  
                       {loading ? "Loading...": appointmentId ? "Update Appointment" : "Save Appointment"} 
                     </Button>
-                    {props?.bookings?.taskStatus === "Pending" && <Button color="secondary" variant="bordered" className="w-full border-2 border-teal-600 text-xl text-teal-600"> <ChairIcon width="15" height="15" color="teal" /> Check In </Button>}
-                    {props?.bookings?.taskStatus === "CheckIn" && <Button color="secondary" variant="bordered" className="w-full border-2 border-purple-600 text-xl text-purple-600"> <DoorOpenIcon width="15" height="15" color="purple" /> Check Out </Button>}
-                    {props?.bookings?.taskStatus === "Checkout" && <Button variant="bordered" className="w-full border-2 border-green-600 text-xl text-green-600"> <CheckIcon width="15" height="15" color="green" /> Pay </Button>}
+                    {selectedAppointment?.taskStatus === "Pending" && <Button color="secondary" variant="bordered" className="w-full border-2 border-teal-600 text-xl text-teal-600"> <ChairIcon width="15" height="15" color="teal" /> Check In </Button>}
+                    {selectedAppointment?.taskStatus === "CheckIn" && <Button color="secondary" variant="bordered" className="w-full border-2 border-purple-600 text-xl text-purple-600"> <DoorOpenIcon width="15" height="15" color="purple" /> Check Out </Button>}
+                    {selectedAppointment?.taskStatus === "Checkout" && <Button variant="bordered" className="w-full border-2 border-green-600 text-xl text-green-600"> <CheckIcon width="15" height="15" color="green" /> Pay </Button>}
                   </div> */}
                 </DrawerFooter>
               </>
@@ -507,11 +511,12 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
         }
       }
       let seats = parsed?.availableAssets?.filter((item:any) => !selectedAssetIds.includes(item._id))
-      // console.log(selectedAssetIds, seats);
+      console.log(selectedAssetIds, seats);
+      setValue(`pax.${paxIndex}.${serviceIndex}.assetList`, seats)
       
       if(seats?.length){
-        setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, seats?.[0]?._id)
-        setValue(`pax.${paxIndex}.${serviceIndex}.selectedAsset`, seats?.[0])
+        // setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, seats?.[0]?._id)
+        // setValue(`pax.${paxIndex}.${serviceIndex}.assetList`, seats?.[0])
       }else{
         toast.error("Asset not available")
       }
@@ -535,13 +540,13 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
         const price = watch(`pax.${paxIndex}.${serviceIndex}.price`)
         const paxEmployeeList = watch(`pax.${paxIndex}.${serviceIndex}.employeeList`)
         const busyEmployees = watch(`pax.${paxIndex}.${serviceIndex}.busyEmployees`)
-        const selectedAsset = watch(`pax.${paxIndex}.${serviceIndex}.selectedAsset`)
+        const assetList = watch(`pax.${paxIndex}.${serviceIndex}.assetList`)
         // const assetId = watch(`pax.${paxIndex}.${serviceIndex}.assetId`)
         const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
         const employeeId = watch(`pax.${paxIndex}.${serviceIndex}.employeeId`)
 
         return <div key={serviceField.id} className="flex flex-col gap-2">
-          {/* {servStartTime + "===" + duration + "===" + price + "===" + employeeId} */}
+          {/* {assetId + "===" + price + "===" + employeeId} */}
           
           {errors.pax?.[paxIndex]?.[serviceIndex] && (
             <p className="text-danger text-sm ms-2"> Required fields are mandatory </p>
@@ -589,7 +594,15 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
               </select>
             </div>
             
-            <Input className="w-1/2" type="text" label={"Place"} readOnly value={selectedAsset ? selectedAsset?.assetType?.toUpperCase() + "-" + selectedAsset?.assetNumber : ""} />
+            <div className="w-1/2 border-2 rounded p-1">
+              <select {...register(`pax.${paxIndex}.${serviceIndex}.assetId`)} className="w-full py-3 outline-none"
+                // onChange={(item: any) => onDurationSelection(item, serviceIndex, durationList)}
+                >
+                  <option value="">Place</option>
+                {assetList?.map((item:any, index: number) => <option key={index} value={item._id}>{item.assetType.toUpperCase()} - {item.assetNumber}</option>)}
+              </select>
+            </div>
+            {/* <Input className="w-1/2" type="text" label={"Place"} readOnly value={assetList ? assetList?.assetType?.toUpperCase() + "-" + assetList?.assetNumber : ""} /> */}
           </div>
 
 
@@ -626,7 +639,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
           </div>
 
           <hr className="py-3" />
-          {/* <input type="text" className="w-1/5" value={selectedAsset?.assetType?.toUpperCase() + "-" + selectedAsset?.assetNumber} /> */}
+          {/* <input type="text" className="w-1/5" value={assetList?.assetType?.toUpperCase() + "-" + assetList?.assetNumber} /> */}
           
 
         </div>

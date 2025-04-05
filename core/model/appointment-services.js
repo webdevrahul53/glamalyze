@@ -21,7 +21,7 @@ const AppointmentServicesSchema = new mongoose.Schema({
     // useless but need to store for edit form
     durationList: {type: []},
     assetType: {type: String},
-    selectedAsset: {type: {}},
+    assetList: {type: []},
     busyEmployees: {type: []},
     employeeList: {type: []}, 
 

@@ -67,7 +67,7 @@ const PieChartComponent = () => {
 export default function Home() {
   return (
     <div style={{padding: "20px 40px 20px 30px"}}>
-      <h1 className="text-4xl">Dashboard</h1>
+      {/* <h1 className="text-4xl">Dashboard</h1> */}
       <section className="flex gap-4 my-6">
         <CardLayout title="Appointment" value="20"></CardLayout>
         <CardLayout title="Total Revenue" value="$3,534.00"></CardLayout>

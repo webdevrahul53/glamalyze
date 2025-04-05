@@ -133,7 +133,7 @@ export default async function handler(req, res) {
                     // useless but need to keep for edit form
                     durationList: service.durationList,
                     assetType: service.assetType,
-                    selectedAsset: service.selectedAsset,
+                    assetList: service.assetList,
                     busyEmployees: service.busyEmployees,
                     employeeList: service.employeeList,
                 });
