@@ -3,7 +3,7 @@ import React, { Suspense } from 'react'
 import { PageTitle } from '@/core/common/page-title'
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-import { APPOINTMENT_SERVICES_API_URL, ASSETS_API_URL } from '@/core/utilities/api-url';
+import { APPOINTMENT_SERVICES_API_URL } from '@/core/utilities/api-url';
 import { BathIcon, BedIcon, ChairIcon, SofaIcon } from '@/core/utilities/svgIcons';
 import { Avatar, Progress, Tooltip, useDisclosure } from '@heroui/react';
 import NewAppointment from '@/core/drawer/new-appointment';
