@@ -150,7 +150,7 @@ export default function CalendarViewBookings(){
             <div className="flex items-center gap-3">
               {Object.keys(assets)?.map((item: any, index: number) => (
                 <div key={index} className="flex items-start"> 
-                  {assets[item][0]?.assetTypes?.image && <Image src={assets[item][0]?.assetTypes?.image} width={20} alt="Asset Image" />}
+                  {assets[item][0]?.assetTypes?.image && <Image src={assets[item][0]?.assetTypes?.image} width={20} height={20} alt="Asset Image" />}
                   {assets[item][0]?.image && <AvatarGroup className="me-1" isBordered max={3} renderCount={() => <></>}>
                     {assets[item]?.map((item:any) => (
                       <Avatar key={item._id} src={item.image} size="sm" style={{width: "25px", height: "25px"}} />
@@ -177,7 +177,7 @@ export default function CalendarViewBookings(){
             <div className="flex items-center gap-3">
               {Object.keys(assets)?.map((item: any, index: number) => (
                 <div key={index} className="flex items-start"> 
-                  {assets[item][0]?.assetTypes?.image && <Image src={assets[item][0]?.assetTypes?.image} width={20} alt="" />}
+                  {assets[item][0]?.assetTypes?.image && <Image src={assets[item][0]?.assetTypes?.image} width={20} height={20} alt="" />}
                   {assets[item][0]?.image && <AvatarGroup className="me-1" isBordered max={3} renderCount={() => <></>}>
                     {assets[item]?.map((item:any) => (
                       <Avatar key={item._id} src={item.image} size="sm" style={{width: "25px", height: "25px"}} />
@@ -274,7 +274,7 @@ const CustomEvent = (event: any) => {
       <div className={`flex ${event.event.duration < 40 ? "flex-row":"flex-col h-full justify-center"} items-center gap-1`}>
         <small>{event.event.duration}m</small>
         <div>
-          {event?.event?.assetType?.image && <Image src={event?.event?.assetType?.image} width={30} alt="Asset Image" />}
+          {event?.event?.assetType?.image && <Image src={event?.event?.assetType?.image} width={30} height={30} alt="Asset Image" />}
         </div>
         
         <small>{event?.event?.assetNumber}</small>

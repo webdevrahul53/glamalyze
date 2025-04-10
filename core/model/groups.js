@@ -12,6 +12,4 @@ const GroupsSchema = mongoose.Schema({
     status:{type:Boolean,required:true},
 },{ timestamps: true })
 
-GroupsSchema.index({ groupname: 1 }, { unique: true });
-
 export const Groups = mongoose.models.Groups || mongoose.model("Groups", GroupsSchema);

@@ -15,6 +15,7 @@ export async function connectDB() {
     cached.promise = mongoose.connect(MONGODB_URI, {
       dbName: "spa-management-system", // Change this to your DB name
       bufferCommands: false,
+      autoIndex: false
     }).then((mongoose) => mongoose);
   }
   

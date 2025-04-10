@@ -31,6 +31,4 @@ const EmployeesSchema = mongoose.Schema({
     status:{type:Boolean},
 },{ timestamps: true })
 
-EmployeesSchema.index({ email: 1 }, { unique: true });
-
 export const Employees = mongoose.models.Employees || mongoose.model("Employees", EmployeesSchema);

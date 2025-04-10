@@ -27,6 +27,4 @@ const AppointmentServicesSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-// AppointmentServicesSchema.index({ name: 1 }, { unique: true });
-
 export const AppointmentServices = mongoose.models.AppointmentServices || mongoose.model("AppointmentServices", AppointmentServicesSchema);

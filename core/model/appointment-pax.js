@@ -12,6 +12,4 @@ const AppointmentPaxSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-// AppointmentPaxSchema.index({ name: 1 }, { unique: true });
-
 export const AppointmentPax = mongoose.models.AppointmentPax || mongoose.model("AppointmentPax", AppointmentPaxSchema);

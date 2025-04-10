@@ -9,6 +9,4 @@ const CategoriesSchema = mongoose.Schema({
     status:{type:Boolean,required:true},
 },{ timestamps: true })
 
-CategoriesSchema.index({ categoryname: 1 }, { unique: true });
-
 export const Categories = mongoose.models.Categories || mongoose.model("Categories", CategoriesSchema);

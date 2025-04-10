@@ -10,6 +10,5 @@ const SubCategoriesSchema = mongoose.Schema({
     status:{type:Boolean,required:true},
 },{ timestamps: true })
 
-SubCategoriesSchema.index({ subcategoryname: 1 }, { unique: true });
 
 export const SubCategories = mongoose.models.SubCategories || mongoose.model("SubCategories", SubCategoriesSchema);

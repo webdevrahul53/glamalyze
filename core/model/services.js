@@ -13,6 +13,5 @@ const ServicesSchema = mongoose.Schema({
     status:{type:Boolean,required:true},
 },{ timestamps: true })
 
-ServicesSchema.index({ name: 1 }, { unique: true });
 
 export const Services = mongoose.models.Services || mongoose.model("Services", ServicesSchema);

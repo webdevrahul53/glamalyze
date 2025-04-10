@@ -21,6 +21,4 @@ const CustomersSchema = mongoose.Schema({
     status:{type:Boolean,required:true,default:true},
 },{ timestamps: true })
 
-CustomersSchema.index({ email: 1 }, { unique: true });
-
 export const Customers = mongoose.models.Customers || mongoose.model("Customers", CustomersSchema);

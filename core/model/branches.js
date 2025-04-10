@@ -25,6 +25,4 @@ const BranchesSchema = mongoose.Schema({
     status:{type:Boolean,required:true},
 },{ timestamps: true })
 
-BranchesSchema.index({ branchname: 1 }, { unique: true });
-
 export const Branches = mongoose.models.Branches || mongoose.model("Branches", BranchesSchema);
