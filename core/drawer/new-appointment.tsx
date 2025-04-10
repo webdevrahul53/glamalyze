@@ -618,7 +618,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
                 // onChange={(item: any) => onDurationSelection(item, serviceIndex, durationList)}
                 >
                   <option value="">Place</option>
-                {assetList?.map((item:any, index: number) => <option key={index} value={item._id}>{item?.assetType?.toUpperCase()} - {item.assetNumber}</option>)}
+                {assetList?.map((item:any, index: number) => <option key={index} value={item._id}>{item?.assetTypeId?.assetTypeName?.toUpperCase()} - {item.assetNumber}</option>)}
               </select>
             </div>
             {/* <Input className="w-1/2" type="text" label={"Place"} readOnly value={assetList ? assetList?.assetTypeId?.toUpperCase() + "-" + assetList?.assetNumber : ""} /> */}

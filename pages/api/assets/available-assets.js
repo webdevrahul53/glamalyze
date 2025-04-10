@@ -22,9 +22,9 @@ export default async function handler(req, res) {
       
       const allAssets = await Assets.aggregate([
         { $match: obj },
-        { $lookup: { from: "assettypes", localField: "assetTypeId", foreignField: "_id", as: "assetTypes" } },
-        { $unwind: { path: "$assetTypes", preserveNullAndEmptyArrays: true } },
-        { $project: { _id: 1, assetTypeId: 1, assetTypes: 1, assetType:"$assetTypes.assetTypeName", assetNumber: 1 } },
+        { $lookup: { from: "assettypes", localField: "assetTypeId", foreignField: "_id", as: "assetTypeId" } },
+        { $unwind: { path: "$assetTypeId", preserveNullAndEmptyArrays: true } },
+        { $project: { _id: 1, assetTypeId: 1, assetType:"$assetTypeId.assetTypeName", assetNumber: 1 } },
       ]);
 
       // Step 2: Find busy assets using AppointmentServices
