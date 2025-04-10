@@ -1,6 +1,7 @@
 import { connectDB } from "@/core/db";
 import { AppointmentServices } from "../../../core/model/appointment-services";
 import { Assets } from "../../../core/model/assets";  // Import Assets Model
+import mongoose from "mongoose";
 
 export default async function handler(req, res) {
   await connectDB();
@@ -9,11 +10,22 @@ export default async function handler(req, res) {
     const appointmentDate = req.query["appointmentDate"]
     const startTime = req.query["startTime"];
     const duration = req.query["duration"];
-    const assetType = req.query["assetType"];
+    const assetTypeId = req.query["assetTypeId"];
+    const branchId = req.query["branchId"];
+
+    const obj = { branchId: new mongoose.Types.ObjectId(branchId) };
+    if (assetTypeId) obj.assetTypeId = new mongoose.Types.ObjectId(assetTypeId);
 
     try {
       // Step 1: Get all assets
-      const allAssets = await Assets.find({assetType}, { _id: 1, assetType: 1, assetNumber: 1 });
+      // const allAssets = await Assets.find(obj, { _id: 1, assetTypeId: 1, assetNumber: 1 }).populate("assetTypeId");
+      
+      const allAssets = await Assets.aggregate([
+        { $match: obj },
+        { $lookup: { from: "assettypes", localField: "assetTypeId", foreignField: "_id", as: "assetTypes" } },
+        { $unwind: { path: "$assetTypes", preserveNullAndEmptyArrays: true } },
+        { $project: { _id: 1, assetTypeId: 1, assetTypes: 1, assetType:"$assetTypes.assetTypeName", assetNumber: 1 } },
+      ]);
 
       // Step 2: Find busy assets using AppointmentServices
       const busyAssets = await AppointmentServices.aggregate([

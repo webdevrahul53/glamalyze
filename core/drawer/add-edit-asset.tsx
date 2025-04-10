@@ -1,25 +1,31 @@
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import React from "react";
-import { imageDb } from "../utilities/firebaseConfig";
-import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Radio, RadioGroup, Select, SelectItem } from "@heroui/react";
-import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
+import React, { lazy, Suspense } from "react";
+import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Progress, Radio, RadioGroup, Select, SelectItem, useDisclosure } from "@heroui/react";
+import { PlusIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useForm } from "react-hook-form";
-import { v4 } from "uuid";
 import { toast } from "react-toastify";
-import { ASSETS_API_URL, BRANCH_API_URL } from "../utilities/api-url";
+import { ASSET_TYPES_API_URL, ASSETS_API_URL, BRANCH_API_URL } from "../utilities/api-url";
 import AvatarSelect from "../common/avatar-select";
+const AddEditAssetTypes = lazy(() => import("@/core/drawer/add-edit-asset-types"));
 
 const AddEditAsset = (props:any) => {
+    const {isOpen, onOpen, onOpenChange} = useDisclosure();
+    const handleAssignOpen = () => { onOpen(); };
+
     const { register, handleSubmit, control, reset } = useForm();
-    const [branchList, setBranchList] = React.useState([]);
+    const [branchList, setBranchList] = React.useState<any>([]);
+    const [assetTypeList, setAssetTypeList] = React.useState<any>([]);
     const [loading, setLoading] = React.useState(false)
 
     React.useEffect(() => {
         if(props.asset) {
             reset(props.asset)
         }
-        else reset({branchId: null, assetType: null, assetNumber: null, status: false})
+        else {
+          const branchId = localStorage.getItem("selectedBranch") || branchList[0]?._id;
+          reset({branchId, assetTypeId: null, assetNumber: null, status: true})
+        }
         getBranchList();
+        getAssetTypeList();
     }, [props.asset])
 
     
@@ -28,6 +34,14 @@ const AddEditAsset = (props:any) => {
         const branches = await fetch(BRANCH_API_URL)
         const parsed = await branches.json();
         setBranchList(parsed);
+      }catch(err:any) { toast.error(err.error) }
+    }
+    
+    const getAssetTypeList = async () => {
+      try {
+        const assetTypes = await fetch(ASSET_TYPES_API_URL)
+        const parsed = await assetTypes.json();
+        setAssetTypeList(parsed);
       }catch(err:any) { toast.error(err.error) }
     }
     
@@ -54,14 +68,17 @@ const AddEditAsset = (props:any) => {
       } 
   
     }
-  
-    const saveAsset = async (data:any) => {
-    }
-  
 
     const onDrawerClose = () => {
         props.onOpenChange();
         reset(); 
+    }
+  
+    const onAssignDrawerClose = () => {
+      // setPageRefresh((val) => !val)
+      onOpenChange(); 
+      getAssetTypeList();
+      // setSelectedKeys([])
     }
   
   
@@ -74,18 +91,34 @@ const AddEditAsset = (props:any) => {
                 <DrawerHeader className="flex flex-col gap-1"> {props.asset ? "Update":"New"} Asset</DrawerHeader>
                 <DrawerBody> 
   
+  
+                    {isOpen && (
+                      <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
+                        <AddEditAssetTypes  isOpen={isOpen} placement={"lg"} onOpenChange={() => onAssignDrawerClose()}  />
+                      </Suspense>
+                    )}
+
                     <Controller name="branchId" control={control} rules={{required: true}}
                       render={({ field }) => (
-                        <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname" isRequired={true} />
+                        <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname" isRequired={true} onChange={(val: string) => {
+                          if(!val) return;
+                          localStorage.setItem("selectedBranch", val)
+                        }} />
+                      )}
+                    />
+                    
+                    <Controller name="assetTypeId" control={control} rules={{required: true}}
+                      render={({ field }) => (
+                        <AvatarSelect field={field} data={assetTypeList} label="Asset Type" keyName="assetTypeName" isRequired={true}
+                        endContent={<Button className="-mt-5" size="sm" onPress={() => handleAssignOpen()}><PlusIcon width={10} />ADD</Button>} />
                       )}
                     />
 
-                    <Select {...register("assetType", {required: true})} label="Type" isRequired>
-                      <SelectItem key={"chair"}>Chair</SelectItem>
-                      <SelectItem key={"sofa"}>Sofa</SelectItem>
-                      <SelectItem key={"bed"}>Bed</SelectItem>
-                      <SelectItem key={"bath"}>Bath</SelectItem>
-                    </Select>
+                    {/* <Select {...register("assetType", {required: true})} label="Type" isRequired
+                      endContent={<Button className="-mt-5" size="sm" onPress={() => handleAssignOpen()}><PlusIcon width={10} />ADD</Button>}
+                      >
+                        {assetTypeList?.map((item:any) => <SelectItem key={item.assetTypeName}>{item.assetTypeName}</SelectItem>)}
+                    </Select> */}
 
                     
                     <Input {...register("assetNumber", {required: true})} label="Asset Number" placeholder="Enter Asset Number" type="text" variant="flat" isRequired />

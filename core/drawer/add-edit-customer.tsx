@@ -10,7 +10,7 @@ import { CUSTOMERS_API_URL } from "../utilities/api-url";
 
 const AddEditCustomer = (props:any) => {
     const { register, handleSubmit, setValue, control, reset } = useForm({
-      defaultValues: {image: null, firstname: null, lastname: null, gender: "male", email: null, phonenumber: null, status: false}
+      defaultValues: {image: null, firstname: null, lastname: null, gender: "male", email: null, phonenumber: null, status: true}
     });
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false)
@@ -23,7 +23,7 @@ const AddEditCustomer = (props:any) => {
             reset(props.customer)
             setImagePreview(props.customer.image)
         }
-        else reset({image: null, firstname:null, lastname: null, email: null, phonenumber: null, gender: "male", status: false})
+        else reset({image: null, firstname:null, lastname: null, email: null, phonenumber: null, gender: "male", status: true})
     }, [props.customer])
 
     const onSubmit = async (data:any) => {
@@ -118,7 +118,7 @@ const AddEditCustomer = (props:any) => {
                       <Radio {...register("gender")} value="female">Female</Radio>
                       <Radio {...register("gender")} value="other">Other</Radio>
                     </RadioGroup>
-                    <Checkbox {...register("status")} color="primary"> Active </Checkbox>
+                    {/* <Checkbox {...register("status")} color="primary"> Active </Checkbox> */}
                     
                     
   

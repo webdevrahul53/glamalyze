@@ -42,7 +42,7 @@ export default function Bookings(){
 
   return (
     <section className="">
-        <PageTitle title="Bookings" showCalendarButton />
+        <PageTitle title="Bookings" showCalendarButton pageRefresh={() => setPageRefresh((val) => !val)} />
 
         <div className="bg-white rounded" style={{margin: "-30px 40px"}}>
           <div className="flex items-center justify-between p-4">

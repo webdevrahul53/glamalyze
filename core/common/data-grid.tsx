@@ -105,7 +105,7 @@ export default function DataGrid(props:any) {
       return cellValue == null ? <></> : (
         <User
           avatarProps={{radius: "lg", src: user[keys[0]].image || user[keys[0]].avatar}}
-          description={user[keys[0]].email}
+          description={user[keys[0]].email || user[keys[0]].createdAt}
           name={cellValue}
         >
           {cellValue}

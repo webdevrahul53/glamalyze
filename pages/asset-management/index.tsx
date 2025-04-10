@@ -53,7 +53,7 @@ export default function AssetManagement() {
 
 const columns = [
   {name: "BRANCH", uid: "branch:branchname"},
-  {name: "TYPE", uid: "assetType"},
+  {name: "TYPE", uid: "assetTypes:assetTypeName"},
   {name: "ASSET NUMBER", uid: "assetNumber"},
   {name: "CREATED AT", uid: "createdAt"},
   {name: "UPDATED AT", uid: "updatedAt"},

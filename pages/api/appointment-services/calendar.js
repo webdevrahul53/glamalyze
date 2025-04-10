@@ -1,5 +1,6 @@
 import { connectDB } from "@/core/db";
 import { AppointmentServices } from "../../../core/model/appointment-services";
+import mongoose from "mongoose";
 
 export default async function handler(req, res) {
   await connectDB();
@@ -8,8 +9,11 @@ export default async function handler(req, res) {
     
     try {
 
+      const branchId = req.query.branchId
       const appointmentDate = req.query.appointmentDate
       const result = await AppointmentServices.aggregate([
+        { $lookup: { from: "appointments", localField: "appointmentId", foreignField: "_id", as: "appointment", },  },
+        { $unwind: { path: "$appointment", preserveNullAndEmptyArrays: true }, },
         {
           $match: {
             $expr: {
@@ -17,19 +21,20 @@ export default async function handler(req, res) {
                 { $dateToString: { format: "%Y-%m-%d", date: "$appointmentDate" } },
                 appointmentDate
               ]
-            }
+            },
+            $or: [ { "appointment.branchId": new mongoose.Types.ObjectId(branchId) } ]
           }
         },
-        { $lookup: { from: "appointments", localField: "appointmentId", foreignField: "_id", as: "appointment", },  },
         { $lookup: { from: "employees", localField: "employeeId", foreignField: "_id", as: "employee" } },
         { $lookup: { from: "services", localField: "serviceId", foreignField: "_id", as: "service" } },
         { $lookup: { from: "customers", localField: "appointment.customerId", foreignField: "_id", as: "customer" } },
         { $lookup: { from: "assets", localField: "assetId", foreignField: "_id", as: "asset" } },
-        { $unwind: { path: "$appointment", preserveNullAndEmptyArrays: true }, },
+        { $lookup: { from: "assettypes", localField: "asset.assetTypeId", foreignField: "_id", as: "assetType" } },
         { $unwind: { path: "$employee", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$service", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$asset", preserveNullAndEmptyArrays: true }, },
+        { $unwind: { path: "$assetType", preserveNullAndEmptyArrays: true }, },
         {
           $addFields: {
             parsedTime: {
@@ -64,7 +69,7 @@ export default async function handler(req, res) {
                 }
             }
         },
-        { $project: { _id: 1, appointmentId: 1, customer: 1, bookingId: 1, assetType: "$asset.assetType", assetNumber: "$asset.assetNumber", 
+        { $project: { _id: 1, appointmentId: 1, customer: 1, bookingId: 1, assetType: 1, assetNumber: "$asset.assetNumber", 
           taskStatus: "$appointment.taskStatus", paymentStatus: "$appointment.paymentStatus",
           startTime: 1, start: 1, end: 1, employee: 1, service: 1, duration: 1, price: 1, 
             status: 1 } },

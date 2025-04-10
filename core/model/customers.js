@@ -18,7 +18,7 @@ const CustomersSchema = mongoose.Schema({
         unique: true,
         match: [/^(\+\d{1,3}[- ]?)?\d{10}$/, "Invalid phone number"], 
     },
-    status:{type:Boolean,required:true},
+    status:{type:Boolean,required:true,default:true},
 },{ timestamps: true })
 
 CustomersSchema.index({ email: 1 }, { unique: true });

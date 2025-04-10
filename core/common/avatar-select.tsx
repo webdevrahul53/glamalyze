@@ -1,14 +1,15 @@
 import { Avatar, Select, SelectItem } from '@heroui/react'
 import React from 'react'
 
-type propsType = {field:any, data:any, label:string, keyName: string, onChange?: any, disabledKeys?: any[], showStatus?: boolean, isRequired?: boolean}
+type propsType = {field:any, data:any, label:string, keyName: string, onChange?: any, disabledKeys?: any[], showStatus?: boolean, isRequired?: boolean, endContent?: any}
 
-export default function AvatarSelect({field, data = [], label, keyName, onChange, disabledKeys = [], showStatus = false, isRequired = false}: propsType) {
+export default function AvatarSelect({field, data = [], label, keyName, onChange, disabledKeys = [], showStatus = false, isRequired = false, endContent = <></>}: propsType) {
     
   return (
     <Select
         className={field.value ? "avatar-select-label-css": ""}
         {...field} isRequired={isRequired}
+        endContent={endContent}
         items={data}
         label={label}
         placeholder={"Select " + label}

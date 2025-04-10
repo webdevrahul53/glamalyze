@@ -8,30 +8,40 @@ export default async function handler(req, res) {
   if (req.method === "GET") {
     try {
       const searchQuery = req.query.search || "";
+      const branchId = req.query.branchId;
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
 
       if(!req.query.page || !req.query.limit) {
         const result = await Assets.aggregate([
-          { $match: { $or: [ 
-            { assetType: { $regex: searchQuery, $options: "i" } }, 
-            { assetNumber: { $regex: searchQuery, $options: "i" } }, 
-          ]} },
-          { $project: { _id: 1, branchId: 1, assetType:1, assetNumber: 1, createdAt: 1} },
+          { $lookup: { from: "assettypes", localField: "assetTypeId", foreignField: "_id", as: "assetTypes", },  },
+          { $unwind: { path: "$assetTypes", preserveNullAndEmptyArrays: true }, },
+          { $match: { 
+              $or: [
+                { "assetTypes.assetTypeName": { $regex: searchQuery, $options: "i" } }, 
+                { assetNumber: { $regex: searchQuery, $options: "i" } }, 
+              ],
+              $and: [ { branchId: new mongoose.Types.ObjectId(branchId) } ]
+            } 
+          },
+          { $project: { _id: 1, branchId: 1, assetTypeId: 1, assetTypes: 1, assetType:"$assetTypes.assetTypeName", assetNumber: 1, createdAt: 1} },
         ])
         res.status(200).json(result)
       }else {
         // Fetch total count WITHOUT lookup for performance
         const totalCountPromise = Assets.countDocuments();
         const dataPromise = Assets.aggregate([
+          { $lookup: { from: "assettypes", localField: "assetTypeId", foreignField: "_id", as: "assetTypes", },  },
+          { $unwind: { path: "$assetTypes", preserveNullAndEmptyArrays: true }, },
           { $match: { $or: [ 
-            { assetType: { $regex: searchQuery, $options: "i" } }, 
+            { "assetTypes.assetTypeName": { $regex: searchQuery, $options: "i" } }, 
             { assetNumber: { $regex: searchQuery, $options: "i" } }, 
           ]} },
           { $lookup: { from: "branches", localField: "branchId", foreignField: "_id", as: "branch", },  },
           { $unwind: { path: "$branch", preserveNullAndEmptyArrays: true, }, },
-          { $project: { _id: 1, branch: 1, branchId: 1, assetType:1, assetNumber: 1, status:1, createdAt: 1, updatedAt: 1 } },
+          { $project: { _id: 1, branch: 1, branchId: 1, assetTypeId: 1, assetTypes: 1, assetType:"$assetTypes.assetTypeName", assetNumber: 1, status:1, createdAt: 1, updatedAt: 1 } },
+          { $sort: {assetNumber : 1} },
           { $skip: skip },
           { $limit: limit }
         ])
@@ -55,7 +65,7 @@ export default async function handler(req, res) {
     const asset = new Assets({
       _id:new mongoose.Types.ObjectId(),
       branchId:req.body.branchId,
-      assetType:req.body.assetType,
+      assetTypeId:req.body.assetTypeId,
       assetNumber:req.body.assetNumber,
       status:req.body.status
     })
@@ -66,7 +76,7 @@ export default async function handler(req, res) {
             asset:{
                 _id:asset._id, 
                 branchId:asset.branchId,
-                assetType:asset.assetType,
+                assetTypeId:asset.assetTypeId,
                 assetNumber:asset.assetNumber,
                 status:asset.status
             }

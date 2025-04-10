@@ -6,12 +6,12 @@ import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelect from "../common/avatar-select";
-import { CATEGORIES_API_URL, SERVICES_API_URL, SUBCATEGORIES_API_URL } from "../utilities/api-url";
+import { ASSET_TYPES_API_URL, CATEGORIES_API_URL, SERVICES_API_URL, SUBCATEGORIES_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
 
 const AddEditServices = (props:any) => {
     const { register, handleSubmit, control, reset } = useForm({
-      defaultValues: { image: null, categoryId: null, subCategoryId: null, name: null, assetType: null, variants: [{serviceDuration: null, defaultPrice: null}], description:null, status: false }
+      defaultValues: { image: null, categoryId: null, name: null, assetTypeId: null, variants: [{serviceDuration: null, defaultPrice: null}], description:null, status: false }
     });
     const { fields, append, remove } = useFieldArray({ control, name: "variants" });
 
@@ -19,6 +19,7 @@ const AddEditServices = (props:any) => {
     const [loading, setLoading] = React.useState(false);
     const [categoryList, setCategoryList] = React.useState([]);
     const [subCategoryList, setSubCategoryList] = React.useState([]);
+    const [assetTypeList, setAssetTypeList] = React.useState<any>([]);
 
     React.useEffect(() => {
         if(props.services) {
@@ -26,11 +27,13 @@ const AddEditServices = (props:any) => {
             reset(props.services)
             setImagePreview(props.services.image)
             getCategoryList()
+            getAssetTypeList();
             getSubCategoryList(props.services.categoryId)
         }
         else {
-          reset({categoryId: null, subCategoryId: null, name: null, assetType: null, status: false, image: null, variants: [{serviceDuration: null, defaultPrice: null}]})
+          reset({categoryId: null, name: null, assetTypeId: null, status: false, image: null, variants: [{serviceDuration: null, defaultPrice: null}]})
           getCategoryList();
+          getAssetTypeList();
         }
     }, [props.services])
 
@@ -52,6 +55,14 @@ const AddEditServices = (props:any) => {
   
     }
 
+    const getAssetTypeList = async () => {
+      try {
+        const assetTypes = await fetch(ASSET_TYPES_API_URL)
+        const parsed = await assetTypes.json();
+        setAssetTypeList(parsed);
+      }catch(err:any) { toast.error(err.error) }
+    }
+    
     const getCategoryList = async () => {
       try {
           const category = await fetch(CATEGORIES_API_URL)
@@ -130,25 +141,35 @@ const AddEditServices = (props:any) => {
                         <AvatarSelect field={field} data={categoryList} label="Category" keyName="categoryname" onChange={(id:string) => getSubCategoryList(id)} isRequired />
                       )}
                     />
-                    <Controller name="subCategoryId" control={control}
+                    {/* <Controller name="subCategoryId" control={control}
                       render={({ field }) => (
                         <AvatarSelect field={field} data={subCategoryList} label="Sub Category" keyName="subcategoryname" isRequired />
                       )}
-                    />
+                    /> */}
                     
                     <Input {...register("name", {required: true})} label="Name" placeholder="Enter Name" type="text" variant="flat" isRequired />
-                    <Select {...register("assetType", {required: true})} label="Asset Type" placeholder="Select Asset Type" isRequired>
+
+                    
+                    <Controller name="assetTypeId" control={control} rules={{required: true}}
+                      render={({ field }) => (
+                        <AvatarSelect field={field} data={assetTypeList} label="Asset Type" keyName="assetTypeName" isRequired={true}
+                        // endContent={<Button className="-mt-5" size="sm" onPress={() => handleAssignOpen()}><PlusIcon width={10} />ADD</Button>} 
+                        />
+                      )}
+                    />
+
+                    {/* <Select {...register("assetType", {required: true})} label="Asset Type" placeholder="Select Asset Type" isRequired>
                       <SelectItem key={"chair"}>Chair</SelectItem>
                       <SelectItem key={"bed"}>Bed</SelectItem>
                       <SelectItem key={"sofa"}>Sofa</SelectItem>
                       <SelectItem key={"bath"}>Bath</SelectItem>
-                    </Select>
+                    </Select> */}
 
 
                     {fields.map((field, index) => (
                       <div key={field.id} className="flex items-center gap-2" >
                         <Input {...register(`variants.${index}.serviceDuration`, {required: true})} label="Duration (Mins)" placeholder="Enter Duration" type="number" variant="flat" isRequired />
-                        <Input {...register(`variants.${index}.defaultPrice`, {required: true})} label="Price (Rs)" placeholder="Enter Price" type="number" variant="flat" isRequired />
+                        <Input {...register(`variants.${index}.defaultPrice`, {required: true})} label="Price (฿)" placeholder="Enter Price" type="number" variant="flat" isRequired />
                         {fields.length > 1 && <button type="button" onClick={() => remove(index)}>❌</button>}
                       </div>
                     ))}

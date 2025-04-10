@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react";
-import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Progress, Textarea, useDisclosure } from "@heroui/react";
+import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Progress, Textarea, useDisclosure } from "@heroui/react";
 import { ChairIcon, CheckIcon, CloseIcon, DeleteIcon, DoorOpenIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
@@ -26,7 +26,7 @@ const NewAppointment = (props:any) => {
         startTime: null, 
         branchId: null, 
         customerId: null, 
-        pax: [ [{serviceId: null, durationList: [], duration: null, price: null, assetId: null, assetType: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: null}] ],
+        pax: [ [{serviceId: null, durationList: [], duration: null, price: null, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: null}] ],
         note: null
       }
     });
@@ -40,7 +40,7 @@ const NewAppointment = (props:any) => {
     const handleOpen = () => { onOpen(); };
     const [loading, setLoading] = React.useState(false)
     const [selectedAppointment, setSelectedAppointment] = React.useState<any>();
-    const [branchList, setBranchList] = React.useState([]);
+    const [branchList, setBranchList] = React.useState<any>([]);
     const [allServiceList, setAllServiceList] = React.useState([]);
     const [employeeList, setEmployeeList] = React.useState([]);
     const [customerList, setCustomerList] = React.useState([]);
@@ -57,6 +57,16 @@ const NewAppointment = (props:any) => {
     
 
     const currentDate = new Date();
+
+    React.useEffect(() => {
+      const branchId = localStorage.getItem("selectedBranch");
+      setValue("branchId", branchId || branchList[0]?._id)
+    },[branchList])
+    
+    React.useEffect(() => {
+      if(!branchId) return;
+      getBranchById(branchId)
+    },[branchId])
 
     React.useEffect(() => {
       if(props?.bookings?.appointmentId){
@@ -87,7 +97,7 @@ const NewAppointment = (props:any) => {
     },[pax])
     
     const resetPax = () => {
-      setValue("pax", [ [{serviceId: null, durationList: [], duration: null, price: null, assetId: null, assetType: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: null}] ])
+      setValue("pax", [ [{serviceId: null, durationList: [], duration: null, price: null, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: null}] ])
     }
   
 
@@ -106,10 +116,10 @@ const NewAppointment = (props:any) => {
           }, {})
         );
 
-        const {appointmentDate, startTime, branchId, customerId, pax} = parsed
+        const {appointmentDate, startTime, branchId, customerId, pax, note} = parsed
         const formData = {
           appointmentDate: parseDate(new Date(appointmentDate).toISOString().split("T")[0]), 
-          startTime, branchId, customerId, pax, note: null
+          startTime, branchId, customerId, pax, note
         }
         reset(formData)
         getBranchById(branchId)
@@ -154,6 +164,7 @@ const NewAppointment = (props:any) => {
     }
     
     const getBranchById = async (id: string) => {
+      if(!id) return;
       try {
           const branches = await fetch(`${BRANCH_API_URL}/${id}`)
           const parsed = await branches.json();
@@ -183,7 +194,7 @@ const NewAppointment = (props:any) => {
             serviceId: null, 
             price: null, 
             duration: null, durationList: [], 
-            assetId: null, assetType: null, assetList: [],
+            assetId: null, assetTypeId: null, assetList: [],
             employeeId: null, employeeList: [], busyEmployees: [],
           }]);
         }
@@ -226,7 +237,7 @@ const NewAppointment = (props:any) => {
       // return;
         
       try {
-        const appointmentId = selectedAppointment?.appointmentId
+        const appointmentId = selectedAppointment?._id
         let url = appointmentId ? `${APPOINTMENT_SERVICES_API_URL}/${appointmentId}` : APPOINTMENT_SERVICES_API_URL
         if(appointmentId) data.appointmentId = appointmentId;
         const appointment = await fetch(url, {
@@ -240,7 +251,7 @@ const NewAppointment = (props:any) => {
         setLoading(false)
         if(parsed.status){
           getBookingsById(parsed?.appointment?._id)
-          // toast.error(null)
+          toast.info(`Appointment ${data.taskStatus}`)
           // reset(); 
           // props.onOpenChange();
           // location.reload()
@@ -254,12 +265,12 @@ const NewAppointment = (props:any) => {
 
     const onDrawerClose = () => {
         props.onOpenChange();
-        reset(); 
+        // reset(); 
     }
   
   
     return (
-      <Drawer isOpen={props.isOpen} size="2xl" placement={"right"} onOpenChange={props.onOpenChange}>
+      <Drawer isOpen={props.isOpen} size="2xl" placement={"right"} onOpenChange={onDrawerClose}>
         {isOpen && (
         <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
           <AddEditCustomer isOpen={isOpen} placement={"left"} onOpenChange={() => {onOpenChange(); getCustomerList()} }  />
@@ -305,11 +316,13 @@ const NewAppointment = (props:any) => {
                     <small className={`w-1/5 text-center border-1 border-black flex items-center justify-center h-full p-3 ${selectedAppointment?.taskStatus === "Completed" && "bg-success-600 text-white"}`}>JOB COMPLETE</small>
                   </section>
 
-                  {branchList.length ? <Controller name="branchId" control={control} rules={{required: true}}
+                  {branchList?.length ? <Controller name="branchId" control={control} rules={{required: true}}
                     render={({ field }) => (
                       <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname" onChange={(id:string) => {
+                        if(!id) return;
                         resetPax();
                         getBranchById(id)
+                        localStorage.setItem("selectedBranch", id)
                       } } />
                     )}
                     /> : <></>}
@@ -405,7 +418,7 @@ const NewAppointment = (props:any) => {
                   
                   <div className="flex items-center justify-between">
                     <h5 className="text-xl">Subtotal :</h5>
-                    <h5 className="text-xl">Rs. {totalAmount}</h5>
+                    <h5 className="text-xl">฿ {totalAmount}</h5>
                   </div>
                   {/* <div className="flex items-center gap-3">
                     <Button color="primary" type="submit" className={`w-full ${loading ? "bg-light text-dark":""}`} disabled={loading}> 
@@ -441,11 +454,12 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
   const onServiceSelection = (id: string, serviceIndex: number) => {
     setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, id)
     setValue(`pax.${paxIndex}.${serviceIndex}.duration`, null)
+    setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, null)
     setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)
     setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, [])
     const service = serviceList?.find((item: any) => item._id === id)
     setValue(`pax.${paxIndex}.${serviceIndex}.durationList`, service?.variants || [])
-    setValue(`pax.${paxIndex}.${serviceIndex}.assetType`, service?.assetType)
+    setValue(`pax.${paxIndex}.${serviceIndex}.assetTypeId`, service?.assetTypeId)
   }
 
   const onDurationSelection = (item: any, serviceIndex: number, durationList: any) => {
@@ -487,11 +501,15 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
           selectedEmployeeIds.push(...pax[i].map((e:any) => ({employeeId: e.employeeId, nextAvailableTime: ""})))
         }
       }
-      console.log(selectedEmployeeIds, parsed?.busyEmployeesWithSlots);
       
       const filteredEmployee = employeeList?.filter((item: any) => item.servicesId.includes(serviceId))
+      const disabledEmployees = [...parsed?.busyEmployeesWithSlots || [], ...selectedEmployeeIds];
+      const disabledIds = disabledEmployees?.map((emp: any) => emp?.employeeId) || [];
+      const availableEmployees = filteredEmployee?.filter((item: any) => !disabledIds.includes(item._id));
+
+      setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, duration ? availableEmployees?.[0]?._id : null)
       setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, duration ? filteredEmployee : [])
-      setValue(`pax.${paxIndex}.${serviceIndex}.busyEmployees`, [...parsed?.busyEmployeesWithSlots || [], ...selectedEmployeeIds])
+      setValue(`pax.${paxIndex}.${serviceIndex}.busyEmployees`, disabledEmployees)
         
     }catch(err:any) { console.log(err) }
   }
@@ -499,8 +517,9 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
   const getAvailableAssets = async (time: string, duration: number, serviceIndex: number) => {
     try {
       const appointmentDate = new Date(watch("appointmentDate")).toISOString().split("T")[0]
-      const assetType = watch(`pax.${paxIndex}.${serviceIndex}.assetType`)
-      const branches = await fetch(`${ASSETS_API_URL}/available-assets?appointmentDate=${appointmentDate}&startTime=${time}&duration=${duration}&assetType=${assetType}`)
+      const assetTypeId = watch(`pax.${paxIndex}.${serviceIndex}.assetTypeId`)
+      const branchId = watch(`branchId`)
+      const branches = await fetch(`${ASSETS_API_URL}/available-assets?branchId=${branchId}&appointmentDate=${appointmentDate}&startTime=${time}&duration=${duration}&assetTypeId=${assetTypeId}`)
       const parsed = await branches.json();
       
       const pax = watch(`pax`)
@@ -515,7 +534,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
       setValue(`pax.${paxIndex}.${serviceIndex}.assetList`, seats)
       
       if(seats?.length){
-        // setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, seats?.[0]?._id)
+        setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, seats?.[0]?._id)
         // setValue(`pax.${paxIndex}.${serviceIndex}.assetList`, seats?.[0])
       }else{
         toast.error("Asset not available")
@@ -541,7 +560,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
         const paxEmployeeList = watch(`pax.${paxIndex}.${serviceIndex}.employeeList`)
         const busyEmployees = watch(`pax.${paxIndex}.${serviceIndex}.busyEmployees`)
         const assetList = watch(`pax.${paxIndex}.${serviceIndex}.assetList`)
-        // const assetId = watch(`pax.${paxIndex}.${serviceIndex}.assetId`)
+        const assetId = watch(`pax.${paxIndex}.${serviceIndex}.assetId`)
         const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
         const employeeId = watch(`pax.${paxIndex}.${serviceIndex}.employeeId`)
 
@@ -595,14 +614,14 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
             </div>
             
             <div className="w-1/2 border-2 rounded p-1">
-              <select {...register(`pax.${paxIndex}.${serviceIndex}.assetId`)} className="w-full py-3 outline-none"
+              <select {...register(`pax.${paxIndex}.${serviceIndex}.assetId`)} value={assetId} className="w-full py-3 outline-none"
                 // onChange={(item: any) => onDurationSelection(item, serviceIndex, durationList)}
                 >
                   <option value="">Place</option>
-                {assetList?.map((item:any, index: number) => <option key={index} value={item._id}>{item.assetType.toUpperCase()} - {item.assetNumber}</option>)}
+                {assetList?.map((item:any, index: number) => <option key={index} value={item._id}>{item?.assetType?.toUpperCase()} - {item.assetNumber}</option>)}
               </select>
             </div>
-            {/* <Input className="w-1/2" type="text" label={"Place"} readOnly value={assetList ? assetList?.assetType?.toUpperCase() + "-" + assetList?.assetNumber : ""} /> */}
+            {/* <Input className="w-1/2" type="text" label={"Place"} readOnly value={assetList ? assetList?.assetTypeId?.toUpperCase() + "-" + assetList?.assetNumber : ""} /> */}
           </div>
 
 
@@ -635,11 +654,11 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
           
           <div className="flex items-center justify-between gap-2 px-2">
             <button type="button" className="my-2" onClick={() => onServiceRemoved(serviceIndex)}>❌ Remove </button>
-            <strong>Rs. {price || 0}</strong>
+            <strong>฿ {price || 0}</strong>
           </div>
 
           <hr className="py-3" />
-          {/* <input type="text" className="w-1/5" value={assetList?.assetType?.toUpperCase() + "-" + assetList?.assetNumber} /> */}
+          {/* <input type="text" className="w-1/5" value={assetList?.assetTypeId?.toUpperCase() + "-" + assetList?.assetNumber} /> */}
           
 
         </div>

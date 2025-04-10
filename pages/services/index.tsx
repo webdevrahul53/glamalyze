@@ -53,9 +53,9 @@ export default function Services() {
 const columns = [
   {name: "NAME", uid: "name"},
   {name: "DURATION (Mins)", uid: "variants:serviceDuration"},
-  {name: "PRICE (Rs)", uid: "variants:defaultPrice"},
+  {name: "PRICE (฿)", uid: "variants:defaultPrice"},
   {name: "CATEGORY", uid: "categoryName"},
-  {name: "TYPE", uid: "assetType"},
+  {name: "TYPE", uid: "assetTypes:assetTypeName"},
   // {name: "CREATED AT", uid: "createdAt"},
   // {name: "UPDATED AT", uid: "updatedAt"},
   {name: "STATUS", uid: "status"},

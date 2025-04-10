@@ -51,7 +51,7 @@ export default function Layout(props:any) {
           <AccordionItem key="1" startContent={<ServicesIcon width={30} height={20} />} title="Services">
             <ListboxWrapper Icon={ListIcon} href={"/services"} title="List"/>
             <ListboxWrapper Icon={CircleDotIcon} href={"/services/categories"} title="Categories" />
-            <ListboxWrapper Icon={DotIcon} href={"/services/sub-categories"} title="Sub Categories" />
+            {/* <ListboxWrapper Icon={DotIcon} href={"/services/sub-categories"} title="Sub Categories" /> */}
           </AccordionItem>
         </Accordion>
 
@@ -64,8 +64,9 @@ export default function Layout(props:any) {
         <Dropdown placement="right-end">
           <DropdownTrigger>
             <div className={`flex items-center gap-3 p-2 px-3 hover:bg-gray-200 cursor-pointer`}>
-              <SettingIcon width={30} height={20} color={"black"} />
-              <div>Settings</div>
+              <Avatar isBordered as="button" className="transition-transform" size="sm"
+              src={user?.image || "https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png"} />
+              <div>Account</div>
             </div>
           </DropdownTrigger>
           <DropdownMenu aria-label="Profile Actions" variant="flat">

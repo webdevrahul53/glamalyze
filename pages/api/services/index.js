@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
       if(!req.query.page || !req.query.limit) {
         const result = await Services.aggregate([
-          { $project: { _id: 1, image: 1, name: 1, variants: 1, assetType: 1, createdAt: 1} }
+          { $project: { _id: 1, image: 1, name: 1, variants: 1, assetTypeId: 1, createdAt: 1} }
         ])
         res.status(200).json(result)
       }else {
@@ -27,11 +27,16 @@ export default async function handler(req, res) {
               { name: { $regex: searchQuery, $options: "i" } },
             ]}
           },
+          { $lookup: { from: "assettypes", localField: "assetTypeId", foreignField: "_id", as: "assetTypes", },  },
           { $lookup: { from: "categories", localField: "categoryId", foreignField: "_id", as: "category", },  },
           { $lookup: { from: "subcategories", localField: "subCategoryId", foreignField: "_id", as: "subCategory", } },
+          { $unwind: { path: "$assetTypes", preserveNullAndEmptyArrays: true }, },
           { $unwind: { path: "$category", preserveNullAndEmptyArrays: true }, },
           { $unwind: { path: "$subCategory", preserveNullAndEmptyArrays: true }, },
-          { $project: { _id: 1, categoryId: 1, subCategoryId: 1, categoryName: {$concat: ["$category.categoryname", " > ", "$subCategory.subcategoryname"]}, name: 1, variants: 1, assetType: 1, image: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+          { $project: { _id: 1, categoryId: 1, subCategoryId: 1, 
+            categoryName: "$category.categoryname", 
+            // categoryName: {$concat: ["$category.categoryname", " > ", "$subCategory.subcategoryname"]}, 
+            name: 1, variants: 1, assetTypes: 1, assetTypeId: 1, image: 1, status: 1, createdAt: 1, updatedAt: 1 } },
           
           { $skip: skip },
           { $limit: limit }
@@ -59,7 +64,7 @@ export default async function handler(req, res) {
       _id:new mongoose.Types.ObjectId(),
       image:req.body.image,
       name:req.body.name,
-      assetType:req.body.assetType,
+      assetTypeId:req.body.assetTypeId,
       variants:req.body.variants,
       categoryId:req.body.categoryId,
       subCategoryId:req.body.subCategoryId,
@@ -74,7 +79,7 @@ export default async function handler(req, res) {
                 _id:service._id, 
                 image:service.image,
                 name:service.name,
-                assetType:service.assetType,
+                assetTypeId:service.assetTypeId,
                 variants:service.variants,
                 categoryId:service.categoryId,
                 subCategoryId:service.subCategoryId,

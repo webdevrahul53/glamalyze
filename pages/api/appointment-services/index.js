@@ -99,6 +99,7 @@ export default async function handler(req, res) {
             totalAmount: appointmentData.totalAmount,
             paymentStatus: appointmentData.paymentStatus,
             taskStatus: appointmentData.taskStatus,
+            note: appointmentData.note,
             status: appointmentData.status
         });
 
@@ -132,7 +133,7 @@ export default async function handler(req, res) {
 
                     // useless but need to keep for edit form
                     durationList: service.durationList,
-                    assetType: service.assetType,
+                    assetTypeId: service.assetTypeId,
                     assetList: service.assetList,
                     busyEmployees: service.busyEmployees,
                     employeeList: service.employeeList,

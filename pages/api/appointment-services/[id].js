@@ -58,6 +58,7 @@ export default async function handler(req, res) {
           totalAmount: appointmentData.totalAmount,
           paymentStatus: appointmentData.paymentStatus,
           taskStatus: appointmentData.taskStatus,
+          note: appointmentData.note,
           status: appointmentData.status
         },
         { new: true, session }
@@ -99,7 +100,8 @@ export default async function handler(req, res) {
 
             // Additional fields
             durationList: service.durationList,
-            assetType: service.assetType,
+            assetTypeId: service.assetTypeId,
+            assetList: service.assetList,
             selectedAsset: service.selectedAsset,
             busyEmployees: service.busyEmployees,
             employeeList: service.employeeList,

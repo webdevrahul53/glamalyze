@@ -17,7 +17,7 @@ export default async function handler(req, res) {
         // { $unwind: { path: "$branch", preserveNullAndEmptyArrays: true, }, },
         // { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true, }, },
         { $project: { _id: 1, appointmentDate: 1, startTime: 1, pax: 1, branchId: 1, customerId: 1, totalDuration: 1, totalAmount: 1, 
-          paymentStatus: 1, taskStatus: 1, status: 1 } 
+          paymentStatus: 1, taskStatus: 1, note: 1, status: 1 } 
         },
       ])
       res.status(200).json(result[0] || null) 
