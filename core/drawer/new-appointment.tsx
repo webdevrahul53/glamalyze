@@ -84,7 +84,7 @@ const NewAppointment = (props:any) => {
       const dateValue = selectedAppointment?.appointmentDate || props?.selectedTime || currentDate
       const timeValue = selectedAppointment?.startTime || new Date(props?.selectedTime || currentDate).toLocaleTimeString()
       const date = parseDate(new Date(dateValue)?.toISOString().split("T")[0])
-      const time: any = convertAndRoundTo30Minutes(timeValue)
+      const time: any = convertTo24HourFormat(timeValue)
       // console.log(time);
       
       setValue("appointmentDate", date)
@@ -203,34 +203,47 @@ const NewAppointment = (props:any) => {
       setValue("pax", updatedPax); // Update the form field
     };
 
-    const convertAndRoundTo30Minutes = (timeStr: string) => {
-      // Convert 12-hour format to 24-hour format
+    // const convertAndRoundTo30Minutes = (timeStr: string) => {
+    //   // Convert 12-hour format to 24-hour format
+    //   const [time, modifier] = timeStr.split(" ");
+    //   let [hours, minutes] = time.split(":").map(Number);
+    
+    //   if (modifier === "PM" && hours !== 12) {
+    //     hours += 12;
+    //   }
+    //   if (modifier === "AM" && hours === 12) {
+    //     hours = 0;
+    //   }
+    
+    //   // Round minutes to nearest 30-minute slot
+    //   if (minutes < 15) minutes = 0;
+    //   else if (minutes < 45) minutes = 30;
+    //   else {
+    //     minutes = 0;
+    //     hours = (hours + 1) % 24; // Handle 24-hour wrap
+    //   }
+    
+    //   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+    // };
+    
+
+    const convertTo24HourFormat = (timeStr: string) => {
       const [time, modifier] = timeStr.split(" ");
-      let [hours, minutes] = time.split(":").map(Number);
-    
-      if (modifier === "PM" && hours !== 12) {
-        hours += 12;
+      let [hours, minutes] = time.split(":");
+      if (modifier === "PM" && hours !== "12") {
+        hours = String(parseInt(hours, 10) + 12);
       }
-      if (modifier === "AM" && hours === 12) {
-        hours = 0;
+      if (modifier === "AM" && hours === "12") {
+        hours = "00";
       }
-    
-      // Round minutes to nearest 30-minute slot
-      if (minutes < 15) minutes = 0;
-      else if (minutes < 45) minutes = 30;
-      else {
-        minutes = 0;
-        hours = (hours + 1) % 24; // Handle 24-hour wrap
-      }
-    
-      return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+      return `${hours}:${minutes}`;
     };
   
     const onSubmit = async (data:any) => {
       setLoading(true)
       data = {...data, totalAmount}
       data.appointmentDate = data.appointmentDate?.toString();
-      data.startTime = convertAndRoundTo30Minutes(data.startTime);
+      data.startTime = convertTo24HourFormat(data.startTime);
       data.taskStatus = selectedAppointment?.taskStatus === "Pending" ? "CheckedIn": selectedAppointment?.taskStatus === "CheckedIn" ? "CheckedOut" : selectedAppointment?.taskStatus === "CheckedOut" ? "Completed" : "Pending";
       data.status = true;
       // console.log(data);
@@ -363,8 +376,14 @@ const NewAppointment = (props:any) => {
                         />
                       )}
                     />
-                    <label htmlFor="startTime" className="w-1/4 border-2 p-3 px-2">
-                      <select id="startTime" className="w-100 outline-none pe-3" {...register("startTime", {required: true})} 
+                    <label htmlFor="startTime" className="w-1/4 border-2 p-0 px-4 rounded">
+                      <input className="py-3 outline-none" type="time" {...register("startTime", {required: true})}
+                        onChange={(event:any) => {
+                          setValue("startTime", event.target.value)
+                          resetPax()
+                        }} 
+                      />
+                      {/* <select id="startTime" className="w-100 outline-none pe-3" {...register("startTime", {required: true})} 
                       onChange={(event:any) => {
                         setValue("startTime", event.target.value)
                         resetPax()
@@ -373,8 +392,9 @@ const NewAppointment = (props:any) => {
                         {timeList.map((value) => (
                           <option key={value.key} value={value.key}>{value.label}</option>
                         ))}
-                      </select>
+                      </select> */}
                     </label>
+                    
                     <div className="w-1/2 text-center p-3 border-2 rounded"> {moment(appointmentDate.toString()).format('dddd')} </div>
                     <label htmlFor="paxValue" className="w-1/4 border-2 p-3 px-2">
                       <select id="paxValue" className="w-100 outline-none pe-3" value={pax.length} onChange={(event:any) => onPaxChange(+event.target.value)}>

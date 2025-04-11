@@ -8,6 +8,7 @@ import { Avatar, AvatarGroup, Progress, Tooltip, useDisclosure } from '@heroui/r
 import NewAppointment from '@/core/drawer/new-appointment';
 import { taskStatusCSS } from '@/core/common/data-grid';
 import Image from 'next/image';
+import { PersonIcon } from '@/core/utilities/svgIcons';
 
 // Localizer (Using Moment.js)
 const localizer = momentLocalizer(moment);
@@ -24,6 +25,7 @@ export default function CalendarViewBookings(){
   const [selectedBranch, setSelectedBranch] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(false);
   const [branchList, setBranchList] = React.useState<any>([]);
+  const [allEmployeeList, setAllEmployeeList] = React.useState<any>([]);
   const [assets, setAssets] = React.useState<any>([]);
   const [pageRefresh, setPageRefresh] = React.useState(false);
 
@@ -33,6 +35,10 @@ export default function CalendarViewBookings(){
   },[])
 
   React.useEffect(() => {
+    getBusyEmployeesWithNextSlot()
+  },[allEmployeeList])
+
+  React.useEffect(() => {
     const branchId = localStorage.getItem("selectedBranch");
     setSelectedBranch(branchId || branchList[0]?._id)
   },[branchList])
@@ -40,8 +46,7 @@ export default function CalendarViewBookings(){
   React.useEffect(() => {
     if(!selectedBranch) return;
     setAssets([])
-    getAssets()
-    // getAvailableAssets("12:00", 60)
+    getAvailableAssets()
     getBranchById()
     getAppointments()
   },[calendarDate, selectedBranch, pageRefresh])
@@ -62,16 +67,33 @@ export default function CalendarViewBookings(){
     try {
       const branch = await fetch(`${BRANCH_API_URL}/${selectedBranch}`)
       const parsed = await branch.json();
-      setAssets((prev:any) => ({...prev, employees: parsed.groupEmployees}))
-      
+      setAllEmployeeList(parsed.groupEmployees)
     }catch(err:any) { console.log(err.message) }
   }
-  
-  const getAssets = async () => {
+
+  const getBusyEmployeesWithNextSlot = async () => {
     try {
-      const response = await fetch(`${ASSETS_API_URL}?branchId=${selectedBranch}`);
-      const data = await response.json();
-      const grouped = data?.reduce((acc: any, curr: any) => {
+      const duration = 60;
+      const appointmentDate = moment(calendarDate).format("yyyy-MM-DD")
+      const time = convertTo24HourFormat(moment(calendarDate).format("hh:mm A"))
+      const branches = await fetch(`${APPOINTMENT_SERVICES_API_URL}/busy-employees?appointmentDate=${appointmentDate}&startTime=${time}&duration=${duration}`)
+      const parsed = await branches.json();
+      
+      const busyEmployees = parsed.busyEmployeesWithSlots?.map((item:any) => item?.employeeId)
+      setAssets((prev:any) => ({...prev, employees: allEmployeeList.filter((item:any) => !busyEmployees.includes(item._id))}))
+      
+    }catch(err:any) { console.log(err) }
+  }
+
+  const getAvailableAssets = async () => {
+    try {
+      const duration = 60;
+      const appointmentDate = moment(calendarDate).format("yyyy-MM-DD")
+      const time = convertTo24HourFormat(moment(calendarDate).format("hh:mm A"))
+      const branches = await fetch(`${ASSETS_API_URL}/available-assets?branchId=${selectedBranch}&appointmentDate=${appointmentDate}&startTime=${time}&duration=${duration}`)
+      const parsed = await branches.json();
+      
+      const grouped = parsed?.availableAssets?.reduce((acc: any, curr: any) => {
         if (!acc[curr.assetType]) {
           acc[curr.assetType] = [];
         }
@@ -81,30 +103,10 @@ export default function CalendarViewBookings(){
       
       setAssets((prev: any) => ({...prev, ...grouped}));
       setLoading(false)
-    } catch (error) {
-      setLoading(false)
-      console.error("Error fetching users:", error);
-    }
-  };
+    }catch(err:any) { console.log(err) }
+  }
 
-  // const getAvailableAssets = async (time: string, duration: number) => {
-  //   try {
-  //     const appointmentDate = moment(calendarDate).format("yyyy-MM-DD")
-  //     const branches = await fetch(`${ASSETS_API_URL}/available-assets?branchId=${selectedBranch}&appointmentDate=${appointmentDate}&startTime=${time}&duration=${duration}`)
-  //     const parsed = await branches.json();
-      
-  //     const grouped = parsed?.availableAssets?.reduce((acc: any, curr: any) => {
-  //       if (!acc[curr.assetType]) {
-  //         acc[curr.assetType] = [];
-  //       }
-  //       acc[curr.assetType].push(curr);
-  //       return acc;
-  //     }, {});
-      
-  //     setAssets((prev: any) => ({...prev, ...grouped}));
-  //     setLoading(false)
-  //   }catch(err:any) { console.log(err) }
-  // }
+  
 
   const getAppointments = async () => {
     setLoading(true)
@@ -126,6 +128,18 @@ export default function CalendarViewBookings(){
       setLoading(false)
       console.error("Error fetching users:", error);
     }
+  };
+
+  const convertTo24HourFormat = (timeStr: string) => {
+    const [time, modifier] = timeStr.split(" ");
+    let [hours, minutes] = time.split(":");
+    if (modifier === "PM" && hours !== "12") {
+      hours = String(parseInt(hours, 10) + 12);
+    }
+    if (modifier === "AM" && hours === "12") {
+      hours = "00";
+    }
+    return `${hours}:${minutes}`;
   };
 
   const onDrawerClose = () => {
@@ -150,11 +164,11 @@ export default function CalendarViewBookings(){
             <div className="flex items-center gap-3">
               {Object.keys(assets)?.map((item: any, index: number) => (
                 <div key={index} className="flex items-start"> 
-                  {assets[item][0]?.assetTypes?.image && <Image src={assets[item][0]?.assetTypes?.image} width={20} height={20} alt="Asset Image" />}
-                  {assets[item][0]?.image && <AvatarGroup className="me-1" isBordered max={3} renderCount={() => <></>}>
-                    {assets[item]?.map((item:any) => (
+                  {assets[item][0]?.assetTypeId?.image && <Image src={assets[item][0]?.assetTypeId?.image} width={20} height={20} alt="Asset Image" />}
+                  {item === "employees" && <AvatarGroup className="me-1" isBordered renderCount={() => <></>}>
+                    {assets[item].length ? assets[item]?.map((item:any) => (
                       <Avatar key={item._id} src={item.image} size="sm" style={{width: "25px", height: "25px"}} />
-                    ))}
+                    )) : <PersonIcon width={20} />}
                   </AvatarGroup>}
                   <small style={{fontSize: "18px"}} className="ms-1 rounded-full">{assets[item]?.length}</small> 
                 </div>
@@ -177,11 +191,11 @@ export default function CalendarViewBookings(){
             <div className="flex items-center gap-3">
               {Object.keys(assets)?.map((item: any, index: number) => (
                 <div key={index} className="flex items-start"> 
-                  {assets[item][0]?.assetTypes?.image && <Image src={assets[item][0]?.assetTypes?.image} width={20} height={20} alt="" />}
-                  {assets[item][0]?.image && <AvatarGroup className="me-1" isBordered max={3} renderCount={() => <></>}>
-                    {assets[item]?.map((item:any) => (
+                  {assets[item][0]?.assetTypeId?.image && <Image src={assets[item][0]?.assetTypeId?.image} width={20} height={20} alt="Asset Image" />}
+                  {item === "employees" && <AvatarGroup className="me-1" isBordered renderCount={() => <></>}>
+                    {assets[item].length ? assets[item]?.map((item:any) => (
                       <Avatar key={item._id} src={item.image} size="sm" style={{width: "25px", height: "25px"}} />
-                    ))}
+                    )) : <PersonIcon width={20} />}
                   </AvatarGroup>}
                   <small style={{fontSize: "18px"}} className="ms-1 rounded-full">{assets[item]?.length}</small> 
                 </div>
