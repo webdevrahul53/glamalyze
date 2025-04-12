@@ -132,6 +132,7 @@ export default function CalendarViewBookings(){
 
   const convertTo24HourFormat = (timeStr: string) => {
     const [time, modifier] = timeStr.split(" ");
+    // eslint-disable-next-line prefer-const
     let [hours, minutes] = time.split(":");
     if (modifier === "PM" && hours !== "12") {
       hours = String(parseInt(hours, 10) + 12);
