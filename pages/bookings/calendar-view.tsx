@@ -8,7 +8,7 @@ import { Avatar, AvatarGroup, Progress, Tooltip, useDisclosure } from '@heroui/r
 import NewAppointment from '@/core/drawer/new-appointment';
 import { taskStatusCSS } from '@/core/common/data-grid';
 import Image from 'next/image';
-import { PersonIcon } from '@/core/utilities/svgIcons';
+import { ChevronLeftIcon, ChevronRightIcon, PersonIcon } from '@/core/utilities/svgIcons';
 
 // Localizer (Using Moment.js)
 const localizer = momentLocalizer(moment);
@@ -22,91 +22,144 @@ export default function CalendarViewBookings(){
   const [calendarDate, setCalendarDate] = React.useState(new Date());
   const [selectedBooking, setSelectedBooking] = React.useState<any>(null);
   const [selectedTime, setSelectedTime] = React.useState<any>(null);
-  const [selectedBranch, setSelectedBranch] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(false);
   const [branchList, setBranchList] = React.useState<any>([]);
-  const [allEmployeeList, setAllEmployeeList] = React.useState<any>([]);
-  const [assets, setAssets] = React.useState<any>([]);
+  const [currentBranch, setCurrentBranch] = React.useState<string>();
+  const [followingBranch, setFollowingBranch] = React.useState<string>();
+  
+  const [selectedBranch, setSelectedBranch] = React.useState<string>();
+  const [selectedBranch2, setSelectedBranch2] = React.useState<string>();
+  const [allEmployeeList, setAllEmployeeList] = React.useState<any[]>([]);
+  const [allEmployeeList2, setAllEmployeeList2] = React.useState<any[]>([]);
+  const [assets, setAssets] = React.useState<any>({});
+  const [assets2, setAssets2] = React.useState<any>({});
   const [pageRefresh, setPageRefresh] = React.useState(false);
 
-
   React.useEffect(() => {
-    getBranchList()
-  },[])
-
-  React.useEffect(() => {
-    getBusyEmployeesWithNextSlot()
-  },[allEmployeeList])
+    fetchBranchList();
+  }, []);
 
   React.useEffect(() => {
     const branchId = localStorage.getItem("selectedBranch");
-    setSelectedBranch(branchId || branchList[0]?._id)
-  },[branchList])
-  
+    const index = branchList.findIndex((b:any) => b._id === branchId);
+    const nextBranch = index !== -1 && branchList.length > 1
+      ? branchList[(index + 1) % branchList.length]?._id
+      : null;
+      
+    const nextBranchName = index !== -1 && branchList.length > 1
+    ? branchList[(index + 1) % branchList.length]?.branchname
+    : null;
+      
+    setSelectedBranch(branchId || branchList[0]?._id || null);
+    setSelectedBranch2(nextBranch || null);
+    setCurrentBranch(branchList[index]?.branchname || null)
+    setFollowingBranch(nextBranchName || null);
+  }, [branchList]);
+
   React.useEffect(() => {
-    if(!selectedBranch) return;
+    if (!selectedBranch) return;
     setAssets([])
-    getAvailableAssets()
-    getBranchById()
-    getAppointments()
-  },[calendarDate, selectedBranch, pageRefresh])
+    fetchBranchData(selectedBranch, setAllEmployeeList);
+    fetchAvailableAssets(selectedBranch, setAssets);
+  }, [selectedBranch]);
+
+  React.useEffect(() => {
+    if (!selectedBranch2) return;
+    setAssets2([])
+    fetchAvailableAssets(selectedBranch2, setAssets2);
+    fetchBranchData(selectedBranch2, setAllEmployeeList2);
+  }, [selectedBranch2]);
+
+  React.useEffect(() => {
+    fetchBusyEmployees(allEmployeeList, setAssets);
+  }, [allEmployeeList]);
+
+  React.useEffect(() => {
+    fetchBusyEmployees(allEmployeeList2, setAssets2);
+  }, [allEmployeeList2]);
+
+  React.useEffect(() => {
+    if (!selectedBranch) return;
+    getAppointments();
+  }, [calendarDate, pageRefresh, selectedBranch]);
 
   const handleSelectEvent = (event: any) => {
-    setSelectedBooking(event); // Store selected bookingId
+    setSelectedBooking(event);
   };
 
-  const getBranchList = async () => {
+  const fetchBranchList = async () => {
     try {
-      const branches = await fetch(BRANCH_API_URL)
-      const parsed = await branches.json();
-      setBranchList(parsed);
-    }catch(err:any) { console.log(err.message) }
-  }
-  
-  const getBranchById = async () => {
-    try {
-      const branch = await fetch(`${BRANCH_API_URL}/${selectedBranch}`)
-      const parsed = await branch.json();
-      setAllEmployeeList(parsed.groupEmployees)
-    }catch(err:any) { console.log(err.message) }
-  }
+      const res = await fetch(BRANCH_API_URL);
+      const data = await res.json();
+      setBranchList(data);
+    } catch (err: any) {
+      console.error(err.message);
+    }
+  };
 
-  const getBusyEmployeesWithNextSlot = async () => {
+  const fetchBranchData = async (
+    branchId: string,
+    setEmployeeList: React.Dispatch<React.SetStateAction<any[]>>
+  ) => {
+    try {
+      const res = await fetch(`${BRANCH_API_URL}/${branchId}`);
+      const data = await res.json();
+      setEmployeeList(data.groupEmployees || []);
+    } catch (err: any) {
+      console.error(err.message);
+    }
+  };
+
+  const fetchBusyEmployees = async (
+    employeeList: any[],
+    setAssetsState: React.Dispatch<React.SetStateAction<any>>
+  ): Promise<void> => {
     try {
       const duration = 60;
-      const appointmentDate = moment(calendarDate).format("yyyy-MM-DD")
-      const time = convertTo24HourFormat(moment(calendarDate).format("hh:mm A"))
-      const branches = await fetch(`${APPOINTMENT_SERVICES_API_URL}/busy-employees?appointmentDate=${appointmentDate}&startTime=${time}&duration=${duration}`)
-      const parsed = await branches.json();
-      
-      const busyEmployees = parsed.busyEmployeesWithSlots?.map((item:any) => item?.employeeId)
-      setAssets((prev:any) => ({...prev, employees: allEmployeeList.filter((item:any) => !busyEmployees.includes(item._id))}))
-      
-    }catch(err:any) { console.log(err) }
-  }
+      const appointmentDate = moment(calendarDate).format("YYYY-MM-DD");
+      const time = convertTo24HourFormat(moment(calendarDate).format("hh:mm A"));
 
-  const getAvailableAssets = async () => {
+      const res = await fetch(
+        `${APPOINTMENT_SERVICES_API_URL}/busy-employees?appointmentDate=${appointmentDate}&startTime=${time}&duration=${duration}`
+      );
+      const data = await res.json();
+
+      const busyIds = data.busyEmployeesWithSlots?.map((e: any) => e.employeeId) || [];
+      const available = employeeList.filter((e: any) => !busyIds.includes(e._id));
+
+      setAssetsState((prev: any) => ({ ...prev, employees: available }));
+    } catch (err: any) {
+      console.error(err);
+    }
+  };
+
+  const fetchAvailableAssets = async (
+    branchId: string,
+    setAssetsState: React.Dispatch<React.SetStateAction<any>>
+  ): Promise<void> => {
     try {
       const duration = 60;
-      const appointmentDate = moment(calendarDate).format("yyyy-MM-DD")
-      const time = convertTo24HourFormat(moment(calendarDate).format("hh:mm A"))
-      const branches = await fetch(`${ASSETS_API_URL}/available-assets?branchId=${selectedBranch}&appointmentDate=${appointmentDate}&startTime=${time}&duration=${duration}`)
-      const parsed = await branches.json();
-      
-      const grouped = parsed?.availableAssets?.reduce((acc: any, curr: any) => {
-        if (!acc[curr.assetType]) {
-          acc[curr.assetType] = [];
-        }
+      const appointmentDate = moment(calendarDate).format("YYYY-MM-DD");
+      const time = convertTo24HourFormat(moment(calendarDate).format("hh:mm A"));
+
+      const res = await fetch(
+        `${ASSETS_API_URL}/available-assets?branchId=${branchId}&appointmentDate=${appointmentDate}&startTime=${time}&duration=${duration}`
+      );
+      const data = await res.json();
+
+      const grouped = (data.availableAssets || []).reduce((acc: any, curr: any) => {
+        acc[curr.assetType] = acc[curr.assetType] || [];
         acc[curr.assetType].push(curr);
         return acc;
       }, {});
-      
-      setAssets((prev: any) => ({...prev, ...grouped}));
-      setLoading(false)
-    }catch(err:any) { console.log(err) }
-  }
 
-  
+      setAssetsState((prev: any) => ({ ...prev, ...grouped }));
+      setLoading(false);
+    } catch (err: any) {
+      console.error(err);
+    }
+  };
+
 
   const getAppointments = async () => {
     setLoading(true)
@@ -160,47 +213,93 @@ export default function CalendarViewBookings(){
         )}
 
         <div className="bg-white rounded p-2" style={{margin: "-30px 40px"}}>
-          <div className="flex items-center justify-between pb-4 px-1">
+          <div className="flex items-center justify-around pb-4 px-1">
 
-            <div className="flex items-center gap-3">
-              {Object.keys(assets)?.map((item: any, index: number) => (
-                <div key={index} className="flex items-start"> 
-                  {assets[item][0]?.assetTypeId?.image && <Image src={assets[item][0]?.assetTypeId?.image} width={20} height={20} alt="Asset Image" />}
-                  {item === "employees" && <AvatarGroup className="me-1" isBordered renderCount={() => <></>}>
-                    {assets[item].length ? assets[item]?.map((item:any) => (
-                      <Avatar key={item._id} src={item.image} size="sm" style={{width: "25px", height: "25px"}} />
-                    )) : <PersonIcon width={20} />}
-                  </AvatarGroup>}
-                  <small style={{fontSize: "18px"}} className="ms-1 rounded-full">{assets[item]?.length}</small> 
-                </div>
-              ))}
-            </div>
-
-            <div className="border-2 rounded px-2 w-1/4">
-              <select className="w-full text-xl p-0 pe-4 py-2 outline-none" value={selectedBranch} onChange={(event:any) => {
-                const id: string = event.target.value;
-                if(!id) return;
-                setSelectedBranch(id)
-                localStorage.setItem("selectedBranch", id)
-              }}>
-                {branchList.map((item:any) => (
-                  <option key={item._id} value={item._id}>{item.branchname}</option>
+            <div className="w-1/4">
+              <div className="pb-2">Available</div>
+              <div className="flex items-center gap-3">
+                {Object.keys(assets)?.map((item: any, index: number) => (
+                  <div key={index} className="flex items-start"> 
+                    {assets[item][0]?.assetTypeId?.image && <Image src={assets[item][0]?.assetTypeId?.image} width={20} height={20} alt="Asset Image" />}
+                    {item === "employees" && <AvatarGroup className="me-1" isBordered renderCount={() => <></>}>
+                      {assets[item].length ? assets[item]?.map((item:any) => (
+                        <Avatar key={item._id} src={item.image} size="sm" style={{width: "25px", height: "25px"}} />
+                      )) : <PersonIcon width={20} />}
+                    </AvatarGroup>}
+                    <small style={{fontSize: "18px"}} className="ms-1 rounded-full">{assets[item]?.length}</small> 
+                  </div>
                 ))}
-              </select>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              {Object.keys(assets)?.map((item: any, index: number) => (
-                <div key={index} className="flex items-start"> 
-                  {assets[item][0]?.assetTypeId?.image && <Image src={assets[item][0]?.assetTypeId?.image} width={20} height={20} alt="Asset Image" />}
-                  {item === "employees" && <AvatarGroup className="me-1" isBordered renderCount={() => <></>}>
-                    {assets[item].length ? assets[item]?.map((item:any) => (
-                      <Avatar key={item._id} src={item.image} size="sm" style={{width: "25px", height: "25px"}} />
-                    )) : <PersonIcon width={20} />}
-                  </AvatarGroup>}
-                  <small style={{fontSize: "18px"}} className="ms-1 rounded-full">{assets[item]?.length}</small> 
-                </div>
-              ))}
+            <div className="w-2/4 flex items-center justify-center">
+              {/* Previous Branch */}
+              <div role="button" className="border-2 mx-3 px-2 py-1" onClick={() => {
+                  const index = branchList.findIndex((b: any) => b._id === selectedBranch);
+                  const prevIndex = index !== -1
+                    ? (index - 1 + branchList.length) % branchList.length
+                    : -1;
+
+                  const prevBranch = branchList[prevIndex]?._id || null;
+                  const prevBranchName = branchList[prevIndex]?.branchname || null;
+
+                  if (prevBranch) {
+                    setSelectedBranch(prevBranch);
+                    setCurrentBranch(prevBranchName)
+                    localStorage.setItem("selectedBranch", prevBranch);
+
+                    const nextBranch = branchList[(prevIndex + 1) % branchList.length]?._id || null;
+                    setSelectedBranch2(nextBranch);
+                  }
+                }}
+              >
+                <ChevronLeftIcon width="20" />
+              </div>
+
+              <div className="text-3xl">{currentBranch}</div>
+
+              {/* Next Branch */}
+              <div role="button" className="border-2 mx-3 px-2 py-1"
+                onClick={() => {
+                  const index = branchList.findIndex((b: any) => b._id === selectedBranch);
+                  const nextIndex = index !== -1
+                    ? (index + 1) % branchList.length
+                    : -1;
+
+                  const nextBranch = branchList[nextIndex]?._id || null;
+                  const nextBranchName = branchList[nextIndex]?.branchname || null;
+
+                  if (nextBranch) {
+                    setSelectedBranch(nextBranch);
+                    setCurrentBranch(nextBranchName)
+                    localStorage.setItem("selectedBranch", nextBranch);
+
+                    const followingBranch = branchList[(nextIndex + 1) % branchList.length]?._id || null;
+                    const followingBranchName = branchList[(nextIndex + 1) % branchList.length]?.branchname || null;
+                    setSelectedBranch2(followingBranch);
+                    setFollowingBranch(followingBranchName)
+                  }
+                }}
+              >
+                <ChevronRightIcon width="20" />
+              </div>
+            </div>
+
+            <div className="w-1/4">
+              <div className="pb-2 text-end">Available in {followingBranch} </div>
+              <div className="flex items-center justify-end gap-3">
+                {Object.keys(assets2)?.map((item: any, index: number) => (
+                  <div key={index} className="flex items-start"> 
+                    {assets2[item][0]?.assetTypeId?.image && <Image src={assets2[item][0]?.assetTypeId?.image} width={20} height={20} alt="Asset Image" />}
+                    {item === "employees" && <AvatarGroup className="me-1" isBordered renderCount={() => <></>}>
+                      {assets2[item].length ? assets2[item]?.map((item:any) => (
+                        <Avatar key={item._id} src={item.image} size="sm" style={{width: "25px", height: "25px"}} />
+                      )) : <PersonIcon width={20} />}
+                    </AvatarGroup>}
+                    <small style={{fontSize: "18px"}} className="ms-1 rounded-full">{assets2[item]?.length}</small> 
+                  </div>
+                ))}
+              </div>
             </div>
 
           </div>
