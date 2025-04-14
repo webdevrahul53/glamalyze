@@ -581,6 +581,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
         const busyEmployees = watch(`pax.${paxIndex}.${serviceIndex}.busyEmployees`)
         const assetList = watch(`pax.${paxIndex}.${serviceIndex}.assetList`)
         const assetId = watch(`pax.${paxIndex}.${serviceIndex}.assetId`)
+        const selectedAsset = assetList?.find((item:any) => item._id === assetId);
         const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
         const employeeId = watch(`pax.${paxIndex}.${serviceIndex}.employeeId`)
 
@@ -633,14 +634,34 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
               </select>
             </div>
             
-            <div className="w-1/2 border-2 rounded p-1">
-              <select {...register(`pax.${paxIndex}.${serviceIndex}.assetId`)} value={assetId} className="w-full py-3 outline-none"
-                // onChange={(item: any) => onDurationSelection(item, serviceIndex, durationList)}
+
+            <div className="w-1/2">
+              {assetId ? <ServiceCard name={`${selectedAsset.assetType} - ( ${selectedAsset.assetNumber} )`} image={selectedAsset.assetTypeId?.image} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, null)} /> : 
+                <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.assetId`, {required: true})} 
+                defaultItems={assetList || []} label="Place" 
+                labelPlacement="inside" placeholder="Select place" variant="bordered" 
+                onSelectionChange={(id:string) => setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, id)}
                 >
+                {(user:any) => {
+                  return <AutocompleteItem key={user._id} textValue={user.assetNumber}>
+                    <div className="flex gap-2 items-center">
+                      <Avatar alt={user.assetType} className="flex-shrink-0" size="sm" src={user.assetTypeId?.image} />
+                      <div className="flex flex-col">
+                        <span className="text-small">{user.assetType} - ( {user.assetNumber} ) </span>
+                        <span className="text-tiny text-default-400">{user.assetTypeId?.createdAt}</span>
+                      </div>
+                    </div>
+                  </AutocompleteItem>
+                }}
+                
+              </Autocomplete>}
+            </div>
+            {/* <div className="w-1/2 border-2 rounded p-1">
+              <select {...register(`pax.${paxIndex}.${serviceIndex}.assetId`)} value={assetId} className="w-full py-3 outline-none">
                   <option value="">Place</option>
                 {assetList?.map((item:any, index: number) => <option key={index} value={item._id}>{item?.assetTypeId?.assetTypeName?.toUpperCase()} - {item.assetNumber}</option>)}
               </select>
-            </div>
+            </div> */}
             {/* <Input className="w-1/2" type="text" label={"Place"} readOnly value={assetList ? assetList?.assetTypeId?.toUpperCase() + "-" + assetList?.assetNumber : ""} /> */}
           </div>
 

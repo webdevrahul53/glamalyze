@@ -18,7 +18,7 @@ export default async function handler(req, res) {
         { $unwind: { path: "$manager", preserveNullAndEmptyArrays: true, }, },
         { $project: { _id: 1, image: 1, branchname:1, gender: 1, manager: 1, groupEmployees: 1, employeeServices: 1,
           managerId: 1,servicesId: 1, contactnumber: 1, email: 1, address: 1, landmark: 1, country: 1, city: 1, state: 1, 
-          postalcode:1, latitude: 1, longitude: 1, paymentmethods: 1, description: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+          postalcode:1, latitude: 1, longitude: 1, openingAt: 1, closingAt: 1, colorcode: 1, paymentmethods: 1, description: 1, status: 1, createdAt: 1, updatedAt: 1 } },
       ])
       res.status(200).json(result[0] || null) 
     } catch (error) {

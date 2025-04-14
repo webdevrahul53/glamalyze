@@ -24,8 +24,8 @@ export default function CalendarViewBookings(){
   const [selectedTime, setSelectedTime] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(false);
   const [branchList, setBranchList] = React.useState<any>([]);
-  const [currentBranch, setCurrentBranch] = React.useState<string>();
-  const [followingBranch, setFollowingBranch] = React.useState<string>();
+  const [currentBranch, setCurrentBranch] = React.useState<any>();
+  const [followingBranch, setFollowingBranch] = React.useState<any>();
   
   const [selectedBranch, setSelectedBranch] = React.useState<string>();
   const [selectedBranch2, setSelectedBranch2] = React.useState<string>();
@@ -46,20 +46,14 @@ export default function CalendarViewBookings(){
       ? branchList[(index + 1) % branchList.length]?._id
       : null;
       
-    const nextBranchName = index !== -1 && branchList.length > 1
-    ? branchList[(index + 1) % branchList.length]?.branchname
-    : null;
-      
     setSelectedBranch(branchId || branchList[0]?._id || null);
     setSelectedBranch2(nextBranch || null);
-    setCurrentBranch(branchList[index]?.branchname || null)
-    setFollowingBranch(nextBranchName || null);
   }, [branchList]);
 
   React.useEffect(() => {
     if (!selectedBranch) return;
     setAssets([])
-    fetchBranchData(selectedBranch, setAllEmployeeList);
+    fetchBranchData(selectedBranch, setAllEmployeeList, setCurrentBranch);
     fetchAvailableAssets(selectedBranch, setAssets);
   }, [selectedBranch]);
 
@@ -67,7 +61,7 @@ export default function CalendarViewBookings(){
     if (!selectedBranch2) return;
     setAssets2([])
     fetchAvailableAssets(selectedBranch2, setAssets2);
-    fetchBranchData(selectedBranch2, setAllEmployeeList2);
+    fetchBranchData(selectedBranch2, setAllEmployeeList2, setFollowingBranch);
   }, [selectedBranch2]);
 
   React.useEffect(() => {
@@ -99,11 +93,13 @@ export default function CalendarViewBookings(){
 
   const fetchBranchData = async (
     branchId: string,
-    setEmployeeList: React.Dispatch<React.SetStateAction<any[]>>
+    setEmployeeList: React.Dispatch<React.SetStateAction<any[]>>,
+    setBranchDetails: React.Dispatch<React.SetStateAction<any[]>>
   ) => {
     try {
       const res = await fetch(`${BRANCH_API_URL}/${branchId}`);
       const data = await res.json();
+      setBranchDetails(data);
       setEmployeeList(data.groupEmployees || []);
     } catch (err: any) {
       console.error(err.message);
@@ -215,7 +211,7 @@ export default function CalendarViewBookings(){
         <div className="bg-white rounded p-2" style={{margin: "-30px 40px"}}>
           <div className="flex items-center justify-around pb-4 px-1">
 
-            <div className="w-1/4">
+            <div className="w-1/4" style={{color: currentBranch?.colorcode}}>
               <div className="pb-2">Available</div>
               <div className="flex items-center gap-3">
                 {Object.keys(assets)?.map((item: any, index: number) => (
@@ -241,11 +237,9 @@ export default function CalendarViewBookings(){
                     : -1;
 
                   const prevBranch = branchList[prevIndex]?._id || null;
-                  const prevBranchName = branchList[prevIndex]?.branchname || null;
 
                   if (prevBranch) {
                     setSelectedBranch(prevBranch);
-                    setCurrentBranch(prevBranchName)
                     localStorage.setItem("selectedBranch", prevBranch);
 
                     const nextBranch = branchList[(prevIndex + 1) % branchList.length]?._id || null;
@@ -256,7 +250,7 @@ export default function CalendarViewBookings(){
                 <ChevronLeftIcon width="20" />
               </div>
 
-              <div className="text-3xl">{currentBranch}</div>
+              <div className="text-3xl" style={{color: currentBranch?.colorcode}}>{currentBranch?.branchname}</div>
 
               {/* Next Branch */}
               <div role="button" className="border-2 mx-3 px-2 py-1"
@@ -267,17 +261,13 @@ export default function CalendarViewBookings(){
                     : -1;
 
                   const nextBranch = branchList[nextIndex]?._id || null;
-                  const nextBranchName = branchList[nextIndex]?.branchname || null;
 
                   if (nextBranch) {
                     setSelectedBranch(nextBranch);
-                    setCurrentBranch(nextBranchName)
                     localStorage.setItem("selectedBranch", nextBranch);
 
                     const followingBranch = branchList[(nextIndex + 1) % branchList.length]?._id || null;
-                    const followingBranchName = branchList[(nextIndex + 1) % branchList.length]?.branchname || null;
                     setSelectedBranch2(followingBranch);
-                    setFollowingBranch(followingBranchName)
                   }
                 }}
               >
@@ -285,8 +275,8 @@ export default function CalendarViewBookings(){
               </div>
             </div>
 
-            <div className="w-1/4">
-              <div className="pb-2 text-end">Available in {followingBranch} </div>
+            <div className="w-1/4" style={{color: followingBranch?.colorcode}}>
+              <div className="pb-2 text-end">Available in {followingBranch?.branchname} </div>
               <div className="flex items-center justify-end gap-3">
                 {Object.keys(assets2)?.map((item: any, index: number) => (
                   <div key={index} className="flex items-start"> 
@@ -316,8 +306,8 @@ export default function CalendarViewBookings(){
               views={['month', 'week', 'day', 'agenda']} // Ensure views are included
               defaultView="day"
               style={{ height: '100%' }}
-              min={new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), 10, 0)} // 10 AM
-              max={new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), 19, 0)} // 7 PM
+              min={new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), 9, 0)} // 10 AM
+              max={new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), 21, 0)} // 7 PM
               step={30} // Minutes per time slot (default: 30)
               timeslots={2} // Number of slots per hour (default: 2)
               dayLayoutAlgorithm={"no-overlap"} // Ensures events are rendered in order
@@ -331,8 +321,8 @@ export default function CalendarViewBookings(){
               backgroundEvents={[
                 {
                   title: 'Shift Time',
-                  start: new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), 10, 0), // 10:00 AM
-                  end: new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), 18, 0), // 5:00 PM
+                  start: new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), currentBranch?.openingAt, 0), // 10:00 AM
+                  end: new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), currentBranch?.closingAt, 0), // 5:00 PM
                   allDay: true,
                   resourceId: null,
                 },

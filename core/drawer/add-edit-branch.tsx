@@ -1,7 +1,7 @@
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import React from "react";
 import { imageDb } from "../utilities/firebaseConfig";
-import { Button, Checkbox, CheckboxGroup, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Radio, RadioGroup, Textarea } from "@heroui/react";
+import { Button, Checkbox, CheckboxGroup, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Radio, RadioGroup, Select, SelectItem, Textarea } from "@heroui/react";
 import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { v4 } from "uuid";
@@ -13,8 +13,8 @@ import { toast } from "react-toastify";
 
 const AddEditBranch = (props:any) => {
     const { register, handleSubmit, setValue, setError, formState: { errors }, control, reset } = useForm({
-      defaultValues: {image: null, branchname:null, gender: "unisex", managerId: null, servicesId: [], contactnumber: null, email: null, address: null,
-        landmark: null, country: null, city: null, state: null, postalcode:null, latitude: null, longitude: null, paymentmethods: [], 
+      defaultValues: {image: null, branchname:null, colorcode: null, gender: "unisex", managerId: null, servicesId: [], contactnumber: null, email: null, address: null,
+        landmark: null, country: null, city: null, state: null, postalcode:null, latitude: null, longitude: null, openingAt: null, closingAt: null, paymentmethods: [], 
         description: null, status: false}
     });
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
@@ -33,8 +33,8 @@ const AddEditBranch = (props:any) => {
             getEmployeeList()
         }
         else {
-          reset({image: null, branchname:null, gender: "unisex", managerId: null, servicesId: [], contactnumber: null, email: null, address: null,
-            landmark: null, country: null, city: null, state: null, postalcode:null, latitude: null, longitude: null, paymentmethods: [], 
+          reset({image: null, branchname:null, colorcode: null, gender: "unisex", managerId: null, servicesId: [], contactnumber: null, email: null, address: null,
+            landmark: null, country: null, city: null, state: null, postalcode:null, latitude: null, longitude: null, openingAt: null, closingAt: null, paymentmethods: [], 
             description: null, status: false})
           getServiceList();
           getEmployeeList()
@@ -42,11 +42,11 @@ const AddEditBranch = (props:any) => {
     }, [props.branches])
 
     const onSubmit = async (data:any) => {
+      setLoading(true)
       data.servicesId = (typeof data.servicesId === "string") ? data.servicesId?.split(",") : data.servicesId;
       data.managerId = data.managerId || null
       console.log(data);
-      
-      setLoading(true)
+      if(+data.closingAt <= +data.openingAt) return toast.error("Closing Time should be greater that opening time")
       if(typeof data.image === "string") savebranches(data);
       else {
         if(!data.image?.length) {
@@ -131,14 +131,17 @@ const AddEditBranch = (props:any) => {
                 <DrawerBody> 
 
                   
-                  <div style={{display: "grid", gridTemplateColumns: "3fr 3fr"}}>
+                  <div style={{display: "grid", gridTemplateColumns: "3fr 3fr", gap: 10}}>
                     <div>
-                      <Input {...register("branchname", {required: true})} label="Branch Name" placeholder="Enter Branch Name" type="text" variant="flat" isRequired />
+                      <div style={{display: "grid", gridTemplateColumns: "4fr 2fr", gap: 10}}>
+                        <Input {...register("branchname", {required: true})} label="Branch Name" placeholder="Enter Branch Name" type="text" variant="flat" isRequired />
+                        <Input {...register("colorcode", {required: true})} label="Theme" placeholder="Select Theme" type="color" isRequired />
+                      </div>
                       
                       <RadioGroup {...register("gender", {required: true})} className="my-3 mx-1" label="Gender" orientation="horizontal" defaultValue={props.branches?.gender || gender} isRequired>
-                        <Radio value="unisex" className="border-3 border-gray-400 rounded px-4 mx-0">Unisex</Radio>
-                        <Radio value="female" className="border-3 border-gray-400 rounded px-4 mx-0">Female</Radio>
-                        <Radio value="male" className="border-3 border-gray-400 rounded px-4 mx-0">Male</Radio>
+                        <Radio {...register("gender", {required: true})} value="unisex" className="border-3 border-gray-400 rounded px-4 mx-0">Unisex</Radio>
+                        <Radio {...register("gender", {required: true})} value="female" className="border-3 border-gray-400 rounded px-4 mx-0">Female</Radio>
+                        <Radio {...register("gender", {required: true})} value="male" className="border-3 border-gray-400 rounded px-4 mx-0">Male</Radio>
                       </RadioGroup>
 
                     </div>
@@ -161,16 +164,16 @@ const AddEditBranch = (props:any) => {
                   </div>
 
                   <div style={{display: "grid", gridTemplateColumns: "2fr 4fr", rowGap: 10, gap: 10}}>
-                    <Controller name="managerId" control={control}
+                    {employeeList?.length && <Controller name="managerId" control={control}
                       render={({ field }) => (
                         <AvatarSelect field={field} data={employeeList} label="Manager" keyName="firstname" />
                       )}
-                    />
-                    <Controller name="servicesId" control={control} rules={{required: true}}
+                    />}
+                    {serviceList?.length && <Controller name="servicesId" control={control} rules={{required: true}}
                       render={({ field }) => (
                         <AvatarSelectMultiple field={field} data={serviceList} label="Services" keyName="name" />
                       )}
-                    />
+                    />}
                   </div>
                   
 
@@ -205,6 +208,15 @@ const AddEditBranch = (props:any) => {
                         </CheckboxGroup>
                       )} 
                     />
+                    
+                    <div className="flex items-center gap-2">
+                      <Select {...register(`openingAt`)} label="Opening" isRequired>
+                        {timeList?.map((item:any) => (<SelectItem key={item.key} textValue={item.key}>{item.value}</SelectItem>))}
+                      </Select>
+                      <Select {...register(`closingAt`)} label="Closing" isRequired>
+                        {timeList?.map((item:any) => (<SelectItem key={item.key} textValue={item.key}>{item.value}</SelectItem>))}
+                      </Select>
+                    </div>
                   </div>
 
                   
@@ -232,3 +244,21 @@ const AddEditBranch = (props:any) => {
 
   
 export default AddEditBranch
+
+
+const timeList = [
+  { key: 8, value: 8},
+  { key: 9, value: 9},
+  { key: 10, value: 10},
+  { key: 11, value: 11},
+  { key: 12, value: 12},
+  { key: 13, value: 13},
+  { key: 14, value: 14},
+  { key: 15, value: 15},
+  { key: 16, value: 16},
+  { key: 17, value: 17},
+  { key: 18, value: 18},
+  { key: 19, value: 19},
+  { key: 20, value: 20},
+  { key: 21, value: 21},
+]
