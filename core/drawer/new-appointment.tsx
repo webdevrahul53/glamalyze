@@ -470,6 +470,10 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
     name: `pax.${paxIndex}`,
   });
   
+  React.useEffect(() => {
+    const serviceId = watch(`pax.${0}.${0}.serviceId`)
+    if(!serviceId && serviceList?.length) onServiceSelection("67fcbfc92e5d5efc267985b0", 0)
+  }, [serviceList])
 
   const onServiceSelection = (id: string, serviceIndex: number) => {
     setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, id)
@@ -478,13 +482,16 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
     setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)
     setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, [])
     const service = serviceList?.find((item: any) => item._id === id)
+    const duration = service?.variants[0]?.serviceDuration
     setValue(`pax.${paxIndex}.${serviceIndex}.durationList`, service?.variants || [])
     setValue(`pax.${paxIndex}.${serviceIndex}.assetTypeId`, service?.assetTypeId)
+    onDurationSelection({target:{value: duration}}, serviceIndex, service?.variants)
   }
 
   const onDurationSelection = (item: any, serviceIndex: number, durationList: any) => {
     const index: any = item?.target?.value
     const price:any = durationList?.find((e:any) => +e.serviceDuration === +index)?.defaultPrice
+    setValue(`pax.${paxIndex}.${serviceIndex}.duration`, index)
     setValue(`pax.${paxIndex}.${serviceIndex}.price`, price)
     setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)
     setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, [])
@@ -580,6 +587,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
         const paxEmployeeList = watch(`pax.${paxIndex}.${serviceIndex}.employeeList`)
         const busyEmployees = watch(`pax.${paxIndex}.${serviceIndex}.busyEmployees`)
         const assetList = watch(`pax.${paxIndex}.${serviceIndex}.assetList`)
+        const duration = watch(`pax.${paxIndex}.${serviceIndex}.duration`)
         const assetId = watch(`pax.${paxIndex}.${serviceIndex}.assetId`)
         const selectedAsset = assetList?.find((item:any) => item._id === assetId);
         const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
@@ -611,23 +619,10 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
             
           </Autocomplete>}
           
-          {/* <Controller name={`pax.${paxIndex}.${serviceIndex}.serviceId`} control={control} rules={{required: true}}
-            render={({ field }) => (
-              <AvatarSelect field={field} data={serviceList} label="Services" keyName="name" 
-                onChange={(id:string) => onServiceSelection(id, serviceIndex)} />
-            )}
-          /> */}
-
-
-          {/* <Controller name={`pax.${paxIndex}.${serviceIndex}.employeeId`} control={control} rules={{required: true}}
-            render={({ field }) => (
-              <AvatarSelect field={field} data={paxEmployeeList} label="Staff" keyName="firstname" showStatus={true} disabledKeys={busyEmployees} />
-            )}
-          /> */}
           
           <div className="flex items-center gap-2">
             <div className="w-1/2 border-2 rounded p-1">
-              <select {...register(`pax.${paxIndex}.${serviceIndex}.duration`)} className="w-full py-3 outline-none"
+              <select {...register(`pax.${paxIndex}.${serviceIndex}.duration`)} value={duration} className="w-full py-3 outline-none"
                 onChange={(item: any) => onDurationSelection(item, serviceIndex, durationList)}>
                   <option value="">Duration</option>
                 {durationList?.map((item:any, index: number) => <option key={index} value={item.serviceDuration}>{item.serviceDuration} min</option>)}
@@ -636,7 +631,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
             
 
             <div className="w-1/2">
-              {assetId ? <ServiceCard name={`${selectedAsset.assetType} - ( ${selectedAsset.assetNumber} )`} image={selectedAsset.assetTypeId?.image} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, null)} /> : 
+              {assetId ? <ServiceCard name={`${selectedAsset?.assetType} - ( ${selectedAsset?.assetNumber} )`} image={selectedAsset?.assetTypeId?.image} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, null)} /> : 
                 <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.assetId`, {required: true})} 
                 defaultItems={assetList || []} label="Place" 
                 labelPlacement="inside" placeholder="Select place" variant="bordered" 

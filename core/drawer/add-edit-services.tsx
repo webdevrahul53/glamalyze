@@ -10,7 +10,7 @@ import { ASSET_TYPES_API_URL, CATEGORIES_API_URL, SERVICES_API_URL, SUBCATEGORIE
 import { toast } from "react-toastify";
 
 const AddEditServices = (props:any) => {
-    const { register, handleSubmit, control, reset } = useForm({
+    const { register, handleSubmit, setValue, control, reset } = useForm({
       defaultValues: { image: null, categoryId: null, name: null, assetTypeId: null, variants: [{serviceDuration: null, defaultPrice: null}], description:null, status: false }
     });
     const { fields, append, remove } = useFieldArray({ control, name: "variants" });
@@ -126,14 +126,21 @@ const AddEditServices = (props:any) => {
                 <DrawerHeader className="flex flex-col gap-1"> {props.services ? "Update":"New"} Service</DrawerHeader>
                 <DrawerBody> 
   
-                    {imagePreview ? (
-                      <img src={imagePreview} alt="Preview" width="120" height="100" />
-                    ) : (
-                        <label htmlFor="image" className="cursor-pointer">
-                          <ImageIcon width="120" height="100" />
-                        </label>
-                      )}
-  
+                    <div className="flex items-end">
+                      {imagePreview ? (
+                        <label htmlFor="image" className="cursor-pointer"><img src={imagePreview} alt="Preview" width="120" height="100" /></label>
+                      ) : (
+                          <label htmlFor="image" className="cursor-pointer">
+                            <ImageIcon width="120" height="100" />
+                          </label>
+                        )}
+                      <div className="flex items-center gap-1 ms-2 mb-3">
+                        <Button type="button" color="primary"><label htmlFor="image" className="cursor-pointer">Upload</label></Button>
+                        <Button type="button" color="danger" variant="bordered" onPress={() => {setValue("image", null); setImagePreview(null)}}>Remove</Button>
+                      </div>
+                      <input id="image" {...register("image")} type="file" onChange={handleImageChange} style={{width:"0", height:"0"}} />
+
+                    </div>
   
                     <Input id="image" {...register("image")} type="file" variant="flat" onChange={handleImageChange} />
                     <Controller name="categoryId" control={control}

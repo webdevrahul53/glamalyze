@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 const ServicesSchema = mongoose.Schema({
     _id:mongoose.Schema.Types.ObjectId,
-    image:{type:String,required:true},
+    image:{type:String},
     name:{type:String,required:true},
     assetTypeId:{type:mongoose.Schema.Types.ObjectId,required:true, ref: "AssetTypes"},
     categoryId:{type:mongoose.Schema.Types.ObjectId,required:true, ref: "Categories"},

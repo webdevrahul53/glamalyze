@@ -9,7 +9,7 @@ import { CATEGORIES_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
 
 const AddEditCategory = (props:any) => {
-    const { register, handleSubmit, reset } = useForm();
+    const { register, handleSubmit, setValue, reset } = useForm();
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false)
 
@@ -18,15 +18,13 @@ const AddEditCategory = (props:any) => {
             reset(props.category)
             setImagePreview(props.category.image)
         }
-        else reset({categoryname:"", status: false, image: null})
+        else reset({categoryname:"", status: true, image: null})
     }, [props.category])
 
     const onSubmit = async (data:any) => {
-        let file = data.image[0]
-        if(!file) return;
         setLoading(true)
-
-        if(typeof data.image === "string") saveCategory(data);
+        let file = data?.image?.[0]
+        if(!file || typeof data.image === "string") saveCategory(data)
         else {
             const imageRef = ref(imageDb, `spa-management-system/categories/${v4()}`)
             uploadBytes(imageRef, file).then(() => {
@@ -86,16 +84,23 @@ const AddEditCategory = (props:any) => {
                 <DrawerHeader className="flex flex-col gap-1"> {props.category ? "Update":"New"} Category</DrawerHeader>
                 <DrawerBody> 
   
-                    {imagePreview ? (
-                        <img src={imagePreview} alt="Preview" width="120" height="100" />
+                    <div className="flex items-end">
+                      {imagePreview ? (
+                        <label htmlFor="image" className="cursor-pointer"><img src={imagePreview} alt="Preview" width="120" height="100" /></label>
                       ) : (
-                        <label htmlFor="image" className="cursor-pointer">
-                          <ImageIcon width="120" height="100" />
-                        </label>
-                      )}
+                          <label htmlFor="image" className="cursor-pointer">
+                            <ImageIcon width="120" height="100" />
+                          </label>
+                        )}
+                      <div className="flex items-center gap-1 ms-2 mb-3">
+                        <Button type="button" color="primary"><label htmlFor="image" className="cursor-pointer">Upload</label></Button>
+                        <Button type="button" color="danger" variant="bordered" onPress={() => {setValue("image", null); setImagePreview(null)}}>Remove</Button>
+                      </div>
+                      <input id="image" {...register("image")} type="file" onChange={handleImageChange} style={{width:"0", height:"0"}} />
+
+                    </div>
   
-  
-                    <Input id="image" {...register("image", {required: props.category ? false : true})} type="file" variant="flat" onChange={handleImageChange} isRequired />
+                    <Input id="image" {...register("image")} type="file" variant="flat" onChange={handleImageChange} />
                     <Input {...register("categoryname", {required: true})} label="Category" placeholder="Enter Category Name" type="text" variant="flat" isRequired />
                     <Checkbox {...register("status")} color="primary"> Active </Checkbox>
   
