@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from "react";
-import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Progress, Textarea, useDisclosure } from "@heroui/react";
-import { ChairIcon, CheckIcon, CloseIcon, DeleteIcon, DoorOpenIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
+import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Progress, Tab, Tabs, Textarea, useDisclosure } from "@heroui/react";
+import { ChairIcon, CheckIcon, CloseIcon, DashboardIcon, DeleteIcon, DoorOpenIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
@@ -26,8 +26,9 @@ const NewAppointment = (props:any) => {
         startTime: null, 
         branchId: null, 
         customerId: null, 
-        pax: [ [{serviceId: null, durationList: [], duration: null, price: null, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: null}] ],
-        note: null
+        pax: [ [] ],
+        note: null,
+        paymentMethod: "Cash"
       }
     });
     const { fields: paxFields, append: addPax, remove: removePax } = useFieldArray({
@@ -53,6 +54,7 @@ const NewAppointment = (props:any) => {
     const branchId = useWatch({ control, name: "branchId" });
     const appointmentDate = useWatch({ control, name: "appointmentDate" });
     const startTime = useWatch({ control, name: "startTime" });
+    const paymentMethod = useWatch({ control, name: "paymentMethod" });
     const pax = useWatch({ control, name: "pax" });
     
 
@@ -97,7 +99,7 @@ const NewAppointment = (props:any) => {
     },[pax])
     
     const resetPax = () => {
-      setValue("pax", [ [{serviceId: null, durationList: [], duration: null, price: null, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: null}] ])
+      setValue("pax", [ [] ])
     }
   
 
@@ -116,10 +118,12 @@ const NewAppointment = (props:any) => {
           }, {})
         );
 
-        const {appointmentDate, startTime, branchId, customerId, pax, note} = parsed
+        const {appointmentDate, startTime, branchId, customerId, pax, note, paymentMethod} = parsed
+        const defaultServiceIndex = pax.flat().findIndex((item:any) => item.serviceId === "67fcbfc92e5d5efc267985b0")
+        const paxData = defaultServiceIndex === -1 ? pax : [[]]
         const formData = {
           appointmentDate: parseDate(new Date(appointmentDate).toISOString().split("T")[0]), 
-          startTime, branchId, customerId, pax, note
+          startTime, branchId, customerId, pax: paxData, note, paymentMethod
         }
         reset(formData)
         getBranchById(branchId)
@@ -182,7 +186,7 @@ const NewAppointment = (props:any) => {
 
     const onPaxChange = (value: number) => {
       const prevPax = watch("pax") || []; // Get the current pax array
-      let updatedPax = [...prevPax]; // Clone the array
+      let updatedPax: any = [...prevPax]; // Clone the array
     
       if (updatedPax.length > value) {
         // Remove extra pax if new value is less
@@ -246,6 +250,9 @@ const NewAppointment = (props:any) => {
       data.startTime = convertTo24HourFormat(data.startTime);
       data.taskStatus = selectedAppointment?.taskStatus === "Pending" ? "CheckedIn": selectedAppointment?.taskStatus === "CheckedIn" ? "CheckedOut" : selectedAppointment?.taskStatus === "CheckedOut" ? "Completed" : "Pending";
       data.status = true;
+      if(!data.pax.flat().length) data.pax = [
+        [{serviceId: "67fcbfc92e5d5efc267985b0", startTime: data?.startTime, durationList: [], duration: "60", price: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: null}]
+      ]
       // console.log(data);
       // return;
         
@@ -434,6 +441,13 @@ const NewAppointment = (props:any) => {
 
                 </DrawerBody>
                 <DrawerFooter style={{justifyContent: "start", flexDirection: "column"}}>
+                  <section className="flex items-center gap-0">
+                    <small role="button" className={`w-1/4 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2 ${paymentMethod === "Cash" && "bg-gray-500 text-white"}`} onClick={() => setValue("paymentMethod", "Cash")}>CASH</small>
+                    <small role="button" className={`w-1/4 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2 ${paymentMethod === "Card" && "bg-gray-500 text-white"}`} onClick={() => setValue("paymentMethod", "Card")}>CARD</small>
+                    <small role="button" className={`w-1/4 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2 ${paymentMethod === "Transfer" && "bg-gray-500 text-white"}`} onClick={() => setValue("paymentMethod", "Transfer")}>TRANSFER</small>
+                    <small role="button" className={`w-1/4 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2`}>VOUCHER</small>
+                  </section>
+
                   <Textarea {...register("note")} label="Note" placeholder="Enter Note" />
                   
                   <div className="flex items-center justify-between">
@@ -469,11 +483,6 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
     control,
     name: `pax.${paxIndex}`,
   });
-  
-  React.useEffect(() => {
-    const serviceId = watch(`pax.${0}.${0}.serviceId`)
-    if(!serviceId && serviceList?.length) onServiceSelection("67fcbfc92e5d5efc267985b0", 0)
-  }, [serviceList])
 
   const onServiceSelection = (id: string, serviceIndex: number) => {
     setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, id)
@@ -662,7 +671,7 @@ const ServiceList = ({ control, paxIndex, register, errors, watch, setValue, sta
 
 
           {employeeId ? <ServiceCard {...paxEmployeeList?.find((item:any) => item._id === employeeId)} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)} /> : 
-            <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.employeeId`, {required: true})} 
+            <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.employeeId`, {required: false, default: null})} 
             defaultItems={paxEmployeeList || []} label="Staffs" 
             labelPlacement="inside" placeholder="Select staff" variant="bordered" 
             disabledKeys={busyEmployees?.map((item:any) => item.employeeId)}

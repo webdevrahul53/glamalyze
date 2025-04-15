@@ -17,6 +17,7 @@ const AppointmentsSchema = new mongoose.Schema({
     totalDuration: { type: Number, required: true },
     totalAmount: { type: Number, required: true },
     paymentStatus: { type: String, default: "Pending" },
+    paymentMethod: { type: String, default: "Cash" },
     taskStatus: { type: String, default: "Pending" },
     note: { type: String },
     status: { type: Boolean, required: true },

@@ -56,7 +56,7 @@ export default async function handler(req, res) {
           }
         },
         { $project: { _id: 1, appointmentId: 1, bookingId: 1, start: 1, customer: 1, employee: 1, asset: 1, 
-          serviceName: "$service.name", taskStatus: "$appointment.taskStatus", paymentStatus: "$appointment.paymentStatus", 
+          serviceName: "$service.name", taskStatus: "$appointment.taskStatus", paymentStatus: "$appointment.paymentStatus", paymentMethod: "$appointment.paymentMethod",
           duration: 1, price: 1, status: 1, createdAt: 1, updatedAt: 1 } },
           
         { $sort: { createdAt: -1 } },
@@ -98,6 +98,7 @@ export default async function handler(req, res) {
             totalDuration: appointmentData.pax.flat().reduce((acc, pax) => acc + Number(pax.duration), 0),
             totalAmount: appointmentData.totalAmount,
             paymentStatus: appointmentData.paymentStatus,
+            paymentMethod: appointmentData.paymentMethod,
             taskStatus: appointmentData.taskStatus,
             note: appointmentData.note,
             status: appointmentData.status

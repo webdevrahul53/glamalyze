@@ -7,25 +7,33 @@ export default async function handler(req, res) {
   if (req.method === "GET") {
     
     try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
 
-      const dataPromise = Appointments.aggregate([
-        { $lookup: { from: "appointments", localField: "appointmentId", foreignField: "_id", as: "appointment", },  },
-        { $lookup: { from: "customers", localField: "appointment.customerId", foreignField: "_id", as: "customer", },  },
-        { $lookup: { from: "employees", localField: "employeeId", foreignField: "_id", as: "employee" } },
-        { $lookup: { from: "services", localField: "serviceId", foreignField: "_id", as: "service" } },
-        { $lookup: { from: "assets", localField: "assetId", foreignField: "_id", as: "asset" } },
-        { $unwind: { path: "$appointment", preserveNullAndEmptyArrays: true }, },
-        { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true }, },
-        { $unwind: { path: "$employee", preserveNullAndEmptyArrays: true }, },
-        { $unwind: { path: "$service", preserveNullAndEmptyArrays: true }, },
-        { $unwind: { path: "$asset", preserveNullAndEmptyArrays: true }, },
-        { $project: { _id: 1, start: 1, customer: 1, employee: 1, asset: 1, 
-          serviceName: "$service.name", taskStatus: "$appointment.taskStatus", paymentStatus: "$appointment.paymentStatus", 
+      // Fetch total count WITHOUT lookup for performance
+      const totalCountPromise = Appointments.countDocuments();
+
+      const dataPromise = await Appointments.aggregate([
+        { $project: { _id: 1, appointmentId: 1, bookingId: 1, start: "null", customer: "null", employee: "null", asset: "null", 
+          serviceName: "null", taskStatus: "null", paymentStatus: "null", paymentMethod: "null",
           duration: 1, price: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+
+        { $sort: { createdAt: -1 } },
+        { $skip: skip },
+        { $limit: limit },
       ])
       
 
-      res.status(200).json(dataPromise) 
+      // Execute both queries in parallel
+      const [totalCount, data] = await Promise.all([totalCountPromise, dataPromise]);
+
+      res.status(200).json({
+        data,
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
+        totalRecords: totalCount
+      })
     }catch(err) {
       console.log(err)
       res.status(500).json(err) 

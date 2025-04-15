@@ -69,10 +69,10 @@ export default async function handler(req, res) {
       ]);
 
       // Step 3: Extract IDs of busy assets
-      const busyAssetIds = new Set(busyAssets.map(asset => asset._id.toString()));
+      const busyAssetIds = new Set(busyAssets.map(asset => asset?._id?.toString()));
 
       // Step 4: Filter available assets (assets NOT in busyAssetIds)
-      const availableAssets = allAssets.filter(asset => !busyAssetIds.has(asset._id.toString()));
+      const availableAssets = allAssets.filter(asset => !busyAssetIds.has(asset?._id?.toString()));
 
       res.status(200).json({
         status: 1,

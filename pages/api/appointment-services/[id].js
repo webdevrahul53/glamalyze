@@ -57,6 +57,7 @@ export default async function handler(req, res) {
           totalDuration: appointmentData.pax.flat().reduce((acc, pax) => acc + Number(pax.duration), 0),
           totalAmount: appointmentData.totalAmount,
           paymentStatus: appointmentData.paymentStatus,
+          paymentMethod: appointmentData.paymentMethod,
           taskStatus: appointmentData.taskStatus,
           note: appointmentData.note,
           status: appointmentData.status
