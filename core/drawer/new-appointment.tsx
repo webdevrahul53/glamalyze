@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from "react";
-import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Progress, Tab, Tabs, Textarea, useDisclosure } from "@heroui/react";
-import { ChairIcon, CheckIcon, CloseIcon, DashboardIcon, DeleteIcon, DoorOpenIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
+import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardBody, CardHeader, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Progress, Textarea, useDisclosure } from "@heroui/react";
+import { ChairIcon, CheckIcon, CloseIcon, DeleteIcon, DoorOpenIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
@@ -441,12 +441,12 @@ const NewAppointment = (props:any) => {
 
                 </DrawerBody>
                 <DrawerFooter style={{justifyContent: "start", flexDirection: "column"}}>
-                  <section className="flex items-center gap-0">
+                  {selectedAppointment?.taskStatus === "CheckedOut" && <section className="flex items-center gap-0">
                     <small role="button" className={`w-1/4 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2 ${paymentMethod === "Cash" && "bg-gray-500 text-white"}`} onClick={() => setValue("paymentMethod", "Cash")}>CASH</small>
                     <small role="button" className={`w-1/4 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2 ${paymentMethod === "Card" && "bg-gray-500 text-white"}`} onClick={() => setValue("paymentMethod", "Card")}>CARD</small>
                     <small role="button" className={`w-1/4 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2 ${paymentMethod === "Transfer" && "bg-gray-500 text-white"}`} onClick={() => setValue("paymentMethod", "Transfer")}>TRANSFER</small>
                     <small role="button" className={`w-1/4 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2`}>VOUCHER</small>
-                  </section>
+                  </section>}
 
                   <Textarea {...register("note")} label="Note" placeholder="Enter Note" />
                   
