@@ -55,7 +55,7 @@ export default function CalendarViewBookings(){
     setAssets([])
     fetchBranchData(selectedBranch, setAllEmployeeList, setCurrentBranch);
     fetchAvailableAssets(selectedBranch, setAssets);
-  }, [selectedBranch]);
+  }, [selectedBranch, pageRefresh]);
 
   React.useEffect(() => {
     if (!selectedBranch2) return;

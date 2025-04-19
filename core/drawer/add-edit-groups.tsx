@@ -1,9 +1,10 @@
 import React from "react";
-import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardHeader, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Select, SelectItem } from "@heroui/react";
-import { DeleteIcon, SaveIcon } from "../utilities/svgIcons";
+import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardHeader, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input } from "@heroui/react";
+import { SaveIcon } from "../utilities/svgIcons";
 import { useForm } from "react-hook-form";
 import { BRANCH_API_URL, EMPLOYEES_API_URL, GROUP_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
+import ServiceCard from "../common/servicd-card";
 
 const AddEditGroup = (props:any) => {
     const { register, handleSubmit, reset } = useForm({
@@ -133,27 +134,5 @@ const AddEditGroup = (props:any) => {
     )
   }
 
-
-
-  
-const ServiceCard = (props:any) => {
-
-  return (
-    <Card className="w-full flex-shrink-0 min-w-[250px]">
-      <CardHeader className="justify-between">
-        <div className="flex gap-3">
-          <Avatar isBordered radius="full" size="sm" src={props.image} />
-          <div className="flex flex-col gap-1 items-start justify-center">
-            <h4 className="text-small font-semibold leading-none text-default-600">{props.firstname} {props.lastname} </h4>
-            <h5 className="text-small tracking-tight text-default-400"> <strong> {props.email}</strong> </h5>
-          </div>
-        </div>
-        <div className="cursor-pointer" onClick={props.onDelete}>
-            <DeleteIcon  width="15" color="darkred" />
-        </div> 
-      </CardHeader>
-    </Card>
-  );
-}
 
 export default AddEditGroup
