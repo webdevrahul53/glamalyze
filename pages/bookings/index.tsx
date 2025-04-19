@@ -72,7 +72,7 @@ export default function Bookings(){
 export const columns = [
   {name: "DATE", uid: "start"},
   {name: "CLIENT", uid: "customer:firstname"},
-  {name: "STAFF", uid: "employee:firstname"},
+  {name: "STAFF", uid: "employee"},
   {name: "AMOUNT", uid: "price"},
   {name: "DURATION", uid: "duration"},
   {name: "SERVICES", uid: "serviceName"},

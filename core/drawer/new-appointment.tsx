@@ -201,7 +201,7 @@ const NewAppointment = (props:any) => {
             price: null, 
             duration: null, durationList: [], 
             assetId: null, assetTypeId: null, assetList: [],
-            employeeId: null, employeeList: [], busyEmployees: [],
+            employeeId: [], employeeList: [], busyEmployees: [],
           }]);
         }
       }
@@ -229,7 +229,7 @@ const NewAppointment = (props:any) => {
       data.taskStatus = selectedAppointment?.taskStatus === "Pending" ? "CheckedIn": selectedAppointment?.taskStatus === "CheckedIn" ? "CheckedOut" : selectedAppointment?.taskStatus === "CheckedOut" ? "Completed" : "Pending";
       data.status = true;
       if(!data.pax.flat().length) data.pax = [
-        [{serviceId: "67fcbfc92e5d5efc267985b0", startTime: data?.startTime, durationList: [], duration: "60", price: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: null}]
+        [{serviceId: "67fcbfc92e5d5efc267985b0", startTime: data?.startTime, durationList: [], duration: "60", price: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}]
       ]
       // console.log(data);
       // return;

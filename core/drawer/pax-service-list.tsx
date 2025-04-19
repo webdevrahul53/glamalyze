@@ -1,8 +1,9 @@
 import { useFieldArray } from "react-hook-form";
 import { APPOINTMENT_SERVICES_API_URL, ASSETS_API_URL } from "../utilities/api-url";
 import ServiceCard from "../common/servicd-card";
-import { Autocomplete, AutocompleteItem, Avatar } from "@heroui/react";
+import { Autocomplete, AutocompleteItem, Avatar, Card, CardHeader } from "@heroui/react";
 import { toast } from "react-toastify";
+import { CloseIcon } from "../utilities/svgIcons";
 
   
 // Separate component to handle nested "serviceIds" array
@@ -16,7 +17,7 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
       setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, id)
       setValue(`pax.${paxIndex}.${serviceIndex}.duration`, null)
       setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, null)
-      setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)
+      setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, [])
       setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, [])
       const service = serviceList?.find((item: any) => item._id === id)
       const duration = service?.variants[0]?.serviceDuration
@@ -30,7 +31,7 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
       const price:any = durationList?.find((e:any) => +e.serviceDuration === +index)?.defaultPrice
       setValue(`pax.${paxIndex}.${serviceIndex}.duration`, index)
       setValue(`pax.${paxIndex}.${serviceIndex}.price`, price)
-      setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)
+      setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, [])
       setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, [])
       setStartTimeForService(serviceIndex, +index);
     }
@@ -65,13 +66,14 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
             selectedEmployeeIds.push(...pax[i].map((e:any) => ({employeeId: e.employeeId, nextAvailableTime: ""})))
           }
         }
+        selectedEmployeeIds = unwindAndDistinct(selectedEmployeeIds);
         
         const filteredEmployee = employeeList?.filter((item: any) => item.servicesId.includes(serviceId))
         const disabledEmployees = [...parsed?.busyEmployeesWithSlots || [], ...selectedEmployeeIds];
         const disabledIds = disabledEmployees?.map((emp: any) => emp?.employeeId) || [];
         const availableEmployees = filteredEmployee?.filter((item: any) => !disabledIds.includes(item._id));
   
-        setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, duration ? availableEmployees?.[0]?._id : null)
+        setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, duration && availableEmployees.length ? [availableEmployees?.[0]?._id] : [])
         setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, duration ? filteredEmployee : [])
         setValue(`pax.${paxIndex}.${serviceIndex}.busyEmployees`, disabledEmployees)
           
@@ -107,6 +109,28 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
       }catch(err:any) { console.log(err) }
     }
   
+    const unwindAndDistinct = (input:any) => {
+      
+      const unwound = input.flatMap((item:any) =>
+        item.employeeId.map((id: string) => ({
+          employeeId: id,
+          nextAvailableTime: item.nextAvailableTime,
+        }))
+      );
+
+      const distinctMap = new Map();
+
+      unwound.forEach(({ employeeId, nextAvailableTime }: any) => {
+        const existing = distinctMap.get(employeeId);
+        if (!existing || existing.nextAvailableTime > nextAvailableTime) {
+          distinctMap.set(employeeId, { employeeId, nextAvailableTime });
+        }
+      });
+
+      return Array.from(distinctMap.values());
+    }
+
+
     const onServiceRemoved = (serviceIndex: number) => {
       const nextService = watch(`pax.${paxIndex}.${serviceIndex+1}`)
       nextService && setValue(`pax.${paxIndex}.${serviceIndex+1}.serviceId`, null)
@@ -128,11 +152,9 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
           const assetId = watch(`pax.${paxIndex}.${serviceIndex}.assetId`)
           const selectedAsset = assetList?.find((item:any) => item._id === assetId);
           const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
-          const employeeId = watch(`pax.${paxIndex}.${serviceIndex}.employeeId`)
+          const employeeId: string[] = watch(`pax.${paxIndex}.${serviceIndex}.employeeId`)
   
           return <div key={serviceField.id} className="flex flex-col gap-2">
-            {/* {assetId + "===" + price + "===" + employeeId} */}
-            
             {errors.pax?.[paxIndex]?.[serviceIndex] && (
               <p className="text-danger text-sm ms-2"> Required fields are mandatory </p>
             )}
@@ -198,12 +220,20 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
             </div>
   
   
-            {employeeId ? <ServiceCard {...paxEmployeeList?.find((item:any) => item._id === employeeId)} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, null)} /> : 
-              <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.employeeId`, {required: false, default: null})} 
+            <Autocomplete
               defaultItems={paxEmployeeList || []} label="Staffs" 
               labelPlacement="inside" placeholder="Select staff" variant="bordered" 
               disabledKeys={busyEmployees?.map((item:any) => item.employeeId)}
-              onSelectionChange={(id:string) => setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, id)}
+              onSelectionChange={(id:any) => {
+                if(!id) return;
+                let arr = employeeId || [];
+                if (arr.includes(id)) {
+                  arr = arr?.filter((item: string) => item !== id); // remove
+                } else {
+                  arr = [...arr, id]; // add
+                }
+                setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, arr);
+              }}
               >
               {(user:any) => {
                 
@@ -222,7 +252,17 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
                 </AutocompleteItem>
               }}
               
-            </Autocomplete>}
+            </Autocomplete>
+  
+            <div className="flex flex-wrap items-center gap-2">
+              {(Array.isArray(employeeId) ? employeeId : []).map((empId: string) => {
+                return <div><CustomChips {...paxEmployeeList?.find((item:any) => item._id === empId)} onDelete={() => {
+                  let arr = employeeId || [];
+                  arr = arr?.filter((item: string) => item !== empId); // remove
+                  setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, arr)
+                }} /></div>
+              })} 
+            </div>
   
             
             <div className="flex items-center justify-between gap-2 px-2">
@@ -240,7 +280,7 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
         })}
   
         <div className="text-center mt-2">
-          <button type="button" onClick={() => addService({ serviceId: null, duration: null, employeeId: null })}>
+          <button type="button" onClick={() => addService({ serviceId: null, duration: null, employeeId: [] })}>
             ➕ Add Service
           </button>
         </div>
@@ -251,3 +291,25 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
 
 
 export default PaxServiceList;
+
+
+
+const CustomChips = (props:any) => {
+  const name = props?.name ? props?.name : props?.firstname + " " + props?.lastname
+  return (
+    <Card className="w-full flex-shrink-0 shadow-sm border-2">
+      <CardHeader className="justify-between gap-2 p-2">
+        <div className="flex gap-3">
+          <Avatar isBordered radius="full" size="sm" src={props.image} />
+          <div className="flex flex-col gap-1 items-start justify-center">
+            <h4 className="text-small font-semibold leading-none text-default-600">{name}</h4>
+            {/* <h5 className="text-small tracking-tight text-default-400"> <strong> {props.email || props.createdAt}</strong> </h5> */}
+          </div>
+        </div>
+        <div className="cursor-pointer" onClick={props.onDelete}>
+          <CloseIcon width="20" height="20" />  
+        </div> 
+      </CardHeader>
+    </Card>
+  );
+}

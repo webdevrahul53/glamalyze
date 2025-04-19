@@ -61,21 +61,20 @@ export default async function handler(req, res) {
             }
           }
         ]);
-          
-    
+        
         // Format the output
-        const busyEmployeesWithSlots = busyEmployees.map(emp => ({
+        const busyEmployeesWithSlots = unwindAndDistinct(busyEmployees.map(emp => ({
           employeeId: emp._id,
           nextAvailableTime: formatTime(emp.lastBookingEndTime)
-        }));
-        
+        })));
+      
         res.status(200).json({
             status: 1,
             busyEmployeesWithSlots
         })
       } catch (error) {
         console.error("Error fetching busy employees:", error);
-        res.status(500).json(err) 
+        res.status(500).json(error) 
       }
         
   }
@@ -97,5 +96,27 @@ const getNextTimeSlot = (startTime, duration) => {
   const formatTime = (isoDate) => {
     const date = new Date(isoDate);
     return date.toISOString().split("T")[1].slice(0, 5);
-  };
+};
   
+
+const unwindAndDistinct = (input) => {
+  
+  const unwound = input.flatMap((item) =>
+    item.employeeId.map((id) => ({
+      employeeId: id,
+      nextAvailableTime: item.nextAvailableTime,
+    }))
+  );
+
+  const distinctMap = new Map();
+
+  unwound.forEach(({ employeeId, nextAvailableTime }) => {
+    const existing = distinctMap.get(employeeId);
+    if (!existing || existing.nextAvailableTime > nextAvailableTime) {
+      distinctMap.set(employeeId, { employeeId, nextAvailableTime });
+    }
+  });
+
+  return Array.from(distinctMap.values());
+}
+

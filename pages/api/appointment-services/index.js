@@ -26,7 +26,7 @@ export default async function handler(req, res) {
         { $lookup: { from: "assets", localField: "assetId", foreignField: "_id", as: "asset" } },
         { $unwind: { path: "$appointment", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true }, },
-        { $unwind: { path: "$employee", preserveNullAndEmptyArrays: true }, },
+        // { $unwind: { path: "$employee", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$service", preserveNullAndEmptyArrays: true }, },
         { $unwind: { path: "$asset", preserveNullAndEmptyArrays: true }, },
         {

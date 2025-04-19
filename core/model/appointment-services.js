@@ -12,16 +12,16 @@ const AppointmentServicesSchema = new mongoose.Schema({
     appointmentDate: { type: Date, required: true },
     startTime: { type: String, required: true },
     serviceId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "Services" },
-    employeeId: { type: mongoose.Schema.Types.ObjectId, ref: "Employees" },
+    assetId: { type: mongoose.Schema.Types.ObjectId, ref: "Assets" },
+    employeeId: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employees" }],
+    duration: { type: Number, required: true },
+    price: { type: Number },
     status: { type: Boolean, required: true },
     
     // useless but need to store for edit form
-    assetId: { type: mongoose.Schema.Types.ObjectId, ref: "Assets" },
-    duration: { type: Number, required: true },
     durationList: {type: []},
     assetTypeId: { type: mongoose.Schema.Types.ObjectId, ref: "AssetTypes" },
     assetList: {type: []},
-    price: { type: Number },
     busyEmployees: {type: []},
     employeeList: {type: []}, 
 
