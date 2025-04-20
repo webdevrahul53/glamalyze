@@ -4,6 +4,7 @@ import ServiceCard from "../common/servicd-card";
 import { Autocomplete, AutocompleteItem, Avatar, Card, CardHeader } from "@heroui/react";
 import { toast } from "react-toastify";
 import { CloseIcon } from "../utilities/svgIcons";
+import React from "react";
 
   
 // Separate component to handle nested "serviceIds" array
@@ -13,6 +14,16 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
       name: `pax.${paxIndex}`,
     });
   
+    const hasInitialized = React.useRef(false);
+
+    React.useEffect(() => {
+      if (!hasInitialized.current && serviceFields.length === 0) {
+        addService({ serviceId: null, duration: null, employeeId: [] });
+        hasInitialized.current = true;
+      }
+    }, []);
+
+
     const onServiceSelection = (id: string, serviceIndex: number) => {
       setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, id)
       setValue(`pax.${paxIndex}.${serviceIndex}.duration`, null)
@@ -23,7 +34,7 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
       const duration = service?.variants[0]?.serviceDuration
       setValue(`pax.${paxIndex}.${serviceIndex}.durationList`, service?.variants || [])
       setValue(`pax.${paxIndex}.${serviceIndex}.assetTypeId`, service?.assetTypeId)
-      onDurationSelection({target:{value: duration}}, serviceIndex, service?.variants)
+      // onDurationSelection({target:{value: duration}}, serviceIndex, service?.variants)
     }
   
     const onDurationSelection = (item: any, serviceIndex: number, durationList: any) => {
@@ -70,10 +81,10 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
         
         const filteredEmployee = employeeList?.filter((item: any) => item.servicesId.includes(serviceId))
         const disabledEmployees = [...parsed?.busyEmployeesWithSlots || [], ...selectedEmployeeIds];
-        const disabledIds = disabledEmployees?.map((emp: any) => emp?.employeeId) || [];
-        const availableEmployees = filteredEmployee?.filter((item: any) => !disabledIds.includes(item._id));
+        // const disabledIds = disabledEmployees?.map((emp: any) => emp?.employeeId) || [];
+        // const availableEmployees = filteredEmployee?.filter((item: any) => !disabledIds.includes(item._id));
   
-        setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, duration && availableEmployees.length ? [availableEmployees?.[0]?._id] : [])
+        // setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, duration && availableEmployees.length ? [availableEmployees?.[0]?._id] : [])
         setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, duration ? filteredEmployee : [])
         setValue(`pax.${paxIndex}.${serviceIndex}.busyEmployees`, disabledEmployees)
           
@@ -96,12 +107,10 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
           }
         }
         let seats = parsed?.availableAssets?.filter((item:any) => !selectedAssetIds.includes(item._id))
-        console.log(selectedAssetIds, seats);
         setValue(`pax.${paxIndex}.${serviceIndex}.assetList`, seats)
         
         if(seats?.length){
-          setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, seats?.[0]?._id)
-          // setValue(`pax.${paxIndex}.${serviceIndex}.assetList`, seats?.[0])
+          // setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, seats?.[0]?._id)
         }else{
           toast.error("Asset not available")
         }
@@ -191,7 +200,7 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
   
               <div className="w-1/2">
                 {assetId ? <ServiceCard name={`${selectedAsset?.assetType} - ( ${selectedAsset?.assetNumber} )`} image={selectedAsset?.assetTypeId?.image} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, null)} /> : 
-                  <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.assetId`, {required: true})} 
+                  <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.assetId`)} 
                   defaultItems={assetList || []} label="Place" 
                   labelPlacement="inside" placeholder="Select place" variant="bordered" 
                   onSelectionChange={(id:string) => setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, id)}

@@ -8,7 +8,8 @@ import { Avatar, AvatarGroup, Progress, Tooltip, useDisclosure } from '@heroui/r
 import NewAppointment from '@/core/drawer/new-appointment';
 import { taskStatusCSS } from '@/core/common/data-grid';
 import Image from 'next/image';
-import { ChevronLeftIcon, ChevronRightIcon, PersonIcon } from '@/core/utilities/svgIcons';
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, PersonIcon } from '@/core/utilities/svgIcons';
+import { useSelector } from 'react-redux';
 
 // Localizer (Using Moment.js)
 const localizer = momentLocalizer(moment);
@@ -16,6 +17,7 @@ const localizer = momentLocalizer(moment);
 
 
 export default function CalendarViewBookings(){
+  const user = useSelector((state:any) => state.user.value)
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const handleOpen = () => { onOpen(); };
   const [events, setEvents] = React.useState<any[]>([]);
@@ -40,7 +42,7 @@ export default function CalendarViewBookings(){
   }, []);
 
   React.useEffect(() => {
-    const branchId = localStorage.getItem("selectedBranch");
+    const branchId = user?.defaultBranch;
     const index = branchList.findIndex((b:any) => b._id === branchId);
     const nextBranch = index !== -1 && branchList.length > 1
       ? branchList[(index + 1) % branchList.length]?._id
@@ -240,7 +242,6 @@ export default function CalendarViewBookings(){
 
                   if (prevBranch) {
                     setSelectedBranch(prevBranch);
-                    localStorage.setItem("selectedBranch", prevBranch);
 
                     const nextBranch = branchList[(prevIndex + 1) % branchList.length]?._id || null;
                     setSelectedBranch2(nextBranch);
@@ -264,7 +265,6 @@ export default function CalendarViewBookings(){
 
                   if (nextBranch) {
                     setSelectedBranch(nextBranch);
-                    localStorage.setItem("selectedBranch", nextBranch);
 
                     const followingBranch = branchList[(nextIndex + 1) % branchList.length]?._id || null;
                     setSelectedBranch2(followingBranch);
@@ -375,14 +375,14 @@ const CustomEvent = (event: any) => {
           {/* <AvatarCard {...event.event.employee} /> */}
         </div>}
     >
-      <div className={`flex ${event.event.duration < 40 ? "flex-row":"flex-col h-full justify-center"} items-center gap-1`}>
+      {event.event.title != "Shift Time" && <div className={`flex ${event.event.duration < 40 ? "flex-row":"flex-col h-full justify-center"} items-center gap-1`}>
         <small>{event.event.duration}m</small>
         <div>
-          {event?.event?.assetType?.image && <Image src={event?.event?.assetType?.image} width={30} height={30} alt="Asset Image" />}
+          {event?.event?.assetType?.image ? <Image src={event?.event?.assetType?.image} width={30} height={30} alt="Asset Image" /> : <CloseIcon width={30} height={30} color={"gray"} />}
         </div>
         
-        <small>{event?.event?.assetNumber}</small>
-      </div>
+        <small>{event?.event?.assetNumber || "N/A"}</small>
+      </div>}
     </Tooltip>
   </section>
 }

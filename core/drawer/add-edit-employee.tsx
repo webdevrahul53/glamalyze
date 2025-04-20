@@ -6,14 +6,16 @@ import { EyeFilledIcon, EyeSlashFilledIcon, ImageIcon, SaveIcon } from "../utili
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelectMultiple from "../common/avatar-select-multiple";
-import { EMPLOYEES_API_URL, SERVICES_API_URL } from "../utilities/api-url";
+import { BRANCH_API_URL, EMPLOYEES_API_URL, SERVICES_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
+import AvatarSelect from "../common/avatar-select";
 
 const AddEditEmployee = (props:any) => {
     const { register, handleSubmit, setValue, control, reset } = useForm({
-      defaultValues: {image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: null, 
+      defaultValues: {image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: null, defaultBranch: null,
         aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, isVisibleInCalendar: null, status: null}
     });
+    const [branchList, setBranchList] = React.useState<any>([]);
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
     const [serviceList, setServiceList] = React.useState([]);
@@ -27,13 +29,13 @@ const AddEditEmployee = (props:any) => {
           console.log(props.employees)
             reset(props.employees)
             setImagePreview(props.employees.image)
-            getServiceList()
         }
         else {
-          reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: null, 
+          reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: null, defaultBranch: null,
             aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, isVisibleInCalendar: null, status: null})
-          getServiceList();
         }
+        getServiceList();
+        getBranchList();
     }, [props.employees])
 
     const onSubmit = async (data:any) => {
@@ -53,6 +55,15 @@ const AddEditEmployee = (props:any) => {
         })
       }
   
+    }
+
+    const getBranchList = async () => {
+      try {
+        const branches = await fetch(BRANCH_API_URL)
+        const parsed = await branches.json();
+        setBranchList(parsed);
+        setValue("defaultBranch", props?.employees?.defaultBranch || parsed[0]._id)
+      }catch(err:any) { toast.error(err.error) }
     }
 
     const getServiceList = async () => {
@@ -163,11 +174,18 @@ const AddEditEmployee = (props:any) => {
                     </div>
                   </div>
 
-                  <Controller name="servicesId" control={control}
-                    render={({ field }) => (
-                      <AvatarSelectMultiple field={field} data={serviceList} label="Services" keyName="name" />
-                    )}
-                  />
+                  <div style={{display: "grid", gridTemplateColumns: "2fr 4fr", rowGap: 10, gap: 10}}>
+                    {branchList?.length ? <Controller name="defaultBranch" control={control}
+                      render={({ field }) => (
+                        <AvatarSelect field={field} data={branchList} label="Default Branch" keyName="branchname" />
+                      )}
+                    /> : <></>}
+                    {serviceList?.length ? <Controller name="servicesId" control={control} rules={{required: true}}
+                      render={({ field }) => (
+                        <AvatarSelectMultiple field={field} data={serviceList} label="Services" keyName="name" />
+                      )}
+                    /> : <></>}
+                  </div>
                   
 
                   <div style={{display: "grid", gridTemplateColumns: "3fr 3fr", rowGap: 10, gap: 10}}>

@@ -64,6 +64,7 @@ export default async function handler(req, res) {
                     email: user.email,
                     name: user.name,
                     image: user.image,
+                    defaultBranch: user?.defaultBranch,
                     role: isEmployee ? "employee" : "user",
                     token,
                 },

@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import moment from "moment";
 import ServiceCard from "../common/servicd-card";
 import PaxServiceList from "./pax-service-list";
+import { useSelector } from "react-redux";
 const AddEditCustomer = lazy(() => import("@/core/drawer/add-edit-customer"));
 
 
@@ -22,6 +23,7 @@ const statusCSS: any = {
 
 
 const NewAppointment = (props:any) => {
+    const user = useSelector((state:any) => state.user.value)
     const { register, handleSubmit, watch, formState: { errors }, control, setValue, reset } = useForm({
       defaultValues: {
         appointmentDate: parseDate(new Date().toISOString().split("T")[0]), 
@@ -63,7 +65,7 @@ const NewAppointment = (props:any) => {
     const currentDate = new Date();
 
     React.useEffect(() => {
-      const branchId = localStorage.getItem("selectedBranch");
+      const branchId = user?.defaultBranch;
       setValue("branchId", branchId || branchList[0]?._id)
     },[branchList])
     
@@ -309,7 +311,6 @@ const NewAppointment = (props:any) => {
                         if(!id) return;
                         resetPax();
                         getBranchById(id)
-                        localStorage.setItem("selectedBranch", id)
                       } } />
                     )}
                     /> : <></>}

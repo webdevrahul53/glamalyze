@@ -5,9 +5,11 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { ASSET_TYPES_API_URL, ASSETS_API_URL, BRANCH_API_URL } from "../utilities/api-url";
 import AvatarSelect from "../common/avatar-select";
+import { useSelector } from "react-redux";
 const AddEditAssetTypes = lazy(() => import("@/core/drawer/add-edit-asset-types"));
 
 const AddEditAsset = (props:any) => {
+    const user = useSelector((state:any) => state.user.value)
     const {isOpen, onOpen, onOpenChange} = useDisclosure();
     const handleAssignOpen = () => { onOpen(); };
 
@@ -21,7 +23,7 @@ const AddEditAsset = (props:any) => {
             reset(props.asset)
         }
         else {
-          const branchId = localStorage.getItem("selectedBranch") || branchList[0]?._id;
+          const branchId = user?.defaultBranch || branchList[0]?._id;
           reset({branchId, assetTypeId: null, assetNumber: null, status: true})
         }
         getBranchList();
@@ -100,10 +102,7 @@ const AddEditAsset = (props:any) => {
 
                     <Controller name="branchId" control={control} rules={{required: true}}
                       render={({ field }) => (
-                        <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname" isRequired={true} onChange={(val: string) => {
-                          if(!val) return;
-                          localStorage.setItem("selectedBranch", val)
-                        }} />
+                        <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname" isRequired={true} />
                       )}
                     />
                     
