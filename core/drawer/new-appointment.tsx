@@ -4,7 +4,7 @@ import { ChairIcon, CheckIcon, DoorOpenIcon, PlusIcon, SaveIcon } from "../utili
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
-import { APPOINTMENT_SERVICES_API_URL, APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, SERVICES_API_URL } from "../utilities/api-url";
+import { APPOINTMENT_SERVICES_API_URL, APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, SERVICES_API_URL, SETTINGS_API_URL, SHIFTS_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
 import moment from "moment";
 import ServiceCard from "../common/servicd-card";
@@ -48,16 +48,19 @@ const NewAppointment = (props:any) => {
     const [branchList, setBranchList] = React.useState<any>([]);
     const [allServiceList, setAllServiceList] = React.useState([]);
     const [employeeList, setEmployeeList] = React.useState([]);
+    const [shiftData, setShiftData] = React.useState([]);
     const [customerList, setCustomerList] = React.useState([]);
     const [serviceList, setServiceList] = React.useState([]);
     const [totalAmount, setTotalAmount] = React.useState<any>(0)
     const [selectedTab, setSelectedTab] = React.useState<any>(0)
+    const [rosterStartDate, setRosterStartDate] = React.useState<any>(parseDate(new Date().toISOString().split("T")[0]));
+    const [rosterEndDate, setRosterEndDate] = React.useState<any>(parseDate(new Date().toISOString().split("T")[0]));
 
     
     const customerId = useWatch({ control, name: "customerId" });
     const branchId = useWatch({ control, name: "branchId" });
     const appointmentDate = useWatch({ control, name: "appointmentDate" });
-    const startTime = useWatch({ control, name: "startTime" });
+    const startTime: any = useWatch({ control, name: "startTime" });
     const paymentMethod = useWatch({ control, name: "paymentMethod" });
     const pax = useWatch({ control, name: "pax" });
     
@@ -71,7 +74,7 @@ const NewAppointment = (props:any) => {
     
     React.useEffect(() => {
       if(!branchId) return;
-      getBranchById(branchId)
+      getShiftByBranchId(branchId)
     },[branchId])
 
     React.useEffect(() => {
@@ -83,7 +86,12 @@ const NewAppointment = (props:any) => {
       getCustomerList();
       getBranchList();
       getServiceList();
+      getSettings();
     }, [props?.bookings])
+
+    React.useEffect(() => {
+      filterEmployeesAndServices()
+    }, [shiftData, startTime, appointmentDate])
 
     // For calendar purpose
     React.useEffect(() => {
@@ -130,7 +138,7 @@ const NewAppointment = (props:any) => {
           startTime, branchId, customerId, pax: paxData, note, paymentMethod
         }
         reset(formData)
-        getBranchById(branchId)
+        getShiftByBranchId(branchId)
         
       }catch(err:any) { toast.error(err.message) }
 
@@ -171,13 +179,12 @@ const NewAppointment = (props:any) => {
         }catch(err:any) { toast.error(err.message) }
     }
     
-    const getBranchById = async (id: string) => {
+    const getShiftByBranchId = async (id: string) => {
       if(!id) return;
       try {
-          const branches = await fetch(`${BRANCH_API_URL}/${id}`)
+          const branches = await fetch(`${SHIFTS_API_URL}?branchId=${id}`)
           const parsed = await branches.json();
-          setServiceList(parsed?.employeeServices)
-          setEmployeeList(parsed?.groupEmployees)
+          setShiftData(parsed)
         }catch(err:any) { toast.error(err.message) }
     }
     const getCustomerList = async () => {
@@ -186,6 +193,29 @@ const NewAppointment = (props:any) => {
           const parsed = await customers.json();
           setCustomerList(parsed);
         }catch(err:any) { toast.error(err.message) }
+    }
+    
+    const getSettings = async () => {
+      try {
+        const settings = await fetch(`${SETTINGS_API_URL}/globalSettings`)
+        const parsed = await settings.json();
+        console.log(parsed);
+        setRosterStartDate(parseDate(new Date(parsed.rosterStartDate).toISOString().split("T")[0]))
+        setRosterEndDate(parseDate(new Date(parsed.rosterEndDate).toISOString().split("T")[0]))
+      }catch(err:any) { toast.error(err.error) }
+    }
+
+
+    const filterEmployeesAndServices = () => {
+      const date = new Date(appointmentDate.toString()).toISOString()
+      if(date < rosterStartDate || date > rosterEndDate) return;
+
+      const time: number = +startTime?.split(":")[0]
+      const arr = shiftData.filter((item:any) => time >= item.openingAt && time < item.closingAt)
+      const employees: any = Array.from(new Map(arr.map((item: any) => item.groupEmployees).flat().map((emp: any) => [emp._id, emp])).values());
+      const services: any = Array.from(new Map(arr.map((item: any) => item.employeeServices).flat().map((emp: any) => [emp._id, emp])).values());
+      setEmployeeList(employees)
+      setServiceList(services)
     }
 
     const onPaxChange = (value: number) => {
@@ -310,7 +340,7 @@ const NewAppointment = (props:any) => {
                       <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname" onChange={(id:string) => {
                         if(!id) return;
                         resetPax();
-                        getBranchById(id)
+                        getShiftByBranchId(id)
                       } } />
                     )}
                     /> : <></>}

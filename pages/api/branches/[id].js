@@ -12,11 +12,8 @@ export default async function handler(req, res) {
       const result = await Branches.aggregate([
         { $match: { _id: new mongoose.Types.ObjectId(req.query["id"]) } },
         { $lookup: { from: "employees", localField: "managerId", foreignField: "_id", as: "manager", },  },
-        { $lookup: { from: "groups", localField: "groups", foreignField: "_id", as: "groups", },  },
-        { $lookup: { from: "employees", localField: "groups.employeesId", foreignField: "_id", as: "groupEmployees" } },
-        { $lookup: { from: "services", localField: "groupEmployees.servicesId", foreignField: "_id", as: "employeeServices" } },
         { $unwind: { path: "$manager", preserveNullAndEmptyArrays: true, }, },
-        { $project: { _id: 1, image: 1, branchname:1, gender: 1, manager: 1, groupEmployees: 1, employeeServices: 1,
+        { $project: { _id: 1, image: 1, branchname:1, gender: 1, manager: 1,
           managerId: 1,servicesId: 1, contactnumber: 1, email: 1, address: 1, landmark: 1, country: 1, city: 1, state: 1, 
           postalcode:1, latitude: 1, longitude: 1, openingAt: 1, closingAt: 1, colorcode: 1, paymentmethods: 1, description: 1, status: 1, createdAt: 1, updatedAt: 1 } },
       ])
@@ -41,26 +38,6 @@ export default async function handler(req, res) {
     }
   }
   
-  if(req.method === "PUT") {
-    let branchId = req.query["id"]
-    let groupId = req.body.groupId
-    // console.log(isManager);
-    try {
-      // await Branches.updateOne({ managerId: employeeId }, { managerId: null });
-      await Branches.updateOne({ groups: groupId }, { $pull: { groups: groupId } });
-      await Branches.updateOne({ _id: branchId }, { $addToSet: { groups: groupId } });
-      // if(isManager) await Branches.updateOne({ _id: branchId }, { managerId: employeeId });
-    
-      res.status(200).json({
-        status: 1,
-        message: "Branch data updated",
-        _id: branchId
-      });
-    } catch (err) {
-      console.log(err);
-      res.status(500).json(err) 
-    }
-  }
 
   if(req.method === "PATCH") {
     var updateOps = {};

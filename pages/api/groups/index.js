@@ -25,10 +25,8 @@ export default async function handler(req, res) {
           { $match: { $or: [ 
             { groupname: { $regex: searchQuery, $options: "i" } }, 
           ]} },
-          { $lookup: { from: "branches", localField: "branchId", foreignField: "_id", as: "branch", },  },
           { $lookup: { from: "employees", localField: "employeesId", foreignField: "_id", as: "employee", },  },
-          { $unwind: { path: "$branch", preserveNullAndEmptyArrays: true }, },
-          { $project: { _id: 1, groupname: 1, branch: 1, employee: 1, branchId: 1, status:1, effectiveFrom: 1, effectiveTo: 1, createdAt: 1, updatedAt: 1 } },
+          { $project: { _id: 1, groupname: 1, branch: 1, employee: 1, branchId: 1, status:1, createdAt: 1, updatedAt: 1 } },
           { $skip: skip },
           { $limit: limit }
         ])

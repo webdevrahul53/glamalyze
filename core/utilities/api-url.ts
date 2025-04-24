@@ -12,5 +12,7 @@ export const GROUP_API_URL = BASE_URL + "/api/groups"
 export const CUSTOMERS_API_URL = BASE_URL + "/api/customers"
 export const ASSETS_API_URL = BASE_URL + "/api/assets"
 export const ASSET_TYPES_API_URL = BASE_URL + "/api/asset-types"
+export const SHIFTS_API_URL = BASE_URL + "/api/shifts"
+export const SETTINGS_API_URL = BASE_URL + "/api/settings"
 
 

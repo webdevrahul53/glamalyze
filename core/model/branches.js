@@ -8,7 +8,6 @@ const BranchesSchema = mongoose.Schema({
     branchname:{type:String,required:true},
     gender:{type:String,required:true},
     managerId:{type:mongoose.Schema.Types.ObjectId, ref: "Employees"},
-    groups:[{type:mongoose.Schema.Types.ObjectId, ref: "Groups"}],
     servicesId:[{type:mongoose.Schema.Types.ObjectId,required:true, ref: "Services"}],
     contactnumber:{type:String,required:true},
     email:{type:String,required:true},
