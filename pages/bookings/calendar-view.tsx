@@ -3,13 +3,15 @@ import React, { Suspense } from 'react'
 import { PageTitle } from '@/core/common/page-title'
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-import { APPOINTMENT_SERVICES_API_URL, ASSETS_API_URL, BRANCH_API_URL } from '@/core/utilities/api-url';
+import { APPOINTMENT_SERVICES_API_URL, ASSETS_API_URL, BRANCH_API_URL, SETTINGS_API_URL, SHIFTS_API_URL } from '@/core/utilities/api-url';
 import { Avatar, AvatarGroup, Progress, Tooltip, useDisclosure } from '@heroui/react';
 import NewAppointment from '@/core/drawer/new-appointment';
 import { taskStatusCSS } from '@/core/common/data-grid';
 import Image from 'next/image';
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, PersonIcon } from '@/core/utilities/svgIcons';
 import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
+
 
 // Localizer (Using Moment.js)
 const localizer = momentLocalizer(moment);
@@ -39,6 +41,7 @@ export default function CalendarViewBookings(){
 
   React.useEffect(() => {
     fetchBranchList();
+    getSettings();
   }, []);
 
   React.useEffect(() => {
@@ -99,14 +102,41 @@ export default function CalendarViewBookings(){
     setBranchDetails: React.Dispatch<React.SetStateAction<any[]>>
   ) => {
     try {
-      const res = await fetch(`${BRANCH_API_URL}/${branchId}`);
+      const res = await fetch(`${SHIFTS_API_URL}?branchId=${branchId}`);
       const data = await res.json();
-      setBranchDetails(data);
-      setEmployeeList(data.groupEmployees || []);
+      setBranchDetails(data[0].branch);
+      filterEmployeesAndServices(data, setEmployeeList)
     } catch (err: any) {
       console.error(err.message);
     }
   };
+
+  const filterEmployeesAndServices = async (shifts:any, setEmployeeList: React.Dispatch<React.SetStateAction<any[]>>) => {
+    
+    const date = moment(calendarDate).format("YYYY-MM-DD");
+    
+    try {
+      const settings = await fetch(`${SETTINGS_API_URL}/globalSettings`)
+      const parsed = await settings.json();
+      
+      const startDate = moment(parsed.rosterStartDate).format("YYYY-MM-DD");
+      const endDate = moment(parsed.rosterEndDate).format("YYYY-MM-DD");
+      if (moment(date).isBefore(startDate) || moment(date).isAfter(endDate)) return;
+      console.log(date, startDate, endDate, shifts);
+
+      const time = convertTo24HourFormat(moment(calendarDate).format("hh:mm A"));
+      const arr = shifts.filter((item:any) => time >= item.openingAt && time < item.closingAt)
+      const employees: any = Array.from(new Map(arr.map((item: any) => item.groupEmployees).flat().map((emp: any) => [emp._id, emp])).values());
+      setEmployeeList(employees || [])
+
+      // setRosterStartDate(parseDate(new Date(parsed.rosterStartDate).toISOString().split("T")[0]))
+      // setRosterEndDate(parseDate(new Date(parsed.rosterEndDate).toISOString().split("T")[0]))
+    }catch(err:any) { toast.error(err.error) }
+  }
+  
+  const getSettings = async () => {
+  }
+
 
   const fetchBusyEmployees = async (
     employeeList: any[],

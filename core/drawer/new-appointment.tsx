@@ -254,13 +254,15 @@ const NewAppointment = (props:any) => {
     };
   
     const onSubmit = async (data:any) => {
+      if(selectedAppointment?.taskStatus === "Completed") return;
       setLoading(true)
       data = {...data, totalAmount}
       data.appointmentDate = data.appointmentDate?.toString();
       data.startTime = convertTo24HourFormat(data.startTime);
       data.taskStatus = selectedAppointment?.taskStatus === "Pending" ? "CheckedIn": selectedAppointment?.taskStatus === "CheckedIn" ? "CheckedOut" : selectedAppointment?.taskStatus === "CheckedOut" ? "Completed" : "Pending";
       data.status = true;
-      if(!data.pax.flat().length) data.pax = [
+      const arr = data.pax.flat().filter((item:any) => item.serviceId)
+      if(!arr.length ) data.pax = [
         [{serviceId: "67fcbfc92e5d5efc267985b0", startTime: data?.startTime, durationList: [], duration: "60", price: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}]
       ]
       // console.log(data);
@@ -338,6 +340,7 @@ const NewAppointment = (props:any) => {
                   {branchList?.length ? <Controller name="branchId" control={control} rules={{required: true}}
                     render={({ field }) => (
                       <AvatarSelect field={field} data={branchList} label="Branch" keyName="branchname" onChange={(id:string) => {
+                        if(selectedAppointment?.taskStatus === "Completed") return;
                         if(!id) return;
                         resetPax();
                         getShiftByBranchId(id)
@@ -369,12 +372,13 @@ const NewAppointment = (props:any) => {
                   </Autocomplete>}
                   {errors.customerId && <div className="text-danger text-sm -mt-2 ms-3">Customer is required</div>}
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2" style={{pointerEvents: selectedAppointment?.taskStatus === "Completed" ? "none":"all"}}>
                     <Controller name="appointmentDate" control={control}
                       render={({ field }) => (
                         <DatePicker
                           {...field} hideTimeZone showMonthAndYearPickers label="Date & Time" variant="bordered"
                           defaultValue={field.value} onChange={(date) => {
+                            if(selectedAppointment?.taskStatus === "Completed") return;
                             field.onChange(date)
                             resetPax();
                           }} // Ensure React Hook Form updates the state
@@ -388,16 +392,6 @@ const NewAppointment = (props:any) => {
                           resetPax()
                         }} 
                       />
-                      {/* <select id="startTime" className="w-100 outline-none pe-3" {...register("startTime", {required: true})} 
-                      onChange={(event:any) => {
-                        setValue("startTime", event.target.value)
-                        resetPax()
-                      }}>
-                        <option value="">Select Time</option>
-                        {timeList.map((value) => (
-                          <option key={value.key} value={value.key}>{value.label}</option>
-                        ))}
-                      </select> */}
                     </label>
                     
                     <div className="w-1/2 text-center p-3 border-2 rounded"> {moment(appointmentDate.toString()).format('dddd')} </div>
@@ -424,6 +418,7 @@ const NewAppointment = (props:any) => {
                   {branchId && startTime && <div className="py-3">
                       {paxFields.map((paxField, paxIndex) => (
                         <div key={paxField.id} style={{
+                          pointerEvents: selectedAppointment?.taskStatus === "Completed" ? "none" : "all",
                           visibility: paxIndex === selectedTab ? "visible" : "hidden",
                           height: paxIndex === selectedTab ? "100%" : "0"
                           }}>

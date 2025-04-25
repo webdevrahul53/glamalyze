@@ -38,14 +38,16 @@ export default async function handler(req, res) {
 
   if(req.method === "PUT") {
     let shiftId = req.query["id"]
+    let branchId = req.body.branchId
     let groupId = req.body.groupId
     let type = req.query.type;
     try {
-      // await Shifts.updateOne({ managerId: employeeId }, { managerId: null });
-      await Shifts.updateOne({ groups: groupId }, { $pull: { groups: groupId } });
-      if(type !== "delete") await Shifts.updateOne({ _id: shiftId }, { $addToSet: { groups: groupId } });
-      // if(isManager) await Shifts.updateOne({ _id: shiftId }, { managerId: employeeId });
-    
+      if(type === "delete") await Shifts.updateOne({ groups: groupId, _id: shiftId }, { $pull: { groups: groupId } });
+      else {
+        await Shifts.updateMany({ groups: groupId, branchId: { $ne: branchId } }, { $pull: { groups: groupId } });
+        await Shifts.updateOne({ _id: shiftId }, { $addToSet: { groups: groupId } });
+      }
+      
       res.status(200).json({
         status: 1,
         message: "Shift data updated",

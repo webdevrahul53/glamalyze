@@ -56,7 +56,7 @@ const columns = [
   {name: "CONTACT NUMBER", uid: "contactnumber"},
   {name: "MANAGER", uid: "manager:firstname"},
   {name: "CITY", uid: "city"},
-  {name: "STAFFS", uid: "groupEmployees"},
+  // {name: "STAFFS", uid: "groupEmployees"},
   {name: "POSTAL CODE", uid: "postalcode"},
   {name: "STATUS", uid: "status"},
   {name: "ACTIONS", uid: "actions"},

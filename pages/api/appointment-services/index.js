@@ -118,6 +118,7 @@ export default async function handler(req, res) {
             const appointmentServiceIds = [];
 
             for (const service of pax) {
+              if(service.serviceId){
                 const appointmentService = new AppointmentServices({
                     _id: new mongoose.Types.ObjectId(),
                     bookingId,
@@ -142,6 +143,7 @@ export default async function handler(req, res) {
 
                 await appointmentService.save({ session });
                 appointmentServiceIds.push(appointmentService._id);
+              }
             }
 
             // 3. Create AppointmentPax Entry

@@ -85,31 +85,33 @@ export default async function handler(req, res) {
         const appointmentServiceIds = [];
 
         for (const service of pax) {
-          const appointmentService = new AppointmentServices({
-            _id: new mongoose.Types.ObjectId(),
-            bookingId: appointment.bookingId,
-            appointmentId: appointment._id,
-            paxId: paxId,
-            appointmentDate: appointment.appointmentDate,
-            startTime: service.startTime,
-            serviceId: service.serviceId,
-            employeeId: service.employeeId,
-            assetId: service.assetId,
-            duration: Number(service.duration),
-            price: service.price,
-            status: true,
-
-            // Additional fields
-            durationList: service.durationList,
-            assetTypeId: service.assetTypeId,
-            assetList: service.assetList,
-            selectedAsset: service.selectedAsset,
-            busyEmployees: service.busyEmployees,
-            employeeList: service.employeeList,
-          });
-
-          await appointmentService.save({ session });
-          appointmentServiceIds.push(appointmentService._id);
+          if(service.serviceId) {
+            const appointmentService = new AppointmentServices({
+              _id: new mongoose.Types.ObjectId(),
+              bookingId: appointment.bookingId,
+              appointmentId: appointment._id,
+              paxId: paxId,
+              appointmentDate: appointment.appointmentDate,
+              startTime: service.startTime,
+              serviceId: service.serviceId,
+              employeeId: service.employeeId,
+              assetId: service.assetId,
+              duration: Number(service.duration),
+              price: service.price,
+              status: true,
+  
+              // Additional fields
+              durationList: service.durationList,
+              assetTypeId: service.assetTypeId,
+              assetList: service.assetList,
+              selectedAsset: service.selectedAsset,
+              busyEmployees: service.busyEmployees,
+              employeeList: service.employeeList,
+            });
+  
+            await appointmentService.save({ session });
+            appointmentServiceIds.push(appointmentService._id);
+          }
         }
 
         // 4. Create AppointmentPax Entry

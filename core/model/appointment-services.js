@@ -11,7 +11,7 @@ const AppointmentServicesSchema = new mongoose.Schema({
     
     appointmentDate: { type: Date, required: true },
     startTime: { type: String, required: true },
-    serviceId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "Services" },
+    serviceId: { type: mongoose.Schema.Types.ObjectId, ref: "Services" },
     assetId: { type: mongoose.Schema.Types.ObjectId, ref: "Assets" },
     employeeId: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employees" }],
     duration: { type: Number, required: true },

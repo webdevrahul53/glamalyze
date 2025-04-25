@@ -15,15 +15,15 @@ const AddEditShifts = (props:any) => {
     const [loading, setLoading] = React.useState(false)
 
     React.useEffect(() => {
-        if(props.asset) {
-            reset(props.asset)
+        if(props.shift) {
+          reset(props.shift)
         }
         else {
           const branchId = user?.defaultBranch || branchList[0]?._id;
-          reset({branchId, assetTypeId: null, assetNumber: null, status: true})
+          reset({branchId, shiftname: null, openingAt: null, closingAt: null, status: true})
         }
         getBranchList();
-    }, [props.asset])
+    }, [props.shift])
 
     
     const getBranchList = async () => {
@@ -129,4 +129,7 @@ const timeList = [
   { key: 19, value: 19},
   { key: 20, value: 20},
   { key: 21, value: 21},
+  { key: 22, value: 22},
+  { key: 23, value: 23},
+  { key: 24, value: 24},
 ]
