@@ -54,7 +54,7 @@ export default function Shifts() {
 const columns = [
   {name: "BRANCH", uid: "branch:branchname"},
   {name: "NAME", uid: "shiftname"},
-  {name: "STAFFS", uid: "groupEmployees"},
+  // {name: "STAFFS", uid: "groupEmployees"},
   {name: "TIMING", uid: "timing"},
   // {name: "CREATED AT", uid: "createdAt"},
   // {name: "UPDATED AT", uid: "updatedAt"},

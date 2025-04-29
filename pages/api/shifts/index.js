@@ -21,11 +21,8 @@ export default async function handler(req, res) {
         const result = await Shifts.aggregate([
           { $match: matchStage },
           { $lookup: { from: "branches", localField: "branchId", foreignField: "_id", as: "branch", },  },
-          { $lookup: { from: "groups", localField: "groups", foreignField: "_id", as: "groups", },  },
-          { $lookup: { from: "employees", localField: "groups.employeesId", foreignField: "_id", as: "groupEmployees" } },
-          { $lookup: { from: "services", localField: "groupEmployees.servicesId", foreignField: "_id", as: "employeeServices" } },
           { $unwind: { path: "$branch", preserveNullAndEmptyArrays: true, }, },
-          { $project: { _id: 1, branch: 1, branchId: 1, shiftname: 1, timing: { $concat: ["$openingAt", " - ", "$closingAt"] }, openingAt: 1, closingAt: 1, employeeServices: 1, groupEmployees: 1, status:1, createdAt: 1, updatedAt: 1 } },
+          { $project: { _id: 1, branch: 1, branchId: 1, shiftname: 1, timing: { $concat: ["$openingAt", " - ", "$closingAt"] }, openingAt: 1, closingAt: 1, status:1, createdAt: 1, updatedAt: 1 } },
         ])
         res.status(200).json(result)
       }else {
@@ -36,11 +33,8 @@ export default async function handler(req, res) {
             { shiftname: { $regex: searchQuery, $options: "i" } }, 
           ]} },
           { $lookup: { from: "branches", localField: "branchId", foreignField: "_id", as: "branch", },  },
-          { $lookup: { from: "groups", localField: "groups", foreignField: "_id", as: "groups", },  },
-          { $lookup: { from: "employees", localField: "groups.employeesId", foreignField: "_id", as: "groupEmployees" } },
-          { $lookup: { from: "services", localField: "groupEmployees.servicesId", foreignField: "_id", as: "employeeServices" } },
           { $unwind: { path: "$branch", preserveNullAndEmptyArrays: true, }, },
-          { $project: { _id: 1, branch: 1, branchId: 1, shiftname: 1, timing: { $concat: ["$openingAt", " - ", "$closingAt"] }, openingAt: 1, closingAt: 1, employeeServices: 1, groupEmployees: 1, status:1, createdAt: 1, updatedAt: 1 } },
+          { $project: { _id: 1, branch: 1, branchId: 1, shiftname: 1, timing: { $concat: ["$openingAt", " - ", "$closingAt"] }, openingAt: 1, closingAt: 1, status:1, createdAt: 1, updatedAt: 1 } },
           { $skip: skip },
           { $limit: limit }
         ])

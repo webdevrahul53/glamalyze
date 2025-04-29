@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { BRANCH_API_URL, GROUP_API_URL, SETTINGS_API_URL, SHIFTS_API_URL } from '@/core/utilities/api-url';
+import { BRANCH_API_URL, GROUP_API_URL, ROSTER_API_URL, SHIFTS_API_URL } from '@/core/utilities/api-url';
 import { CloseIcon, PlusIcon, SaveIcon } from '@/core/utilities/svgIcons';
-import { Avatar, AvatarGroup, Button, Card, CardHeader, CheckboxGroup, DatePicker, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Progress, Checkbox } from '@heroui/react';
+import { Avatar, AvatarGroup, Button, Card, CardHeader, DatePicker, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Progress } from '@heroui/react';
 import React from 'react'
 import { toast } from 'react-toastify';
 import {parseDate} from "@internationalized/date";
@@ -12,10 +12,9 @@ import moment from 'moment';
 export default function Shifts() {
   const [branchList, setBranchList] = React.useState<any>([]);
   const [shiftList, setShiftList] = React.useState<any>([]);
+  const [rosterData, setRosterData] = React.useState<any>([]);
   const [groupList, setGroupList] = React.useState<any>([]);
-  const [rosterStartDate, setRosterStartDate] = React.useState<any>(parseDate(new Date().toISOString().split("T")[0]));
-  const [rosterEndDate, setRosterEndDate] = React.useState<any>(parseDate(new Date().toISOString().split("T")[0]));
-  const [selectedDate, setSelectedDates] = React.useState<any>([]);
+  const [dateFor, setDateFor] = React.useState<any>(parseDate(new Date().toISOString().split("T")[0]));
   const [pageRefresh, setPageRefresh] = React.useState(false)
   const [isLoading, setLoading] = React.useState(false)
 
@@ -24,36 +23,13 @@ export default function Shifts() {
     getBranchList();
     getShiftList();
     getGroupsList()
-    getSettings()
   }, [pageRefresh])
 
   
   React.useEffect(() => {
-    setSelectedDates(getDatesBetween(rosterStartDate, rosterEndDate))
-  }, [rosterStartDate, rosterEndDate])
+    getRosterData();
+  }, [dateFor, pageRefresh])
 
-  const getDatesBetween = (startDate: any, endDate: any) => {
-    if(!startDate || !endDate) return []
-    const dates = [];
-    const currentDate = new Date(startDate);
-  
-    while (currentDate <= new Date(endDate)) {
-      dates.push(new Date(currentDate).toISOString());
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-  
-    return dates;
-  }
-
-  const getSettings = async () => {
-    try {
-      const settings = await fetch(`${SETTINGS_API_URL}/globalSettings`)
-      const parsed = await settings.json();
-      console.log(parsed);
-      setRosterStartDate(parseDate(new Date(parsed.rosterStartDate).toISOString().split("T")[0]))
-      setRosterEndDate(parseDate(new Date(parsed.rosterEndDate).toISOString().split("T")[0]))
-    }catch(err:any) { toast.error(err.error) }
-  }
 
   const getBranchList = async () => {
     try {
@@ -66,9 +42,17 @@ export default function Shifts() {
   
   const getShiftList = async () => {
     try {
-      const shifts = await fetch(`${SHIFTS_API_URL}/roster`)
+      const shifts = await fetch(`${SHIFTS_API_URL}`)
       const parsed = await shifts.json();
       setShiftList(parsed);
+    }catch(err:any) { toast.error(err.error) }
+  }
+
+  const getRosterData = async () => {
+    try {
+      const roster = await fetch(`${ROSTER_API_URL}?dateFor=${dateFor}`)
+      const parsed = await roster.json();
+      setRosterData(parsed);
     }catch(err:any) { toast.error(err.error) }
   }
   
@@ -79,38 +63,14 @@ export default function Shifts() {
       setGroupList(parsed);
     }catch(err:any) { toast.error(err.error) }
   }
-
-  const onSubmit = async () => {
-    const start = new Date(rosterStartDate).toISOString();
-    const end = new Date(rosterEndDate).toISOString();
-    
-    if(!start || !end) return;
-    if(end < start) toast.error("End date must be greater than start date")
-    setLoading(true)
-    
-    try {
-      const settings = await fetch(`${SETTINGS_API_URL}/globalSettings`, {
-        method: "PATCH",
-        body: JSON.stringify({rosterStartDate: start, rosterEndDate: end}),
-        headers: { "Content-Type": "application/json" }
-      })
-      const parsed = await settings.json();
-      if(parsed.status){
-        setLoading(false)
-        setPageRefresh(val => !val)
-      }
-    } catch (err:any) {
-      setLoading(false)
-      console.log(err);
-    }
-  }
   
-  const assignGroupToShift = async (shift:any, groupId:string, type: string = "reset") => {
+  const creatUpdateRoster = async (shift:any, groupId:string, type: string = "") => {
+    const date = moment(new Date(dateFor)).format("YYYY-MM-DD")
     try {
       setLoading(true)
-      const branch = await fetch(`${SHIFTS_API_URL}/${shift._id}?type=${type}`, {
-        method: "PUT",
-        body: JSON.stringify({groupId, branchId: shift.branchId}),
+      const branch = await fetch(`${ROSTER_API_URL}`, {
+        method: "POST",
+        body: JSON.stringify({groupId, branchId: shift.branchId, shiftId: shift._id, dateFor: date, type}),
         headers: { "Content-Type": "application/json" }
       })
       const parsed = await branch.json();
@@ -129,15 +89,12 @@ export default function Shifts() {
     <section>
       <div className="flex items-center justify-between px-5 my-3">
 
-        <div className="flex items-center gap-3 w-1/4">
-          <DatePicker label="From Date" variant="bordered" value={rosterStartDate} onChange={(val) => setRosterStartDate(val)} />
-          <DatePicker label="To Date" variant="bordered" value={rosterEndDate} onChange={(val) => setRosterEndDate(val)} />
-        </div>
+        <DatePicker className="w-1/4" label="Date For" variant="bordered" value={dateFor} onChange={(val) => setDateFor(val)} />
 
         <h1 className="w-2/4 text-center text-4xl py-3">Roster Creation</h1>
 
         <div className="w-1/4 text-end">
-          <Button color="primary" size="lg" type="button" onPress={() => onSubmit()}> <SaveIcon color="white" width={20} height={20} /> Save</Button>
+          <Button color="primary" size="lg" type="button"> <SaveIcon color="white" width={20} height={20} /> Save</Button>
         </div>
         
       </div>
@@ -145,7 +102,7 @@ export default function Shifts() {
       {isLoading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
       <div className="flex items-start justify-between bg-white rounded shadow" style={{width: "calc(100vw - 300px)", height: "calc(100vh - 100px)", margin: "0 auto", overflow: "auto"}}>
         {/* <PageTitle title="Roster Creation" /> */}
-        <div className="text-center h-full" style={{minWidth: "220px"}}>
+        {/* <div className="text-center h-full" style={{minWidth: "220px"}}>
           <div className="w-full p-3 border-b-2 border-e-2 flex items-center justify-center gap-2">
             <div className="text-2xl">Dates</div>  
           </div>
@@ -154,7 +111,7 @@ export default function Shifts() {
               {selectedDate?.map((item: any) => <Checkbox key={item} value={item}>{moment(item).format("MM-DD-yyyy")}</Checkbox>)}
             </CheckboxGroup>
           </div>
-        </div>
+        </div> */}
         
         {branchList.map((branch:any) => <div key={branch._id} className="text-center h-full" style={{minWidth: "600px"}}>
           
@@ -165,7 +122,7 @@ export default function Shifts() {
           <div className="flex items-start justify-between" style={{height: "calc(100vh - 180px)"}}>
             {shiftList.map((shift:any) => shift.branchId === branch._id && <div key={shift._id} className="px-3 w-full h-full border-e-2">
               <div className="text-lg py-3">{shift.shiftname}</div>
-              {shift?.groups.length ? shift?.groups?.map((group:any) => <GroupCard key={group._id} {...group} onDelete={() => assignGroupToShift(shift, group._id, "delete")} />) : <></>}
+              {rosterData.length ? rosterData?.find((item:any) => item.shiftId === shift._id)?.groups?.map((group:any) => <GroupCard key={group._id} {...group} onDelete={() => creatUpdateRoster(shift, group._id, "delete")} />) : <></>}
               
               <Dropdown placement="bottom">
                 <DropdownTrigger>
@@ -174,7 +131,7 @@ export default function Shifts() {
                 <DropdownMenu aria-label="Profile Actions" variant="flat">
                   {groupList
                   // .filter((item:any) => !shift.groups.map((x:any) => x._id).includes(item._id))
-                  .map((group:any) => <DropdownItem key={group.groupname} onPress={() => assignGroupToShift(shift, group._id)}>
+                  .map((group:any) => <DropdownItem key={group.groupname} onPress={() => creatUpdateRoster(shift, group._id)}>
                     {group.groupname}
                   </DropdownItem>)}
                 </DropdownMenu>

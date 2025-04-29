@@ -4,7 +4,7 @@ import { ChairIcon, CheckIcon, DoorOpenIcon, PlusIcon, SaveIcon } from "../utili
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
-import { APPOINTMENT_SERVICES_API_URL, APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, SERVICES_API_URL, SETTINGS_API_URL, SHIFTS_API_URL } from "../utilities/api-url";
+import { APPOINTMENT_SERVICES_API_URL, APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, ROSTER_API_URL, SERVICES_API_URL, SETTINGS_API_URL, SHIFTS_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
 import moment from "moment";
 import ServiceCard from "../common/servicd-card";
@@ -53,8 +53,6 @@ const NewAppointment = (props:any) => {
     const [serviceList, setServiceList] = React.useState([]);
     const [totalAmount, setTotalAmount] = React.useState<any>(0)
     const [selectedTab, setSelectedTab] = React.useState<any>(0)
-    const [rosterStartDate, setRosterStartDate] = React.useState<any>(parseDate(new Date().toISOString().split("T")[0]));
-    const [rosterEndDate, setRosterEndDate] = React.useState<any>(parseDate(new Date().toISOString().split("T")[0]));
 
     
     const customerId = useWatch({ control, name: "customerId" });
@@ -74,8 +72,8 @@ const NewAppointment = (props:any) => {
     
     React.useEffect(() => {
       if(!branchId) return;
-      getShiftByBranchId(branchId)
-    },[branchId])
+      getRosterByBranchId(branchId)
+    },[branchId, appointmentDate])
 
     React.useEffect(() => {
       if(props?.bookings?.appointmentId){
@@ -86,12 +84,11 @@ const NewAppointment = (props:any) => {
       getCustomerList();
       getBranchList();
       getServiceList();
-      getSettings();
     }, [props?.bookings])
 
     React.useEffect(() => {
       filterEmployeesAndServices()
-    }, [shiftData, startTime, appointmentDate])
+    }, [shiftData, startTime])
 
     // For calendar purpose
     React.useEffect(() => {
@@ -138,7 +135,7 @@ const NewAppointment = (props:any) => {
           startTime, branchId, customerId, pax: paxData, note, paymentMethod
         }
         reset(formData)
-        getShiftByBranchId(branchId)
+        getRosterByBranchId(branchId)
         
       }catch(err:any) { toast.error(err.message) }
 
@@ -179,10 +176,10 @@ const NewAppointment = (props:any) => {
         }catch(err:any) { toast.error(err.message) }
     }
     
-    const getShiftByBranchId = async (id: string) => {
+    const getRosterByBranchId = async (id: string) => {
       if(!id) return;
       try {
-          const branches = await fetch(`${SHIFTS_API_URL}?branchId=${id}`)
+          const branches = await fetch(`${ROSTER_API_URL}/employee-services?branchId=${id}&dateFor=${appointmentDate}`)
           const parsed = await branches.json();
           setShiftData(parsed)
         }catch(err:any) { toast.error(err.message) }
@@ -194,22 +191,8 @@ const NewAppointment = (props:any) => {
           setCustomerList(parsed);
         }catch(err:any) { toast.error(err.message) }
     }
-    
-    const getSettings = async () => {
-      try {
-        const settings = await fetch(`${SETTINGS_API_URL}/globalSettings`)
-        const parsed = await settings.json();
-        console.log(parsed);
-        setRosterStartDate(parseDate(new Date(parsed.rosterStartDate).toISOString().split("T")[0]))
-        setRosterEndDate(parseDate(new Date(parsed.rosterEndDate).toISOString().split("T")[0]))
-      }catch(err:any) { toast.error(err.error) }
-    }
-
-
+  
     const filterEmployeesAndServices = () => {
-      const date = new Date(appointmentDate.toString()).toISOString()
-      if(date < rosterStartDate || date > rosterEndDate) return;
-
       const time: number = +startTime?.split(":")[0]
       const arr = shiftData.filter((item:any) => time >= item.openingAt && time < item.closingAt)
       const employees: any = Array.from(new Map(arr.map((item: any) => item.groupEmployees).flat().map((emp: any) => [emp._id, emp])).values());
@@ -263,7 +246,7 @@ const NewAppointment = (props:any) => {
       data.status = true;
       const arr = data.pax.flat().filter((item:any) => item.serviceId)
       if(!arr.length ) data.pax = [
-        [{serviceId: "67fcbfc92e5d5efc267985b0", startTime: data?.startTime, durationList: [], duration: "60", price: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}]
+        [{serviceId: "67fcbfc92e5d5efc267985b0", startTime: data?.startTime, durationList: [], duration: "0", price: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}]
       ]
       // console.log(data);
       // return;
@@ -343,7 +326,7 @@ const NewAppointment = (props:any) => {
                         if(selectedAppointment?.taskStatus === "Completed") return;
                         if(!id) return;
                         resetPax();
-                        getShiftByBranchId(id)
+                        getRosterByBranchId(id)
                       } } />
                     )}
                     /> : <></>}
