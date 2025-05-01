@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { BRANCH_API_URL, GROUP_API_URL, ROSTER_API_URL, SHIFTS_API_URL } from '@/core/utilities/api-url';
 import { CloseIcon, PlusIcon, SaveIcon } from '@/core/utilities/svgIcons';
-import { Avatar, AvatarGroup, Button, Card, CardHeader, Checkbox, CheckboxGroup, DatePicker, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Progress } from '@heroui/react';
+import { Avatar, AvatarGroup, Button, Card, CardHeader, Checkbox, DatePicker, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Progress } from '@heroui/react';
 import React from 'react'
 import { toast } from 'react-toastify';
 import {parseDate} from "@internationalized/date";
@@ -107,8 +107,10 @@ export default function Shifts() {
     <section>
       <div className="flex items-center justify-between px-5 my-3">
 
-        <DatePicker className="w-1/4" label="From Date" variant="bordered" value={fromDate} onChange={(val) => setFromDate(val)} />
-        <DatePicker className="w-1/4 mx-2" label="To Date" variant="bordered" value={toDate} onChange={(val) => setToDate(val)} />
+        <div className="w-1/4 flex items-center gap-2">
+          <DatePicker label="From Date" variant="bordered" value={fromDate} onChange={(val) => setFromDate(val)} />
+          <DatePicker label="To Date" variant="bordered" value={toDate} onChange={(val) => setToDate(val)} />
+        </div>
 
         <h1 className="w-2/4 text-center text-4xl py-3">Roster Creation</h1>
 
@@ -148,10 +150,8 @@ export default function Shifts() {
               {selectedDate?.map((date:any) => {
 
                 const currentRoster = rosterData?.find((item:any) => item.shiftId === shift._id && item?.dateFor === moment(date).format("YYYY-MM-DD"))
-                console.log(currentRoster, rosterData, date);
                 
-
-                return <section className="flex items-center gap-2" style={{height: "70px"}}>
+                return <section key={date} className="flex items-center gap-2" style={{height: "70px"}}>
 
                   {currentRoster?.groups?.map((group:any) => <GroupCard key={group._id} {...group} onDelete={() => creatUpdateRoster(date, shift, group._id, "delete")} />)}
                   
