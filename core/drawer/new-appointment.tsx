@@ -30,7 +30,7 @@ const NewAppointment = (props:any) => {
         startTime: null, 
         branchId: null, 
         customerId: null, 
-        pax: [ [] ],
+        pax: [ [{serviceId: null, startTime: null, durationList: [], duration: null, price: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}] ],
         note: null,
         paymentMethod: "Cash"
       }
@@ -108,7 +108,7 @@ const NewAppointment = (props:any) => {
     },[pax])
     
     const resetPax = () => {
-      setValue("pax", [ [] ])
+      setValue("pax", [ [{serviceId: null, startTime: null, durationList: [], duration: null, price: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}] ])
     }
   
 
@@ -128,11 +128,11 @@ const NewAppointment = (props:any) => {
         );
 
         const {appointmentDate, startTime, branchId, customerId, pax, note, paymentMethod} = parsed
-        const defaultServiceIndex = pax.flat().findIndex((item:any) => item.serviceId === "67fcbfc92e5d5efc267985b0")
-        const paxData = defaultServiceIndex === -1 ? pax : [[]]
+        // const defaultServiceIndex = pax.flat().findIndex((item:any) => item.serviceId === "67fcbfc92e5d5efc267985b0")
+        // const paxData = defaultServiceIndex === -1 ? pax : [[]]
         const formData = {
           appointmentDate: parseDate(new Date(appointmentDate).toISOString().split("T")[0]), 
-          startTime, branchId, customerId, pax: paxData, note, paymentMethod
+          startTime, branchId, customerId, pax, note, paymentMethod
         }
         reset(formData)
         getRosterByBranchId(branchId)
@@ -246,7 +246,11 @@ const NewAppointment = (props:any) => {
       data.status = true;
       const arr = data.pax.flat().filter((item:any) => item.serviceId)
       if(!arr.length ) data.pax = [
-        [{serviceId: "67fcbfc92e5d5efc267985b0", startTime: data?.startTime, durationList: [], duration: "0", price: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}]
+        [{serviceId: "67fcbfc92e5d5efc267985b0", startTime: data?.startTime, durationList: [{
+          "serviceDuration": 60,
+          "defaultPrice": 50,
+          "_id": "67fcbfc92e5d5efc267985b1"
+      }], duration: "60", price: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}]
       ]
       // console.log(data);
       // return;

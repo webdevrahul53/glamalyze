@@ -14,14 +14,10 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
       name: `pax.${paxIndex}`,
     });
   
-    const hasInitialized = React.useRef(false);
-
     React.useEffect(() => {
-      if (!hasInitialized.current && serviceFields.length === 0) {
-        addService({ serviceId: null, duration: null, employeeId: [] });
-        hasInitialized.current = true;
-      }
-    }, []);
+      const serviceId = watch(`pax.${0}.${0}.serviceId`)
+      if(!serviceId && serviceList?.length) onServiceSelection("67fcbfc92e5d5efc267985b0", 0)
+    }, [serviceList])
 
 
     const onServiceSelection = (id: string, serviceIndex: number) => {
@@ -34,7 +30,7 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
       const duration = service?.variants[0]?.serviceDuration
       setValue(`pax.${paxIndex}.${serviceIndex}.durationList`, service?.variants || [])
       setValue(`pax.${paxIndex}.${serviceIndex}.assetTypeId`, service?.assetTypeId)
-      // onDurationSelection({target:{value: duration}}, serviceIndex, service?.variants)
+      onDurationSelection({target:{value: duration}}, serviceIndex, service?.variants)
     }
   
     const onDurationSelection = (item: any, serviceIndex: number, durationList: any) => {
