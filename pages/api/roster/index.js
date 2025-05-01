@@ -1,19 +1,30 @@
 import mongoose from "mongoose";
 import { connectDB } from "@/core/db";
 import { Roster } from "../../../core/model/roster";
+import moment from "moment";
 
 export default async function handler(req, res) {
   await connectDB();
   
   if (req.method === "GET") {
     try{
-      const dateFor = req.query.dateFor;
+      const startDate = moment(req.query.startDate).format("YYYY-MM-DD");
+      const endDate = moment(req.query.endDate).format("YYYY-MM-DD");
+      console.log(startDate, endDate)
       const branchId = req.query.branchId;
       const matchStage = branchId
       ? { branchId: new mongoose.Types.ObjectId(branchId) }
       : {};
       const result = await Roster.aggregate([
-        { $match: { ...matchStage, dateFor } },
+        { 
+          $match: { 
+            ...matchStage,
+            dateFor: {
+              $gte: startDate,
+              $lte: endDate
+            }
+          } 
+        },
         { $lookup: { from: "branches", localField: "branchId", foreignField: "_id", as: "branch", } },
         { $lookup: { from: "groups", localField: "groups", foreignField: "_id", as: "groups", } },
         { $unwind: { path: "$branch", preserveNullAndEmptyArrays: true, } },
@@ -72,7 +83,7 @@ export default async function handler(req, res) {
         },
       
         // Final projection
-        { $project: { _id: 1, branchId: 1, shiftId: 1, groups: 1, status: 1 } },
+        { $project: { _id: 1, branchId: 1, shiftId: 1, dateFor: 1, groups: 1, status: 1 } },
         { $sort: {createdAt: 1} }
       ]);
 
