@@ -102,6 +102,33 @@ export default function Shifts() {
     }
   }
 
+  
+  const cloneRoster = async () => {
+    if(!fromDate || !toDate) return;
+    const startDate = moment(new Date(fromDate)).format("YYYY-MM-DD")
+    const endDate = moment(new Date(toDate)).format("YYYY-MM-DD")
+
+    
+    try {
+      setLoading(true)
+      const branch = await fetch(`${ROSTER_API_URL}/clone-roster`, {
+        method: "POST",
+        body: JSON.stringify({startDate, endDate}),
+        headers: { "Content-Type": "application/json" }
+      })
+      const parsed = await branch.json();
+      console.log(parsed);
+      
+      if(parsed) {
+        setLoading(false)
+        setPageRefresh(val => !val)
+      }
+    } catch (err:any) {
+      setLoading(false)
+      console.log(err);
+    }
+  }
+
 
   return (
     <section>
@@ -115,7 +142,7 @@ export default function Shifts() {
         <h1 className="w-2/4 text-center text-4xl py-3">Roster Creation</h1>
 
         <div className="w-1/4 text-end">
-          <Button color="primary" variant="bordered" size="lg" type="button"> <SaveIcon width={20} height={20} /> Clone Roster</Button>
+          <Button color="primary" variant="bordered" size="lg" type="button" onPress={() => cloneRoster()}> <SaveIcon width={20} height={20} /> Clone Roster</Button>
         </div>
         
       </div>
