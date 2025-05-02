@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { BRANCH_API_URL, GROUP_API_URL, ROSTER_API_URL, SHIFTS_API_URL } from '@/core/utilities/api-url';
 import { CloseIcon, PlusIcon, SaveIcon } from '@/core/utilities/svgIcons';
-import { Avatar, AvatarGroup, Button, Card, CardHeader, Checkbox, DatePicker, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Progress } from '@heroui/react';
+import { Avatar, AvatarGroup, Button, Card, CardHeader, Checkbox, DatePicker, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Popover, PopoverContent, PopoverTrigger, Progress } from '@heroui/react';
 import React from 'react'
 import { toast } from 'react-toastify';
 import {parseDate} from "@internationalized/date";
@@ -137,14 +137,14 @@ export default function Shifts() {
           </div>
         </div>
         
-        {branchList.map((branch:any) => <div key={branch._id} className="text-center h-full" style={{minWidth: "600px"}}>
+        {branchList.map((branch:any) => <div key={branch._id} className="text-center h-full">
           
           <div className="w-full p-3 border-b-2 border-e-2 flex items-center justify-center gap-2">
             <Avatar src={branch?.image} size="sm"/>
             <div className="text-2xl" style={{color: branch.colorcode}}>{branch.branchname}</div>  
           </div>
           <div className="flex items-start justify-between" style={{height: "calc(100vh - 180px)"}}>
-            {shiftList.map((shift:any) => shift.branchId === branch._id && <div key={shift._id} className="px-3 w-full h-full border-e-2">
+            {shiftList.map((shift:any) => shift.branchId === branch._id && <div key={shift._id} className="px-3 w-full h-full border-e-2" style={{minWidth: "300px"}}>
               <div className="text-lg py-3">{shift.shiftname}</div>
 
               {selectedDate?.map((date:any) => {
@@ -187,21 +187,36 @@ export default function Shifts() {
 
 const GroupCard = (props:any) => {
   return (
-    <Card className="shadow-sm border-2">
-      <CardHeader className="justify-between">
-        <div className="flex px-4">
-          {props?.employeesData.map((employee:any) => <AvatarGroup key={employee._id} isBordered max={2}>
-            <Avatar size="sm" src={employee?.image} style={{marginLeft: "-15px"}} />
-          </AvatarGroup>)}
-          {/* <div className="flex flex-col gap-1 items-start justify-center ms-3">
-            <h4 className="text-small font-semibold leading-none text-default-600">{props.groupname}</h4>
-          </div> */}
-        </div>
-        <div className="cursor-pointer" onClick={props.onDelete}>
+    <Popover placement="bottom" backdrop="opaque">
+      <PopoverTrigger>
+        <Card className="shadow-sm border-2">
+          <CardHeader className="justify-start">
+            <div className="flex items-center gap-2 px-4">
+              {props?.employeesData.map((employee:any) => <AvatarGroup key={employee._id} isBordered max={2}>
+                <Avatar size="sm" src={employee?.image} style={{marginLeft: "-15px", width: "20px", height: "20px"}} />
+              </AvatarGroup>)}
+            </div>
+            <h4 className="text-small font-semibold leading-none text-default-600" style={{whiteSpace: "nowrap"}}>{props.groupname}</h4>
+          </CardHeader>
+        </Card>
+      </PopoverTrigger>
+      <PopoverContent>
+        {/* <h2 className="text-2xl">Staffs</h2> */}
+        <div className="cursor-pointer flex items-center gap-2 py-2 ms-auto" onClick={props.onDelete}>
+          Delete group from roster
           <CloseIcon width="20" height="20" />  
         </div> 
-
-      </CardHeader>
-    </Card>
+        <div className="flex-1 px-4">
+          {props?.employeesData.map((employee:any) => <div key={employee._id} className="flex items-center gap-2 p-2">
+            <Avatar size="md" src={employee?.image} style={{marginLeft: "-15px"}} />
+            <div>
+              <div className="text-lg"> {employee?.firstname} {employee?.lastname} </div>
+              <div className="text-sm"> {employee?.email} </div>
+            </div>
+            <Button className="ms-auto" variant="bordered">Transfer</Button>
+          </div>)}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

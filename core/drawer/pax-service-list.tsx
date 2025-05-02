@@ -163,7 +163,7 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
             {errors.pax?.[paxIndex]?.[serviceIndex] && (
               <p className="text-danger text-sm ms-2"> Required fields are mandatory </p>
             )}
-            {serviceId ? <ServiceCard {...allServiceList?.find((item:any) => item._id === serviceId)} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, null)} /> : 
+            {serviceId && serviceId != "67fcbfc92e5d5efc267985b0" ? <ServiceCard {...allServiceList?.find((item:any) => item._id === serviceId)} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, null)} /> : 
               <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.serviceId`)} 
               defaultItems={serviceList} label="Services" 
               labelPlacement="inside" placeholder="Select a service" variant="bordered"
