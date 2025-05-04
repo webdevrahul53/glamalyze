@@ -4,7 +4,7 @@ import { ChairIcon, CheckIcon, DoorOpenIcon, PlusIcon, SaveIcon } from "../utili
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
-import { APPOINTMENT_SERVICES_API_URL, APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, ROSTER_API_URL, SERVICES_API_URL, SETTINGS_API_URL, SHIFTS_API_URL } from "../utilities/api-url";
+import { APPOINTMENT_SERVICES_API_URL, APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, ROSTER_API_URL, SERVICES_API_URL, SETTINGS_API_URL, SHIFTS_API_URL, TRANSFERRED_EMPLOYEES_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
 import moment from "moment";
 import ServiceCard from "../common/servicd-card";
@@ -49,6 +49,7 @@ const NewAppointment = (props:any) => {
     const [allServiceList, setAllServiceList] = React.useState([]);
     const [employeeList, setEmployeeList] = React.useState([]);
     const [shiftData, setShiftData] = React.useState([]);
+    const [transferredEmployee, setTransferredEmployee] = React.useState<any>([])
     const [customerList, setCustomerList] = React.useState([]);
     const [serviceList, setServiceList] = React.useState([]);
     const [totalAmount, setTotalAmount] = React.useState<any>(0)
@@ -73,6 +74,7 @@ const NewAppointment = (props:any) => {
     React.useEffect(() => {
       if(!branchId) return;
       getRosterByBranchId(branchId)
+      getTransferredEmployee(branchId)
     },[branchId, appointmentDate])
 
     React.useEffect(() => {
@@ -184,6 +186,17 @@ const NewAppointment = (props:any) => {
           setShiftData(parsed)
         }catch(err:any) { toast.error(err.message) }
     }
+
+    const getTransferredEmployee = async (id: string) => {
+      if(!id) return;
+      try {
+        const transfer = await fetch(`${TRANSFERRED_EMPLOYEES_API_URL}?branchId=${id}&dateFor=${appointmentDate}`)
+        let parsed = await transfer.json();
+        
+        setTransferredEmployee(parsed);
+      }catch(err:any) { toast.error(err.error) }
+    }
+
     const getCustomerList = async () => {
       try {
           const customers = await fetch(CUSTOMERS_API_URL)
@@ -194,7 +207,10 @@ const NewAppointment = (props:any) => {
   
     const filterEmployeesAndServices = () => {
       const time: number = +startTime?.split(":")[0]
-      const arr = shiftData.filter((item:any) => time >= item.openingAt && time < item.closingAt)
+      const shifts = shiftData.filter((item:any) => time >= item.openingAt && time < item.closingAt)
+      const transferred = transferredEmployee.filter((item:any) => time >= item.openingAt && time < item.closingAt)
+      const arr = [...shifts, ...transferred]
+      
       const employees: any = Array.from(new Map(arr.map((item: any) => item.groupEmployees).flat().map((emp: any) => [emp._id, emp])).values());
       const services: any = Array.from(new Map(arr.map((item: any) => item.employeeServices).flat().map((emp: any) => [emp._id, emp])).values());
       setEmployeeList(employees)
@@ -444,26 +460,3 @@ const NewAppointment = (props:any) => {
   }
 
 export default NewAppointment
-
-
-
-
-const timeList = [
-  {key: "10:00", label: "10:00"},
-  {key: "10:30", label: "10:30"},
-  {key: "11:00", label: "11:00"},
-  {key: "11:30", label: "11:30"},
-  {key: "12:00", label: "12:00"},
-  {key: "12:30", label: "12:30"},
-  {key: "13:00", label: "13:00"},
-  {key: "13:30", label: "13:30"},
-  {key: "14:00", label: "14:00"},
-  {key: "14:30", label: "14:30"},
-  {key: "15:00", label: "15:00"},
-  {key: "15:30", label: "15:30"},
-  {key: "16:00", label: "16:00"},
-  {key: "16:30", label: "16:30"},
-  {key: "17:00", label: "17:00"},
-  {key: "17:30", label: "17:30"},
-  {key: "18:00", label: "18:00"},
-];

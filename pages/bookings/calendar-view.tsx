@@ -3,7 +3,7 @@ import React, { Suspense } from 'react'
 import { PageTitle } from '@/core/common/page-title'
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-import { APPOINTMENT_SERVICES_API_URL, ASSETS_API_URL, BRANCH_API_URL, ROSTER_API_URL } from '@/core/utilities/api-url';
+import { APPOINTMENT_SERVICES_API_URL, ASSETS_API_URL, BRANCH_API_URL, ROSTER_API_URL, TRANSFERRED_EMPLOYEES_API_URL } from '@/core/utilities/api-url';
 import { Avatar, AvatarGroup, Progress, Tooltip, useDisclosure } from '@heroui/react';
 import NewAppointment from '@/core/drawer/new-appointment';
 import { taskStatusCSS } from '@/core/common/data-grid';
@@ -106,15 +106,20 @@ export default function CalendarViewBookings(){
       setBranchDetails(parsed);
       const roster = await fetch(`${ROSTER_API_URL}/employee-services?branchId=${branchId}&dateFor=${date}`);
       const data = await roster.json();
-      filterEmployeesAndServices(data, setEmployeeList)
+      
+      const transfer = await fetch(`${TRANSFERRED_EMPLOYEES_API_URL}?branchId=${branchId}&dateFor=${date}`);
+      const data2 = await transfer.json();
+      filterEmployeesAndServices(data, data2, setEmployeeList)
     } catch (err: any) {
       console.error(err.message);
     }
   };
 
-  const filterEmployeesAndServices = async (shifts:any, setEmployeeList: React.Dispatch<React.SetStateAction<any[]>>) => {
+  const filterEmployeesAndServices = async (shiftData:any, transferData: any, setEmployeeList: React.Dispatch<React.SetStateAction<any[]>>) => {
     const time: number = +convertTo24HourFormat(moment(calendarDate).format("hh:mm A")).split(":")[0];
-    const arr = shifts.filter((item:any) => time >= item.openingAt && time < item.closingAt)
+    const shifts = shiftData.filter((item:any) => time >= item.openingAt && time < item.closingAt)
+    const transfers = transferData.filter((item:any) => time >= item.openingAt && time < item.closingAt)
+    const arr = [...shifts, ...transfers]
     const employees: any = Array.from(new Map(arr.map((item: any) => item.groupEmployees).flat().map((emp: any) => [emp._id, emp])).values());
     setEmployeeList(employees || [])
   }

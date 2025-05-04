@@ -15,5 +15,6 @@ export const ASSET_TYPES_API_URL = BASE_URL + "/api/asset-types"
 export const SHIFTS_API_URL = BASE_URL + "/api/shifts"
 export const SETTINGS_API_URL = BASE_URL + "/api/settings"
 export const ROSTER_API_URL = BASE_URL + "/api/roster"
+export const TRANSFERRED_EMPLOYEES_API_URL = BASE_URL + "/api/transferred-employees"
 
 

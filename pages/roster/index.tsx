@@ -1,15 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { BRANCH_API_URL, GROUP_API_URL, ROSTER_API_URL, SHIFTS_API_URL } from '@/core/utilities/api-url';
-import { CloseIcon, PlusIcon, SaveIcon } from '@/core/utilities/svgIcons';
-import { Avatar, AvatarGroup, Button, Card, CardHeader, Checkbox, DatePicker, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Popover, PopoverContent, PopoverTrigger, Progress } from '@heroui/react';
-import React from 'react'
+import { PlusIcon, SaveIcon } from '@/core/utilities/svgIcons';
+import { Avatar, AvatarGroup, Button, Card, CardHeader, Checkbox, DatePicker, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Progress, useDisclosure } from '@heroui/react';
+import React, { lazy, Suspense } from 'react'
 import { toast } from 'react-toastify';
 import {parseDate} from "@internationalized/date";
 import moment from 'moment';
+const GroupView = lazy(() => import("@/pages/roster/group-view"));
+
 
 
 
 export default function Shifts() {
+  const {isOpen, onOpen, onOpenChange} = useDisclosure();
+  const handleOpen = () => { onOpen(); };
+
   const [branchList, setBranchList] = React.useState<any>([]);
   const [shiftList, setShiftList] = React.useState<any>([]);
   const [rosterData, setRosterData] = React.useState<any>([]);
@@ -19,7 +24,12 @@ export default function Shifts() {
   const [selectedDate, setSelectedDates] = React.useState<any>([]);
   const [pageRefresh, setPageRefresh] = React.useState(false)
   const [isLoading, setLoading] = React.useState(false)
-
+  
+  // on selected group
+  const [selectedGroup, setSelectedGroup] = React.useState<any>(null);
+  const [selectedBranch, setSelectedBranch] = React.useState<any>(null);
+  const [selectedShift, setSelectedShift] = React.useState<any>(null);
+  const [selectedDateFor, setSelectedDateFor] = React.useState<any>(null);
 
   React.useEffect(() => {
     getBranchList();
@@ -130,6 +140,11 @@ export default function Shifts() {
   }
 
 
+  const onDrawerClose = () => {
+    setPageRefresh((val) => !val)
+    onOpenChange();
+  }
+
   return (
     <section>
       <div className="flex items-center justify-between px-5 my-3">
@@ -147,6 +162,17 @@ export default function Shifts() {
         
       </div>
       
+
+
+      {isOpen && (
+        <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
+          <GroupView isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}
+          group={selectedGroup} branchId={selectedBranch._id} dateFor={selectedDateFor}
+          onDelete={() => creatUpdateRoster(selectedDateFor, selectedShift, selectedGroup._id, "delete")}
+          />
+        </Suspense>
+      )}
+      
       {isLoading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
       <div className="flex items-start justify-between bg-white rounded shadow" style={{width: "calc(100vw - 300px)", height: "calc(100vh - 100px)", margin: "0 auto", overflow: "auto"}}>
         {/* <PageTitle title="Roster Creation" /> */}
@@ -157,8 +183,8 @@ export default function Shifts() {
           <div className="py-6 flex justify-center h-full border-e-2">
             {/* <CheckboxGroup value={selectedDate} style={{marginTop: "35px"}}>
             </CheckboxGroup> */}
-            <div className="flex-1 items-center justify-center" style={{marginTop: "28px"}}>
-              {selectedDate?.map((item: any) => <Checkbox key={item} value={item} isSelected={item} style={{height: "70px", margin: 0 , padding: 0}}>{moment(item).format("MM-DD-yyyy")}</Checkbox>)}
+            <div className="flex-1 items-center justify-center" style={{marginTop: "40px"}}>
+              {selectedDate?.map((item: any) => <Checkbox key={item} value={item} isSelected={item} style={{height: "50px", margin: 0 , padding: 0, display: "inline-block"}}>{moment(item).format("MM-DD-yyyy")}</Checkbox>)}
             </div>
 
           </div>
@@ -178,9 +204,34 @@ export default function Shifts() {
 
                 const currentRoster = rosterData?.find((item:any) => item.shiftId === shift._id && item?.dateFor === moment(date).format("YYYY-MM-DD"))
                 
-                return <section key={date} className="flex items-center gap-2" style={{height: "70px"}}>
+                return <section key={date} className="flex items-center gap-2" style={{height: "50px"}}>
 
-                  {currentRoster?.groups?.map((group:any) => <GroupCard key={group._id} {...group} onDelete={() => creatUpdateRoster(date, shift, group._id, "delete")} />)}
+                  {currentRoster?.groups?.map((group:any) => {
+
+                    return <Card key={group._id} className="shadow-sm border-2">
+                      <CardHeader className="justify-start" onClick={() => {
+                      console.log("clicked");
+                      
+                      setSelectedGroup(group)
+                      setSelectedBranch(branch)
+                      setSelectedShift(shift)
+                      setSelectedDateFor(moment(date).format("YYYY-MM-DD"))
+                      handleOpen();
+                    }}>
+                        <div className="flex items-center gap-2 px-4">
+                          {group?.employeesData.map((employee:any) => <AvatarGroup key={employee._id} isBordered max={2}>
+                            <Avatar size="sm" src={employee?.image} style={{marginLeft: "-15px", width: "20px", height: "20px"}} />
+                          </AvatarGroup>)}
+                        </div>
+                        <h4 className="text-small font-semibold leading-none text-default-600" style={{whiteSpace: "nowrap"}}>{group.groupname}</h4>
+                      </CardHeader>
+                    </Card>
+                  })}
+                  
+                  
+                  
+                  
+                  {/* <TransferComponent key={group._id} {...group} branchId={branch._id} dateFor={date} onDelete={() => creatUpdateRoster(date, shift, group._id, "delete")} />)} */}
                   
                   <Dropdown placement="bottom">
                     <DropdownTrigger>
@@ -212,38 +263,4 @@ export default function Shifts() {
 
 
 
-const GroupCard = (props:any) => {
-  return (
-    <Popover placement="bottom" backdrop="opaque">
-      <PopoverTrigger>
-        <Card className="shadow-sm border-2">
-          <CardHeader className="justify-start">
-            <div className="flex items-center gap-2 px-4">
-              {props?.employeesData.map((employee:any) => <AvatarGroup key={employee._id} isBordered max={2}>
-                <Avatar size="sm" src={employee?.image} style={{marginLeft: "-15px", width: "20px", height: "20px"}} />
-              </AvatarGroup>)}
-            </div>
-            <h4 className="text-small font-semibold leading-none text-default-600" style={{whiteSpace: "nowrap"}}>{props.groupname}</h4>
-          </CardHeader>
-        </Card>
-      </PopoverTrigger>
-      <PopoverContent>
-        {/* <h2 className="text-2xl">Staffs</h2> */}
-        <div className="cursor-pointer flex items-center gap-2 py-2 ms-auto" onClick={props.onDelete}>
-          Delete group from roster
-          <CloseIcon width="20" height="20" />  
-        </div> 
-        <div className="flex-1 px-4">
-          {props?.employeesData.map((employee:any) => <div key={employee._id} className="flex items-center gap-2 p-2">
-            <Avatar size="md" src={employee?.image} style={{marginLeft: "-15px"}} />
-            <div>
-              <div className="text-lg"> {employee?.firstname} {employee?.lastname} </div>
-              <div className="text-sm"> {employee?.email} </div>
-            </div>
-            <Button className="ms-auto" variant="bordered">Transfer</Button>
-          </div>)}
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
+
