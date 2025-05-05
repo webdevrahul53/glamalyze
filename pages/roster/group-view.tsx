@@ -51,7 +51,7 @@ export default function GroupView(props:any) {
                     {isOpen && (
                         <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
                             <TransferComponent isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()} 
-                            employee={selectedEmployee} dateFor={props.dateFor}   
+                            employee={selectedEmployee} dateFor={props.dateFor} branchId={props.branchId} 
                             />
                         </Suspense>
                     )}

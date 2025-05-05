@@ -16,11 +16,12 @@ export default function Shifts() {
   const handleOpen = () => { onOpen(); };
 
   const [branchList, setBranchList] = React.useState<any>([]);
+  const [latestRoster, setLatestRoster] = React.useState<any>(null);
   const [shiftList, setShiftList] = React.useState<any>([]);
   const [rosterData, setRosterData] = React.useState<any>([]);
   const [groupList, setGroupList] = React.useState<any>([]);
   const [fromDate, setFromDate] = React.useState<any>(parseDate(new Date().toISOString().split("T")[0]));
-  const [toDate, setToDate] = React.useState<any>(parseDate(new Date().toISOString().split("T")[0]));
+  const [toDate, setToDate] = React.useState<any>(parseDate(moment().add(5, 'days').format('YYYY-MM-DD')));
   const [selectedDate, setSelectedDates] = React.useState<any>([]);
   const [pageRefresh, setPageRefresh] = React.useState(false)
   const [isLoading, setLoading] = React.useState(false)
@@ -34,7 +35,8 @@ export default function Shifts() {
   React.useEffect(() => {
     getBranchList();
     getShiftList();
-    getGroupsList()
+    getGroupsList();
+    getLatestRoster()
   }, [pageRefresh])
 
   
@@ -45,6 +47,14 @@ export default function Shifts() {
     }
   }, [fromDate, toDate, pageRefresh])
 
+
+  const getLatestRoster = async () => {
+    try {
+      const roster = await fetch(`${ROSTER_API_URL}/latest-roster`)
+      const parsed = await roster.json();
+      setLatestRoster(parsed);
+    }catch(err:any) { toast.error(err.error) }
+  }
 
   const getBranchList = async () => {
     try {
@@ -115,15 +125,19 @@ export default function Shifts() {
   
   const cloneRoster = async () => {
     if(!fromDate || !toDate) return;
-    const startDate = moment(new Date(fromDate)).format("YYYY-MM-DD")
-    const endDate = moment(new Date(toDate)).format("YYYY-MM-DD")
+    const start = moment(fromDate, "YYYY-MM-DD");
+    const end = moment(toDate, "YYYY-MM-DD");
+    const daysToClone = end.diff(start, 'days') + 1;
+
+    const confirm = window.confirm(`Roster will be cloned from ${start.format("YYYY-MM-DD")} to ${end.format("YYYY-MM-DD")} and applied for next ${daysToClone} days`)
+    if(!confirm) return;
 
     
     try {
       setLoading(true)
       const branch = await fetch(`${ROSTER_API_URL}/clone-roster`, {
         method: "POST",
-        body: JSON.stringify({startDate, endDate}),
+        body: JSON.stringify({startDate: start.format("YYYY-MM-DD"), endDate: end.format("YYYY-MM-DD")}),
         headers: { "Content-Type": "application/json" }
       })
       const parsed = await branch.json();
@@ -154,7 +168,10 @@ export default function Shifts() {
           <DatePicker label="To Date" variant="bordered" value={toDate} onChange={(val) => setToDate(val)} />
         </div>
 
-        <h1 className="w-2/4 text-center text-4xl py-3">Roster Creation</h1>
+        <div className="w-2/4 text-center">
+          <h1 className="text-4xl">Roster Creation</h1>
+          <div className="text-gray-500">Roster created till {latestRoster?.dateFor.split("T")[0]} </div>
+        </div>
 
         <div className="w-1/4 text-end">
           <Button color="primary" variant="bordered" size="lg" type="button" onPress={() => cloneRoster()}> <SaveIcon width={20} height={20} /> Clone Roster</Button>
@@ -176,7 +193,7 @@ export default function Shifts() {
       {isLoading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
       <div className="flex items-start justify-between bg-white rounded shadow" style={{width: "calc(100vw - 300px)", height: "calc(100vh - 100px)", margin: "0 auto", overflow: "auto"}}>
         {/* <PageTitle title="Roster Creation" /> */}
-        <div className="text-center h-full" style={{minWidth: "220px"}}>
+        {branchList.length ? <div className="text-center h-full" style={{minWidth: "220px"}}>
           <div className="w-full p-3 border-b-2 border-e-2 flex items-center justify-center gap-2">
             <div className="text-2xl">Dates</div>  
           </div>
@@ -188,7 +205,7 @@ export default function Shifts() {
             </div>
 
           </div>
-        </div>
+        </div> : <></>}
         
         {branchList.map((branch:any) => <div key={branch._id} className="text-center h-full">
           
@@ -202,7 +219,7 @@ export default function Shifts() {
 
               {selectedDate?.map((date:any) => {
 
-                const currentRoster = rosterData?.find((item:any) => item.shiftId === shift._id && item?.dateFor === moment(date).format("YYYY-MM-DD"))
+                const currentRoster = rosterData?.find((item:any) => item.shiftId === shift._id && moment(item?.dateFor).format("YYYY-MM-DD") === moment(date).format("YYYY-MM-DD"))
                 
                 return <section key={date} className="flex items-center gap-2" style={{height: "50px"}}>
 

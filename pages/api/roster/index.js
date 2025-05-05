@@ -16,14 +16,14 @@ export default async function handler(req, res) {
       ? { branchId: new mongoose.Types.ObjectId(branchId) }
       : {};
       const result = await Roster.aggregate([
-        { 
-          $match: { 
+        {
+          $match: {
             ...matchStage,
             dateFor: {
-              $gte: startDate,
-              $lte: endDate
+              $gte: new Date(startDate),
+              $lte: new Date(endDate)
             }
-          } 
+          }
         },
         { $lookup: { from: "branches", localField: "branchId", foreignField: "_id", as: "branch", } },
         { $lookup: { from: "groups", localField: "groups", foreignField: "_id", as: "groups", } },

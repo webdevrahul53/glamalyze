@@ -7,7 +7,7 @@ const RosterSchema = mongoose.Schema({
     branchId:{type:mongoose.Schema.Types.ObjectId,required:true, ref: "Branches"},
     shiftId:{type:mongoose.Schema.Types.ObjectId,required:true, ref: "Shifts"},
     groups:[{type:mongoose.Schema.Types.ObjectId, ref: "Groups"}],
-    dateFor:{type:String,required:true},
+    dateFor:{type:Date,required:true},
     status:{type:Boolean,required:true},
 },{ timestamps: true })
 
