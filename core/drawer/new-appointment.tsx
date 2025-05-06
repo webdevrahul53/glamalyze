@@ -175,6 +175,7 @@ const NewAppointment = (props:any) => {
           const services = await fetch(SERVICES_API_URL)
           const parsed = await services.json();
           setAllServiceList(parsed);
+          setServiceList(parsed)
         }catch(err:any) { toast.error(err.message) }
     }
     
@@ -212,9 +213,9 @@ const NewAppointment = (props:any) => {
       const arr = [...shifts, ...transferred]
       
       const employees: any = Array.from(new Map(arr.map((item: any) => item.groupEmployees).flat().map((emp: any) => [emp._id, emp])).values());
-      const services: any = Array.from(new Map(arr.map((item: any) => item.employeeServices).flat().map((emp: any) => [emp._id, emp])).values());
+      // const services: any = Array.from(new Map(arr.map((item: any) => item.employeeServices).flat().map((emp: any) => [emp._id, emp])).values());
       setEmployeeList(employees)
-      setServiceList(services)
+      // setServiceList(services)
     }
 
     const onPaxChange = (value: number) => {

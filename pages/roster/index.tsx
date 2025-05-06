@@ -115,6 +115,7 @@ export default function Shifts() {
       if(parsed) {
         setLoading(false)
         setPageRefresh(val => !val)
+        type === "delete" && onOpenChange()
       }
     } catch (err:any) {
       setLoading(false)
@@ -129,7 +130,11 @@ export default function Shifts() {
     const end = moment(toDate, "YYYY-MM-DD");
     const daysToClone = end.diff(start, 'days') + 1;
 
-    const confirm = window.confirm(`Roster will be cloned from ${start.format("YYYY-MM-DD")} to ${end.format("YYYY-MM-DD")} and applied for next ${daysToClone} days`)
+    const appliedStart = end.clone().add(1, "days").format("YYYY-MM-DD")
+    const appliedEnd = end.clone().add(daysToClone, "days").format("YYYY-MM-DD")
+    const tillDate = latestRoster?.dateFor.split("T")[0]
+
+    const confirm = window.confirm(`Roster created till ${tillDate} \nRoster will be cloned from ${start.format("YYYY-MM-DD")} to ${end.format("YYYY-MM-DD")} \nRoster will be applied from ${appliedStart} to ${appliedEnd} ( ${daysToClone} days ) \nAre you sure ?`)
     if(!confirm) return;
 
     
@@ -200,28 +205,28 @@ export default function Shifts() {
           <div className="py-6 flex justify-center h-full border-e-2">
             {/* <CheckboxGroup value={selectedDate} style={{marginTop: "35px"}}>
             </CheckboxGroup> */}
-            <div className="flex-1 items-center justify-center" style={{marginTop: "40px"}}>
+            <div className="flex flex-col" style={{marginTop: "40px"}}>
               {selectedDate?.map((item: any) => <Checkbox key={item} value={item} isSelected={item} style={{height: "50px", margin: 0 , padding: 0, display: "inline-block"}}>{moment(item).format("MM-DD-yyyy")}</Checkbox>)}
             </div>
 
           </div>
         </div> : <></>}
         
-        {branchList.map((branch:any) => <div key={branch._id} className="text-center h-full">
+        {branchList.map((branch:any) => <div key={branch._id} className="text-center h-full w-full">
           
           <div className="w-full p-3 border-b-2 border-e-2 flex items-center justify-center gap-2">
             <Avatar src={branch?.image} size="sm"/>
             <div className="text-2xl" style={{color: branch.colorcode}}>{branch.branchname}</div>  
           </div>
           <div className="flex items-start justify-between" style={{height: "calc(100vh - 180px)"}}>
-            {shiftList.map((shift:any) => shift.branchId === branch._id && <div key={shift._id} className="px-3 w-full h-full border-e-2" style={{minWidth: "300px"}}>
+            {shiftList.map((shift:any) => shift.branchId === branch._id && <div key={shift._id} className="px-3 w-full h-full border-e-2">
               <div className="text-lg py-3">{shift.shiftname}</div>
 
               {selectedDate?.map((date:any) => {
 
                 const currentRoster = rosterData?.find((item:any) => item.shiftId === shift._id && moment(item?.dateFor).format("YYYY-MM-DD") === moment(date).format("YYYY-MM-DD"))
                 
-                return <section key={date} className="flex items-center gap-2" style={{height: "50px"}}>
+                return <section key={date} className="flex items-center gap-2" style={{height: "50px", minWidth: "300px"}}>
 
                   {currentRoster?.groups?.map((group:any) => {
 
@@ -235,7 +240,7 @@ export default function Shifts() {
                       setSelectedDateFor(moment(date).format("YYYY-MM-DD"))
                       handleOpen();
                     }}>
-                        <div className="flex items-center gap-2 px-4">
+                        <div className="flex items-center px-4">
                           {group?.employeesData.map((employee:any) => <AvatarGroup key={employee._id} isBordered max={2}>
                             <Avatar size="sm" src={employee?.image} style={{marginLeft: "-15px", width: "20px", height: "20px"}} />
                           </AvatarGroup>)}

@@ -81,6 +81,16 @@ export default async function handler(req, res) {
             }
           }
         },
+        {
+          $addFields: {
+            groups: {
+              $sortArray: {
+                input: "$groups",
+                sortBy: { createdAt: 1 }
+              }
+            }
+          }
+        },
       
         // Final projection
         { $project: { _id: 1, branchId: 1, shiftId: 1, dateFor: 1, groups: 1, status: 1 } },
