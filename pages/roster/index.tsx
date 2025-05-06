@@ -115,7 +115,7 @@ export default function Shifts() {
       if(parsed) {
         setLoading(false)
         setPageRefresh(val => !val)
-        type === "delete" && onOpenChange()
+        if(type === "delete") onOpenChange()
       }
     } catch (err:any) {
       setLoading(false)
