@@ -14,12 +14,16 @@ const AppointmentServicesSchema = new mongoose.Schema({
     serviceId: { type: mongoose.Schema.Types.ObjectId, ref: "Services" },
     assetId: { type: mongoose.Schema.Types.ObjectId, ref: "Assets" },
     employeeId: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employees" }],
+    couponUsed: { type: mongoose.Schema.Types.ObjectId, ref: "Coupons" },
+    discount: { type: Number, default: 0 },
     duration: { type: Number, required: true },
-    price: { type: Number },
+    price: { type: Number, required: true },
+    subTotal: { type: Number, required: true },
     status: { type: Boolean, required: true },
     
     // useless but need to store for edit form
     durationList: {type: []},
+    couponList: {type: []},
     assetTypeId: { type: mongoose.Schema.Types.ObjectId, ref: "AssetTypes" },
     assetList: {type: []},
     busyEmployees: {type: []},

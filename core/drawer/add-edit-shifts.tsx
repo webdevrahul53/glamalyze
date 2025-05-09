@@ -40,12 +40,12 @@ const AddEditShifts = (props:any) => {
       console.log(data);
       try {
         let url = data._id ? `${SHIFTS_API_URL}/${data._id}` : SHIFTS_API_URL
-        const asset = await fetch(url, {
+        const shift = await fetch(url, {
             method: data._id ? "PATCH" : "POST",
             body: JSON.stringify(data),
             headers: { "Content-Type": "application/json" }
         })
-        const parsed = await asset.json();
+        const parsed = await shift.json();
         console.log(parsed);
         
         setLoading(false)
@@ -71,7 +71,7 @@ const AddEditShifts = (props:any) => {
           <DrawerContent>
             {(onClose) => (
               <>
-                <DrawerHeader className="flex flex-col gap-1"> {props.asset ? "Update":"New"} Asset</DrawerHeader>
+                <DrawerHeader className="flex flex-col gap-1"> {props.shift ? "Update":"New"} Asset</DrawerHeader>
                 <DrawerBody> 
 
                     <Controller name="branchId" control={control} rules={{required: true}}
@@ -98,7 +98,7 @@ const AddEditShifts = (props:any) => {
                 <DrawerFooter style={{justifyContent: "start"}}>
                   <Button color="primary" type="submit" className={`${loading ? "bg-light text-dark":""}`} disabled={loading}> 
                     <SaveIcon width="15" color="white" />  
-                    {loading ? "Loading...": props.asset ? "Update" : "Save"} 
+                    {loading ? "Loading...": props.shift ? "Update" : "Save"} 
                   </Button>
                   <Button color="danger" variant="bordered" onPress={() => onDrawerClose()}> Close </Button>
                 </DrawerFooter>

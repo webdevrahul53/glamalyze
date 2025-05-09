@@ -1,5 +1,5 @@
 import { useFieldArray } from "react-hook-form";
-import { APPOINTMENT_SERVICES_API_URL, ASSETS_API_URL } from "../utilities/api-url";
+import { APPOINTMENT_SERVICES_API_URL, ASSETS_API_URL, COUPONS_API_URL } from "../utilities/api-url";
 import ServiceCard from "../common/servicd-card";
 import { Autocomplete, AutocompleteItem, Avatar, Card, CardHeader } from "@heroui/react";
 import { toast } from "react-toastify";
@@ -23,6 +23,7 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
     const onServiceSelection = (id: string, serviceIndex: number) => {
       setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, id)
       setValue(`pax.${paxIndex}.${serviceIndex}.duration`, null)
+      setValue(`pax.${paxIndex}.${serviceIndex}.couponUsed`, null)
       setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, null)
       setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, [])
       setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, [])
@@ -30,17 +31,50 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
       const duration = service?.variants[0]?.serviceDuration
       setValue(`pax.${paxIndex}.${serviceIndex}.durationList`, service?.variants || [])
       setValue(`pax.${paxIndex}.${serviceIndex}.assetTypeId`, service?.assetTypeId)
-      onDurationSelection({target:{value: duration}}, serviceIndex, service?.variants)
+      onDurationSelection({target:{value: duration}}, serviceIndex)
+      getCouponList(serviceIndex)
+    }
+    
+    const getCouponList = async (serviceIndex: number) => {
+      try {
+        const branchId = watch(`branchId`);
+        const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
+        const coupons = await fetch(`${COUPONS_API_URL}?branchId=${branchId}&serviceId=${serviceId}`)
+        const parsed = await coupons.json();
+        setValue(`pax.${paxIndex}.${serviceIndex}.couponList`, parsed || [])
+      }catch(err:any) { console.log(err) }
+    }
+
+    const onCouponSelection = (item: any, serviceIndex: number) => {
+      const couponId = item?.target?.value
+      setValue(`pax.${paxIndex}.${serviceIndex}.couponUsed`, couponId)
+      calculatePriceDiscount(serviceIndex);
     }
   
-    const onDurationSelection = (item: any, serviceIndex: number, durationList: any) => {
-      const index: any = item?.target?.value
-      const price:any = durationList?.find((e:any) => +e.serviceDuration === +index)?.defaultPrice
-      setValue(`pax.${paxIndex}.${serviceIndex}.duration`, index)
-      setValue(`pax.${paxIndex}.${serviceIndex}.price`, price)
+    const onDurationSelection = (item: any, serviceIndex: number) => {
+      const duration: number = +item?.target?.value
+      setValue(`pax.${paxIndex}.${serviceIndex}.duration`, duration)
       setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, [])
       setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, [])
-      setStartTimeForService(serviceIndex, +index);
+      setStartTimeForService(serviceIndex, duration);
+      calculatePriceDiscount(serviceIndex)
+    }
+    
+    const calculatePriceDiscount = (serviceIndex: number) => {
+      const duration = watch(`pax.${paxIndex}.${serviceIndex}.duration`)
+      const durationList = watch(`pax.${paxIndex}.${serviceIndex}.durationList`)
+      const couponUsed = watch(`pax.${paxIndex}.${serviceIndex}.couponUsed`)
+      const couponList = watch(`pax.${paxIndex}.${serviceIndex}.couponList`)
+      
+      const price: any = durationList?.find((e: any) => +e.serviceDuration === +duration)?.defaultPrice;
+      const coupon = couponList?.find((item: any) => item._id === couponUsed);
+      const discount = coupon?.discountPercent ? Math.ceil((price * coupon.discountPercent) / 100) : 0;
+      const subTotal = price - discount;
+
+      setValue(`pax.${paxIndex}.${serviceIndex}.discount`, discount);
+      setValue(`pax.${paxIndex}.${serviceIndex}.price`, price);
+      setValue(`pax.${paxIndex}.${serviceIndex}.subTotal`, subTotal);
+      
     }
   
   
@@ -146,7 +180,11 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
       <div>
   
         {serviceFields.map((serviceField, serviceIndex) => {
+          const subTotal = watch(`pax.${paxIndex}.${serviceIndex}.subTotal`)
+          const discount = watch(`pax.${paxIndex}.${serviceIndex}.discount`)
+          const couponUsed = watch(`pax.${paxIndex}.${serviceIndex}.couponUsed`)
           const durationList = watch(`pax.${paxIndex}.${serviceIndex}.durationList`)
+          const couponList = watch(`pax.${paxIndex}.${serviceIndex}.couponList`)
           // const servStartTime = watch(`pax.${paxIndex}.${serviceIndex}.startTime`)
           // const duration = watch(`pax.${paxIndex}.${serviceIndex}.duration`)
           const price = watch(`pax.${paxIndex}.${serviceIndex}.price`)
@@ -185,16 +223,16 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
             
             
             <div className="flex items-center gap-2">
-              <div className="w-1/2 border-2 rounded p-1">
+              <div className="w-1/4 border-2 rounded p-1 px-2">
                 <select {...register(`pax.${paxIndex}.${serviceIndex}.duration`)} value={duration} className="w-full py-3 outline-none"
-                  onChange={(item: any) => onDurationSelection(item, serviceIndex, durationList)}>
+                  onChange={(item: any) => onDurationSelection(item, serviceIndex)}>
                     <option value="">Duration</option>
                   {durationList?.map((item:any, index: number) => <option key={index} value={item.serviceDuration}>{item.serviceDuration} min</option>)}
                 </select>
               </div>
               
   
-              <div className="w-1/2">
+              <div className="w-2/4">
                 {assetId ? <ServiceCard name={`${selectedAsset?.assetType} - ( ${selectedAsset?.assetNumber} )`} image={selectedAsset?.assetTypeId?.image} onDelete={() => setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, null)} /> : 
                   <Autocomplete {...register(`pax.${paxIndex}.${serviceIndex}.assetId`)} 
                   defaultItems={assetList || []} label="Place" 
@@ -214,6 +252,15 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
                   }}
                   
                 </Autocomplete>}
+              </div>
+
+              
+              <div className="w-2/4 border-2 rounded p-1 px-2">
+                <select {...register(`pax.${paxIndex}.${serviceIndex}.couponUsed`)} value={couponUsed} className="w-full py-3 outline-none"
+                  onChange={(item: any) => onCouponSelection(item, serviceIndex)}>
+                  <option value="">Coupon</option>
+                  {couponList?.map((item:any, index: number) => <option key={index} value={item._id}>{item.couponName} ( {item.discountPercent} % )</option>)}
+                </select>
               </div>
               {/* <div className="w-1/2 border-2 rounded p-1">
                 <select {...register(`pax.${paxIndex}.${serviceIndex}.assetId`)} value={assetId} className="w-full py-3 outline-none">
@@ -270,9 +317,13 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
             </div>
   
             
-            <div className="flex items-center justify-between gap-2 px-2">
+            <div className="flex items-start justify-between gap-2 px-2">
               <button type="button" className="my-2" onClick={() => onServiceRemoved(serviceIndex)}>❌ Remove </button>
-              <strong>฿ {price || 0}</strong>
+              <div className="flex flex-col items-center gap-2">
+                <strong>Price - ฿ {price || 0}</strong>
+                <strong>Discount - ฿ {discount || 0}</strong>
+                <strong>Sub Total - ฿ {subTotal || 0}</strong>
+              </div>
             </div>
   
             <hr className="py-3" />

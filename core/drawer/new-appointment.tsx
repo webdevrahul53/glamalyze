@@ -4,7 +4,7 @@ import { ChairIcon, CheckIcon, DoorOpenIcon, PlusIcon, SaveIcon } from "../utili
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
-import { APPOINTMENT_SERVICES_API_URL, APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, ROSTER_API_URL, SERVICES_API_URL, SETTINGS_API_URL, SHIFTS_API_URL, TRANSFERRED_EMPLOYEES_API_URL } from "../utilities/api-url";
+import { APPOINTMENT_SERVICES_API_URL, APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, ROSTER_API_URL, SERVICES_API_URL, TRANSFERRED_EMPLOYEES_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
 import moment from "moment";
 import ServiceCard from "../common/servicd-card";
@@ -30,7 +30,7 @@ const NewAppointment = (props:any) => {
         startTime: null, 
         branchId: null, 
         customerId: null, 
-        pax: [ [{serviceId: null, startTime: null, durationList: [], duration: null, price: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}] ],
+        pax: [ [{serviceId: null, startTime: null, durationList: [], duration: null, couponList: [], couponUsed: null, discount: 0, price: 0, subTotal: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}] ],
         note: null,
         paymentMethod: "Cash"
       }
@@ -105,12 +105,12 @@ const NewAppointment = (props:any) => {
     }, [selectedAppointment, props?.selectedTime])
 
     React.useEffect(() => {
-      const totalSum = pax.flat().reduce((sum, item: any) => sum + (item?.price || 0), 0);
+      const totalSum = pax.flat().reduce((sum, item: any) => sum + (item?.subTotal || 0), 0);
       setTotalAmount(totalSum)
     },[pax])
     
     const resetPax = () => {
-      setValue("pax", [ [{serviceId: null, startTime: null, durationList: [], duration: null, price: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}] ])
+      setValue("pax", [ [{serviceId: null, startTime: null, durationList: [], duration: null, couponList: [], couponUsed: null, discount: 0, price: 0, subTotal: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}] ])
     }
   
 
@@ -267,7 +267,7 @@ const NewAppointment = (props:any) => {
           "serviceDuration": 60,
           "defaultPrice": 50,
           "_id": "67fcbfc92e5d5efc267985b1"
-      }], duration: "60", price: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}]
+      }], duration: "60", couponList: [], couponUsed: null, discount: 0, price: 0, subTotal: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}]
       ]
       // console.log(data);
       // return;

@@ -57,7 +57,7 @@ export default async function handler(req, res) {
         },
         { $project: { _id: 1, appointmentId: 1, bookingId: 1, start: 1, customer: 1, employee: 1, asset: 1, 
           serviceName: "$service.name", taskStatus: "$appointment.taskStatus", paymentStatus: "$appointment.paymentStatus", paymentMethod: "$appointment.paymentMethod",
-          duration: 1, price: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+          duration: 1, price: 1, discount: 1, subTotal: 1, status: 1, createdAt: 1, updatedAt: 1 } },
           
         { $sort: { createdAt: -1 } },
         { $skip: skip },
@@ -130,11 +130,15 @@ export default async function handler(req, res) {
                     employeeId: service.employeeId,
                     assetId: service.assetId,
                     duration: Number(service.duration),
+                    couponUsed: service.couponUsed,
                     price: service.price,
+                    discount: service.discount,
+                    subTotal: service.subTotal,
                     status: true,
 
                     // useless but need to keep for edit form
                     durationList: service.durationList,
+                    couponList: service.couponList,
                     assetTypeId: service.assetTypeId,
                     assetList: service.assetList,
                     busyEmployees: service.busyEmployees,

@@ -97,11 +97,15 @@ export default async function handler(req, res) {
               employeeId: service.employeeId,
               assetId: service.assetId,
               duration: Number(service.duration),
+              couponUsed: service.couponUsed,
               price: service.price,
+              discount: service.discount,
+              subTotal: service.subTotal,
               status: true,
   
               // Additional fields
               durationList: service.durationList,
+              couponList: service.couponList,
               assetTypeId: service.assetTypeId,
               assetList: service.assetList,
               selectedAsset: service.selectedAsset,
