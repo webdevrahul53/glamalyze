@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   
   if (req.method === "GET") {
     try{
-      const dateFor = req.query.dateFor;
+      const dateFor = new Date(req.query.dateFor);
       const branchId = req.query.branchId;
       const matchStage = branchId
       ? { branchId: new mongoose.Types.ObjectId(branchId) }
