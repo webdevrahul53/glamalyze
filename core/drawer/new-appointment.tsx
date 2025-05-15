@@ -448,7 +448,7 @@ const NewAppointment = (props:any) => {
                   <Textarea {...register("note")} label="Note" placeholder="Enter Note" />
                   
                   <div className="flex items-center justify-between">
-                    <h5 className="text-xl">Subtotal :</h5>
+                    <h5 className="text-xl">Total Amount :</h5>
                     <h5 className="text-xl">฿ {totalAmount}</h5>
                   </div>
                 </DrawerFooter>

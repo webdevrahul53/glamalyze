@@ -48,6 +48,7 @@ export default function Layout(props:any) {
         <ListboxWrapper Icon={CalendarIcon} href={"/bookings"} title="Bookings" />
         <ListboxWrapper Icon={CalendarOutlinedIcon} href={"/shifts"} title="Shifts" />
         <ListboxWrapper Icon={CouponIcon} href={"/coupons"} title="Coupons" />
+        <ListboxWrapper Icon={CouponIcon} href={"/vouchers"} title="Vourchers" />
         <ListboxWrapper Icon={SettingIcon} href={"/roster"} title="Roster" />
         
         <Accordion className="accordian flex flex-col gap-1 p-0" showDivider={false} variant="bordered" >
