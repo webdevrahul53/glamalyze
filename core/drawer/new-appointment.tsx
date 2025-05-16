@@ -4,7 +4,7 @@ import { ChairIcon, CheckIcon, DoorOpenIcon, PlusIcon, SaveIcon } from "../utili
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
-import { APPOINTMENT_SERVICES_API_URL, APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, ROSTER_API_URL, SERVICES_API_URL, TRANSFERRED_EMPLOYEES_API_URL } from "../utilities/api-url";
+import { APPOINTMENT_SERVICES_API_URL, APPOINTMENTS_API_URL, BRANCH_API_URL, CUSTOMERS_API_URL, ROSTER_API_URL, SERVICES_API_URL, TRANSFERRED_EMPLOYEES_API_URL, VOUCHER_PURCHASED_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
 import moment from "moment";
 import ServiceCard from "../common/servicd-card";
@@ -30,7 +30,15 @@ const NewAppointment = (props:any) => {
         startTime: null, 
         branchId: null, 
         customerId: null, 
-        pax: [ [{serviceId: null, startTime: null, durationList: [], duration: null, couponList: [], couponUsed: null, discount: 0, price: 0, subTotal: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}] ],
+        pax: [ [{
+          serviceId: null, startTime: null, 
+          durationList: [], duration: null, 
+          couponList: [], couponUsed: null, 
+          voucherUsed: null, 
+          voucherDiscount: 0, discount: 0, price: 0, subTotal: 0, 
+          assetId: null, assetTypeId: null, assetList: [], 
+          busyEmployees: [], employeeList: [], employeeId: []
+        }] ],
         note: null,
         paymentMethod: "Cash"
       }
@@ -48,6 +56,7 @@ const NewAppointment = (props:any) => {
     const [branchList, setBranchList] = React.useState<any>([]);
     const [allServiceList, setAllServiceList] = React.useState([]);
     const [employeeList, setEmployeeList] = React.useState([]);
+    const [voucherList, setVoucherList] = React.useState([]);
     const [shiftData, setShiftData] = React.useState([]);
     const [transferredEmployee, setTransferredEmployee] = React.useState<any>([])
     const [customerList, setCustomerList] = React.useState([]);
@@ -92,6 +101,11 @@ const NewAppointment = (props:any) => {
       filterEmployeesAndServices()
     }, [shiftData, startTime])
 
+    
+    React.useEffect(() => {
+      if(customerId) { onCustomerChange(customerId) }
+    }, [customerId])
+
     // For calendar purpose
     React.useEffect(() => {
       const dateValue = selectedAppointment?.appointmentDate || props?.selectedTime || currentDate
@@ -106,11 +120,19 @@ const NewAppointment = (props:any) => {
 
     React.useEffect(() => {
       const totalSum = pax.flat().reduce((sum, item: any) => sum + (item?.subTotal || 0), 0);
-      setTotalAmount(totalSum)
+      setTotalAmount(totalSum < 0 ? 0 : totalSum)
     },[pax])
     
     const resetPax = () => {
-      setValue("pax", [ [{serviceId: null, startTime: null, durationList: [], duration: null, couponList: [], couponUsed: null, discount: 0, price: 0, subTotal: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}] ])
+      setValue("pax", [ [{
+        serviceId: null, startTime: null, 
+        durationList: [], duration: null, 
+        couponList: [], couponUsed: null, 
+        voucherUsed: null, 
+        voucherDiscount: 0, discount: 0, price: 0, subTotal: 0, 
+        assetId: null, assetTypeId: null, assetList: [], 
+        busyEmployees: [], employeeList: [], employeeId: []
+      }] ])
     }
   
 
@@ -205,6 +227,19 @@ const NewAppointment = (props:any) => {
           setCustomerList(parsed);
         }catch(err:any) { toast.error(err.message) }
     }
+
+    const onCustomerChange = async (id: any) => {
+      try {
+        const vouchers = await fetch(`${VOUCHER_PURCHASED_API_URL}?customerId=${id}`)
+        const parsed = await vouchers.json();
+        
+        const list = parsed.filter((item:any) => item.remainingVoucher > 0).map((item:any) => {
+          item.voucher.services = item.voucher?.services?.map((s: any) => s.serviceId) || [];
+          return item.voucher;
+        });
+        setVoucherList(list);
+      }catch(err:any) { toast.error(err.message) }
+    }
   
     const filterEmployeesAndServices = () => {
       const time: number = +startTime?.split(":")[0]
@@ -267,7 +302,7 @@ const NewAppointment = (props:any) => {
           "serviceDuration": 60,
           "defaultPrice": 50,
           "_id": "67fcbfc92e5d5efc267985b1"
-      }], duration: "60", couponList: [], couponUsed: null, discount: 0, price: 0, subTotal: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}]
+      }], duration: "60", couponList: [], couponUsed: null, voucherUsed: null, voucherDiscount: 0, discount: 0, price: 0, subTotal: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}]
       ]
       // console.log(data);
       // return;
@@ -427,7 +462,7 @@ const NewAppointment = (props:any) => {
                           height: paxIndex === selectedTab ? "100%" : "0"
                           }}>
                           {/* <h1> Person {paxIndex + 1} </h1> */}
-                          <PaxServiceList control={control} paxIndex={paxIndex} register={register} errors={errors} watch={watch} setValue={setValue} startTime={startTime} serviceList={serviceList} allServiceList={allServiceList} employeeList={employeeList} getNextTimeSlot={getNextTimeSlot} />
+                          <PaxServiceList control={control} paxIndex={paxIndex} register={register} errors={errors} watch={watch} setValue={setValue} startTime={startTime} serviceList={serviceList} allServiceList={allServiceList} employeeList={employeeList} voucherList={voucherList} getNextTimeSlot={getNextTimeSlot} />
                         </div>
                       ))}
                       

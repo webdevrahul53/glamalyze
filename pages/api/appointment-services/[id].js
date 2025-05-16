@@ -3,6 +3,7 @@ import { connectDB } from "@/core/db";
 import { Appointments } from "../../../core/model/appointments";
 import { AppointmentServices } from "../../../core/model/appointment-services";
 import { AppointmentPax } from "../../../core/model/appointment-pax";
+import { VoucherPurchased } from "../../../core/model/voucher-purchased";
 
 export default async function handler(req, res) {
   await connectDB();
@@ -86,6 +87,27 @@ export default async function handler(req, res) {
 
         for (const service of pax) {
           if(service.serviceId) {
+            try {
+              if (service.voucherUsed && appointment.taskStatus === "Completed") {
+                const voucher = await VoucherPurchased.findOneAndUpdate(
+                  { voucherId: service.voucherUsed, remainingVoucher: { $gt: 0 } },
+                  { $inc: { remainingVoucher: -1 } },
+                  { new: true, session }
+                ).exec();
+
+                if (!voucher) {
+                    res.status(500).json({ message: "Voucher is either invalid or has no remaining uses." });
+                    await session.abortTransaction();
+                    session.endSession();
+                    return;
+                }
+              }
+            } catch (error) {
+              res.status(500).json({ message: "Voucher is either invalid or has no remaining uses.", error });
+              await session.abortTransaction();
+              session.endSession();
+              return;
+            }
             const appointmentService = new AppointmentServices({
               _id: new mongoose.Types.ObjectId(),
               bookingId: appointment.bookingId,
@@ -98,7 +120,9 @@ export default async function handler(req, res) {
               assetId: service.assetId,
               duration: Number(service.duration),
               couponUsed: service.couponUsed,
+              voucherUsed: service.voucherUsed,
               price: service.price,
+              voucherDiscount: service.voucherDiscount,
               discount: service.discount,
               subTotal: service.subTotal,
               status: true,

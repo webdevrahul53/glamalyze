@@ -4,6 +4,7 @@ import { Appointments } from "../../../core/model/appointments";
 import { AppointmentServices } from "../../../core/model/appointment-services";
 import { AppointmentPax } from "../../../core/model/appointment-pax";
 import { randomUUID } from "crypto";
+import { VoucherPurchased } from "../../../core/model/voucher-purchased";
 
 export default async function handler(req, res) {
   await connectDB();
@@ -57,7 +58,7 @@ export default async function handler(req, res) {
         },
         { $project: { _id: 1, appointmentId: 1, bookingId: 1, start: 1, customer: 1, employee: 1, asset: 1, 
           serviceName: "$service.name", taskStatus: "$appointment.taskStatus", paymentStatus: "$appointment.paymentStatus", paymentMethod: "$appointment.paymentMethod",
-          duration: 1, price: 1, discount: 1, subTotal: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+          duration: 1, price: 1, voucherDiscount: 1, discount: 1, subTotal: 1, status: 1, createdAt: 1, updatedAt: 1 } },
           
         { $sort: { createdAt: -1 } },
         { $skip: skip },
@@ -119,6 +120,27 @@ export default async function handler(req, res) {
 
             for (const service of pax) {
               if(service.serviceId){
+                try {
+                  if (service.voucherUsed && appointment.taskStatus === "Completed") {
+                    const voucher = await VoucherPurchased.findOneAndUpdate(
+                      { voucherId: service.voucherUsed, remainingVoucher: { $gt: 0 } },
+                      { $inc: { remainingVoucher: -1 } },
+                      { new: true, session }
+                    ).exec();
+
+                    if (!voucher) {
+                        res.status(500).json({ message: "Voucher is either invalid or has no remaining uses." });
+                        await session.abortTransaction();
+                        session.endSession();
+                        return;
+                    }
+                  }
+                } catch (error) {
+                  res.status(500).json({ message: "Voucher is either invalid or has no remaining uses.", error });
+                  await session.abortTransaction();
+                  session.endSession();
+                  return;
+                }
                 const appointmentService = new AppointmentServices({
                     _id: new mongoose.Types.ObjectId(),
                     bookingId,
@@ -131,7 +153,9 @@ export default async function handler(req, res) {
                     assetId: service.assetId,
                     duration: Number(service.duration),
                     couponUsed: service.couponUsed,
+                    voucherUsed: service.voucherUsed,
                     price: service.price,
+                    voucherDiscount: service.voucherDiscount,
                     discount: service.discount,
                     subTotal: service.subTotal,
                     status: true,

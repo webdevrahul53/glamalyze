@@ -3,12 +3,12 @@ import { APPOINTMENT_SERVICES_API_URL, ASSETS_API_URL, COUPONS_API_URL } from ".
 import ServiceCard from "../common/servicd-card";
 import { Autocomplete, AutocompleteItem, Avatar, Card, CardHeader } from "@heroui/react";
 import { toast } from "react-toastify";
-import { CloseIcon } from "../utilities/svgIcons";
+import { CloseIcon, GiftIcon, GiftUnboxedIcon } from "../utilities/svgIcons";
 import React from "react";
 
   
 // Separate component to handle nested "serviceIds" array
-const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, startTime, serviceList, allServiceList, employeeList, getNextTimeSlot }: any) => {
+const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, startTime, serviceList, allServiceList, employeeList, voucherList, getNextTimeSlot }: any) => {
     const { fields: serviceFields, append: addService, remove: removeService } = useFieldArray({
       control,
       name: `pax.${paxIndex}`,
@@ -24,6 +24,7 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
       setValue(`pax.${paxIndex}.${serviceIndex}.serviceId`, id)
       setValue(`pax.${paxIndex}.${serviceIndex}.duration`, null)
       setValue(`pax.${paxIndex}.${serviceIndex}.couponUsed`, null)
+      setValue(`pax.${paxIndex}.${serviceIndex}.voucherUsed`, null)
       setValue(`pax.${paxIndex}.${serviceIndex}.assetId`, null)
       setValue(`pax.${paxIndex}.${serviceIndex}.employeeId`, [])
       setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, [])
@@ -39,6 +40,7 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
       try {
         const branchId = watch(`branchId`);
         const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
+        if(!branchId || !serviceId) return;
         const coupons = await fetch(`${COUPONS_API_URL}?branchId=${branchId}&serviceId=${serviceId}`)
         const parsed = await coupons.json();
         setValue(`pax.${paxIndex}.${serviceIndex}.couponList`, parsed || [])
@@ -65,12 +67,15 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
       const durationList = watch(`pax.${paxIndex}.${serviceIndex}.durationList`)
       const couponUsed = watch(`pax.${paxIndex}.${serviceIndex}.couponUsed`)
       const couponList = watch(`pax.${paxIndex}.${serviceIndex}.couponList`)
+      const voucherUsed = watch(`pax.${paxIndex}.${serviceIndex}.voucherUsed`)
       
       const price: any = durationList?.find((e: any) => +e.serviceDuration === +duration)?.defaultPrice;
-      const coupon = couponList?.find((item: any) => item._id === couponUsed);
+      const coupon =  couponList?.find((item: any) => item._id === couponUsed)
+      const voucher = voucherList?.find((item: any) => item._id === voucherUsed)
       const discount = coupon?.discountPercent ? Math.ceil((price * coupon.discountPercent) / 100) : 0;
-      const subTotal = price - discount;
+      const subTotal = price - discount - (voucher?.defaultPrice || 0);
 
+      setValue(`pax.${paxIndex}.${serviceIndex}.voucherDiscount`, voucher?.defaultPrice || 0);
       setValue(`pax.${paxIndex}.${serviceIndex}.discount`, discount);
       setValue(`pax.${paxIndex}.${serviceIndex}.price`, price);
       setValue(`pax.${paxIndex}.${serviceIndex}.subTotal`, subTotal);
@@ -126,6 +131,7 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
         const appointmentDate = new Date(watch("appointmentDate")).toISOString().split("T")[0]
         const assetTypeId = watch(`pax.${paxIndex}.${serviceIndex}.assetTypeId`)
         const branchId = watch(`branchId`)
+        if(!assetTypeId || !branchId || !duration) return;
         const branches = await fetch(`${ASSETS_API_URL}/available-assets?branchId=${branchId}&appointmentDate=${appointmentDate}&startTime=${time}&duration=${duration}&assetTypeId=${assetTypeId}`)
         const parsed = await branches.json();
         
@@ -182,6 +188,7 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
         {serviceFields.map((serviceField, serviceIndex) => {
           const subTotal = watch(`pax.${paxIndex}.${serviceIndex}.subTotal`)
           const discount = watch(`pax.${paxIndex}.${serviceIndex}.discount`)
+          const voucherDiscount = watch(`pax.${paxIndex}.${serviceIndex}.voucherDiscount`)
           const couponUsed = watch(`pax.${paxIndex}.${serviceIndex}.couponUsed`)
           const durationList = watch(`pax.${paxIndex}.${serviceIndex}.durationList`)
           const couponList = watch(`pax.${paxIndex}.${serviceIndex}.couponList`)
@@ -196,7 +203,13 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
           const selectedAsset = assetList?.find((item:any) => item._id === assetId);
           const serviceId = watch(`pax.${paxIndex}.${serviceIndex}.serviceId`)
           const employeeId: string[] = watch(`pax.${paxIndex}.${serviceIndex}.employeeId`)
-  
+
+          // vouchers
+          const availableVoucher = voucherList.find((item:any) => item.services.includes(serviceId))?._id
+          const voucherUsed: string = watch(`pax.${paxIndex}.${serviceIndex}.voucherUsed`)
+          const paxList: string[] = watch(`pax.${paxIndex}`)
+          const voucherClaimed: boolean = paxList.some((item:any) => item.voucherUsed)
+
           return <div key={serviceField.id} className="flex flex-col gap-2">
             {errors.pax?.[paxIndex]?.[serviceIndex] && (
               <p className="text-danger text-sm ms-2"> Required fields are mandatory </p>
@@ -259,7 +272,7 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
                 <select {...register(`pax.${paxIndex}.${serviceIndex}.couponUsed`)} value={couponUsed} className="w-full py-3 outline-none"
                   onChange={(item: any) => onCouponSelection(item, serviceIndex)}>
                   <option value="">Coupon</option>
-                  {couponList?.map((item:any, index: number) => <option key={index} value={item._id}>{item.couponName} ( {item.discountPercent} % )</option>)}
+                  {couponList?.length && couponList?.map((item:any, index: number) => <option key={index} value={item._id}>{item.couponName} ( {item.discountPercent} % )</option>)}
                 </select>
               </div>
               {/* <div className="w-1/2 border-2 rounded p-1">
@@ -318,10 +331,20 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
   
             
             <div className="flex items-start justify-between gap-2 px-2">
-              <button type="button" className="my-2" onClick={() => onServiceRemoved(serviceIndex)}>❌ Remove </button>
-              <div className="flex flex-col items-center gap-2">
+              <div>
+                {availableVoucher && !voucherClaimed && <div className="flex items-center gap-2 cursor-pointer text-green-800" onClick={() => {
+                  setValue(`pax.${paxIndex}.${serviceIndex}.voucherUsed`, availableVoucher)
+                  calculatePriceDiscount(serviceIndex)
+                }}><GiftIcon width={18} height={18} color={"darkgreen"} /> Redeem Voucher </div>}
+
+                {voucherUsed && <div className="flex items-center gap-2 text-gray-500"><GiftUnboxedIcon width={18} height={18} color={"gray"} /> Voucher Claimed </div>}
+
+                <button type="button" className="my-2" onClick={() => onServiceRemoved(serviceIndex)}>❌ Remove </button>
+              </div>
+              <div className="flex flex-col items-end gap-2">
                 <strong>Price - ฿ {price || 0}</strong>
                 <strong>Discount - ฿ {discount || 0}</strong>
+                {voucherDiscount > 0 && <strong>Voucher Discount - ฿ {voucherDiscount || 0}</strong>}
                 <strong>Sub Total - ฿ {subTotal || 0}</strong>
               </div>
             </div>

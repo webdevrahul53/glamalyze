@@ -6,7 +6,7 @@ import {
 import { CloseIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { COUPONS_API_URL, SERVICES_API_URL } from "../utilities/api-url";
+import { VOUCHERS_API_URL, SERVICES_API_URL } from "../utilities/api-url";
 import { useSelector } from "react-redux";
 import AvatarSelect from "../common/avatar-select";
 
@@ -16,8 +16,11 @@ const AddEditVouchers = (props: any) => {
     defaultValues: {
       voucherName: "",
       voucherBalance: 10,
-      status: true,
+      quantity: 0,
+      defaultPrice: 0,
+      amountToPay: 0,
       services: [{ serviceId: "", duration: "" }],
+      status: true,
     },
   });
 
@@ -29,7 +32,8 @@ const AddEditVouchers = (props: any) => {
   const [serviceList, setServiceList] = React.useState<any>([]);
   const [loading, setLoading] = React.useState(false);
   const [defaultPrice, setDefaultPrice] = React.useState<number>(0);
-  const [quantity, setQuantity] = React.useState<number>(0);
+
+  const quantity = watch(`quantity`);   
 
 
   React.useEffect(() => {
@@ -44,8 +48,10 @@ const AddEditVouchers = (props: any) => {
       reset({
         voucherName: "",
         voucherBalance: 10,
-        status: true,
+        quantity: 0,
+        amountToPay: 10,
         services: [{ serviceId: "", duration: "" }],
+        status: true,
       });
     }
     getServiceList();
@@ -64,7 +70,9 @@ const AddEditVouchers = (props: any) => {
   const onSubmit = async (data: any) => {
     try {
       setLoading(true);
-      const url = data._id ? `${COUPONS_API_URL}/${data._id}` : COUPONS_API_URL;
+      data.defaultPrice = defaultPrice;
+      data.amountToPay = defaultPrice * data.quantity;
+      const url = data._id ? `${VOUCHERS_API_URL}/${data._id}` : VOUCHERS_API_URL;
       const res = await fetch(url, {
         method: data._id ? "PATCH" : "POST",
         body: JSON.stringify(data),
@@ -107,10 +115,6 @@ const AddEditVouchers = (props: any) => {
 
 
                 {fields.map((field, index) => {
-                  const serviceId = watch(`services.${index}.serviceId`);   
-                  const selectedService = serviceList.find(
-                    (item: any) => item._id === serviceId
-                  );
 
                   return (
                     <div key={field.id} className="flex gap-3 items-center mb-2">
@@ -128,13 +132,14 @@ const AddEditVouchers = (props: any) => {
                         
                         <Controller control={control} name={`services.${index}.duration`} 
                           render={({ field }) => {
-                            const serviceId = control._formValues.services[index]?.serviceId;
+                            const serviceId = watch(`services.${index}.serviceId`);   
                             const variants = serviceList.find((s:any) => s._id === serviceId)?.variants || [];
 
                             return (
                               <select {...field} className="w-full outline-none border-0 p-3" 
                                 onChange={(e) => {
-                                  const selectedVariant = variants.find((v:any) => v._id === e.target.value);
+                                  const id = e.target.options[e.target.selectedIndex].id;
+                                  const selectedVariant = variants.find((v:any) => v._id === id);
                                   if (index === 0 && selectedVariant) {
                                     setDefaultPrice(selectedVariant.defaultPrice);
                                   }
@@ -143,7 +148,7 @@ const AddEditVouchers = (props: any) => {
                               >
                                 <option value="">Select Duration</option>
                                 {variants.map((v: any) => (
-                                  <option key={v._id} value={v._id}>
+                                  <option key={v._id} id={v._id} value={v.serviceDuration}>
                                     {v.serviceDuration}m (฿ {v.defaultPrice})
                                   </option>
                                 ))}
@@ -174,7 +179,7 @@ const AddEditVouchers = (props: any) => {
                   <div className="w-1/4 text-3xl border-3 rounded p-2 px-4">{defaultPrice}</div>
                   <div className="text-3xl">X</div>
                   <div className="w-1/4 text-3xl border-3 rounded p-2 px-4">
-                    <input type="text" style={{width: "100%"}} value={quantity} onChange={(event:any) => setQuantity(event.target.value)} />
+                    <input {...register("quantity", { required: true })} type="number" style={{width: "100%"}}  />
                   </div>
                   <div className="text-3xl">=</div>
                   <div className="w-1/4 text-3xl border-3 rounded p-2 px-4">{defaultPrice * quantity}</div>

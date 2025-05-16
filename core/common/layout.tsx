@@ -1,4 +1,4 @@
-import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, ListIcon, UserIcon, SettingIcon, UserGroupIcon, ChairIcon, CalendarOutlinedIcon, CouponIcon } from "@/core/utilities/svgIcons";
+import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, ListIcon, UserIcon, SettingIcon, UserGroupIcon, ChairIcon, CalendarOutlinedIcon, CouponIcon, VoucherIcon, VoucherPurchasedIcon } from "@/core/utilities/svgIcons";
 import Logo from "@/public/logo.svg";
 import Image from 'next/image'
 import Link from "next/link";
@@ -48,7 +48,8 @@ export default function Layout(props:any) {
         <ListboxWrapper Icon={CalendarIcon} href={"/bookings"} title="Bookings" />
         <ListboxWrapper Icon={CalendarOutlinedIcon} href={"/shifts"} title="Shifts" />
         <ListboxWrapper Icon={CouponIcon} href={"/coupons"} title="Coupons" />
-        <ListboxWrapper Icon={CouponIcon} href={"/vouchers"} title="Vourchers" />
+        <ListboxWrapper Icon={VoucherIcon} href={"/vouchers"} title="Vourchers" />
+        <ListboxWrapper Icon={VoucherPurchasedIcon} href={"/voucher-purchased"} title="Vourcher Purchased" />
         <ListboxWrapper Icon={SettingIcon} href={"/roster"} title="Roster" />
         
         <Accordion className="accordian flex flex-col gap-1 p-0" showDivider={false} variant="bordered" >
