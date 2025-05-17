@@ -23,7 +23,7 @@ export default async function handler(req, res) {
               serviceId: { $in: [new mongoose.Types.ObjectId(serviceId)] }
             }
           },
-          { $project: { _id: 1, branchId: 1, serviceId: 2, couponName: 1, discountPercent: 1, validFrom: 1, validTo: 1, status:1, createdAt: 1, updatedAt: 1 } },
+          { $project: { _id: 1, branchId: 1, serviceId: 1, couponName: 1, discountPercent: 1, discountAmount: 1, validFrom: 1, validTo: 1, status: 1, createdAt: 1, updatedAt: 1 } },
         ])
         res.status(200).json(result)
       }else {
@@ -33,7 +33,9 @@ export default async function handler(req, res) {
           { $match: { $or: [ 
             { couponName: { $regex: searchQuery, $options: "i" } }, 
           ]} },
-          { $project: { _id: 1, branchId: 1, serviceId: 2, couponName: 1, discountPercent: 1, validFrom: 1, validTo: 1, status:1, createdAt: 1, updatedAt: 1 } },
+          { $project: { _id: 1, branchId: 1, serviceId: 2, couponName: 1, discountPercent: 1, discountAmount: 1,
+            discount: { $cond: { if: { $gt: ["$discountPercent", 0] }, then: { $concat: [{ $toString: "$discountPercent" }, " %"] }, else: { $concat: ["฿ ", { $toString: "$discountAmount" }] } } }, 
+            validFrom: 1, validTo: 1, status:1, createdAt: 1, updatedAt: 1 } },
           { $skip: skip },
           { $limit: limit }
         ])
@@ -60,6 +62,7 @@ export default async function handler(req, res) {
       serviceId:req.body.serviceId,
       couponName:req.body.couponName,
       discountPercent:Number(req.body.discountPercent),
+      discountAmount:Number(req.body.discountAmount),
       validFrom:req.body.validFrom,
       validTo:req.body.validTo,
       status:req.body.status
@@ -74,6 +77,7 @@ export default async function handler(req, res) {
                 serviceId:coupon.serviceId,
                 couponName:coupon.couponName,
                 discountPercent:coupon.discountPercent,
+                discountAmount:coupon.discountAmount,
                 validFrom:coupon.validFrom,
                 validTo:coupon.validTo,
                 status:coupon.status

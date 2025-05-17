@@ -72,7 +72,7 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
       const price: any = durationList?.find((e: any) => +e.serviceDuration === +duration)?.defaultPrice;
       const coupon =  couponList?.find((item: any) => item._id === couponUsed)
       const voucher = voucherList?.find((item: any) => item._id === voucherUsed)
-      const discount = coupon?.discountPercent ? Math.ceil((price * coupon.discountPercent) / 100) : 0;
+      const discount = coupon?.discountPercent ? Math.ceil((price * coupon.discountPercent) / 100) : (coupon?.discountAmount || 0);
       const subTotal = price - discount - (voucher?.defaultPrice || 0);
 
       setValue(`pax.${paxIndex}.${serviceIndex}.voucherDiscount`, voucher?.defaultPrice || 0);

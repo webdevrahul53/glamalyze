@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     try {
       const result = await Coupons.aggregate([
         { $match: { _id: new mongoose.Types.ObjectId(req.query["id"]) } },
-        { $project: { _id: 1, branch:1, serviceId: 1, couponName: 1, discountPercent: 1, validFrom: 1, validTo: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+        { $project: { _id: 1, branch:1, serviceId: 1, couponName: 1, discountPercent: 1, discountAmount: 1, validFrom: 1, validTo: 1, status: 1, createdAt: 1, updatedAt: 1 } },
       ])
       res.status(200).json(result[0] || null) 
     } catch (error) {

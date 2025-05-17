@@ -26,7 +26,7 @@ const AddEditCoupons = (props:any) => {
         }
         else {
           const branchId = user?.defaultBranch || branchList[0]?._id;
-          reset({branchId: [branchId], serviceId: [], couponName: null, discountPercent: 0, validFrom: null, validTo: null, status: true})
+          reset({branchId: [branchId], serviceId: [], couponName: null, discountPercent: 0, discountAmount: 0, validFrom: null, validTo: null, status: true})
         }
         getBranchList();
         getServiceList();
@@ -107,7 +107,8 @@ const AddEditCoupons = (props:any) => {
                     /> : <></>}
 
                     <Input {...register("couponName", {required: true})} label="Coupon Name" placeholder="Enter Coupon Name" type="text" variant="flat" isRequired />
-                    <Input {...register("discountPercent", {required: true})} label="Discount %" placeholder="Enter Discount" type="number" variant="flat" isRequired />
+                    <Input {...register("discountPercent")} label="Discount %" placeholder="Enter Discount Percent" type="number" variant="flat" />
+                    <Input {...register("discountAmount")} label="Discount ฿" placeholder="Enter Discount Amount" type="number" variant="flat" />
 
                     <div className="flex items-center gap-2">
                       <Controller name="validFrom" control={control}

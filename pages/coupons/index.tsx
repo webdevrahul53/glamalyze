@@ -56,7 +56,7 @@ const columns = [
   // {name: "SERVICE", uid: "service"},
   {name: "NAME", uid: "couponName"},
   // {name: "STAFFS", uid: "groupEmployees"},
-  {name: "Discount ( % )", uid: "discountPercent"},
+  {name: "Discount", uid: "discount"},
   {name: "VALID FROM", uid: "validFrom"},
   {name: "VALID TO", uid: "validTo"},
   // {name: "CREATED AT", uid: "createdAt"},
