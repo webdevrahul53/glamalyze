@@ -1,20 +1,20 @@
 import { Avatar, Select, SelectItem } from '@heroui/react'
 import React from 'react'
 
-type propsType = {field:any, data:any, label:string, keyName: string, onChange?: any, disabledKeys?: any[], showStatus?: boolean, isRequired?: boolean, endContent?: any}
+type propsType = {field?:any, data:any, label:string, keyName: string, onChange?: any, disabledKeys?: any[], showStatus?: boolean, isRequired?: boolean, endContent?: any}
 
 export default function AvatarSelect({field, data = [], label, keyName, onChange, disabledKeys = [], showStatus = false, isRequired = false, endContent = <></>}: propsType) {
     
   return (
     <Select
-        className={field.value ? "avatar-select-label-css": ""}
+        className={field?.value ? "avatar-select-label-css": ""}
         {...field} isRequired={isRequired}
         endContent={endContent}
         items={data}
         label={label}
         placeholder={"Select " + label}
         disabledKeys={disabledKeys?.map((item: any) => item.employeeId)}
-        selectedKeys={field.value ? [field.value] : []}
+        selectedKeys={field?.value ? [field?.value] : []}
         onSelectionChange={(keys) => {field.onChange([...keys][0]); onChange && onChange([...keys][0])}}
         renderValue={(items:any) =>
         items?.map((item:any) => (
