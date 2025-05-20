@@ -63,3 +63,17 @@ body {
 .hide-time .rbc-event-label {
   display: none; /* Hides start & end times */
 }
+
+
+
+/* Sidebar Accordion */
+.border-medium {
+  border-radius: 0;
+  margin-bottom: 5px;
+  /* border: none;
+  background-color: lightgray; */
+  button {
+    padding: 10px 0;
+    outline: none;
+  }
+}

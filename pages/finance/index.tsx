@@ -4,7 +4,16 @@ import { BRANCH_API_URL, DASHBOARD_API_URL } from "@/core/utilities/api-url";
 import { Progress, Select, SelectItem } from "@heroui/react";
 import React from "react";
 import { toast } from "react-toastify";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+
+const COLORS = ["#00C49F", "#FFBB28", "#FF8042", "#0088FE"];
+const pieData = [
+  { name: "Chrome", value: 65 },
+  { name: "Firefox", value: 15 },
+  { name: "Safari", value: 10 },
+  { name: "Edge", value: 10 },
+];
+
 
 const CardLayout = ({title, value}: {title: string, value: string}) => (
   <section className="w-1/6 p-6 bg-white rounded border-2">
@@ -21,15 +30,37 @@ const BarChartComponent = (props:any) => {
         <XAxis dataKey="name" />
         <YAxis />
         <Tooltip />
-        <Bar dataKey="appointment" fill="#8884d8" />
+        <Bar dataKey="sales" fill="#8884d8" />
       </BarChart>
     </ResponsiveContainer>
   );
 };
 
+const PieChartComponent = () => {
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <PieChart>
+        <Pie
+          data={pieData}
+          cx="50%"
+          cy="50%"
+          outerRadius={100}
+          fill="#8884d8"
+          dataKey="value"
+          label
+        >
+          {pieData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+};
 
 
-export default function Home() {
+export default function Finance() {
 
   const [loading, setLoading] = React.useState(false);
   const [branchList, setBranchList] = React.useState<any>([]);
@@ -45,7 +76,7 @@ export default function Home() {
     try {
       setLoading(true)
       const query = branchId ? `?branchId=${branchId}` : "";
-      const services = await fetch(`${DASHBOARD_API_URL}${query}`);
+      const services = await fetch(`${DASHBOARD_API_URL}/finance${query}`);
       const parsed = await services.json();
       console.log(parsed);
       
@@ -86,19 +117,17 @@ export default function Home() {
       {loading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
       {/* <h1 className="text-4xl">Dashboard</h1> */}
       <section className="flex gap-4 my-6">
-        <CardLayout title="Appointment" value={dashboardData?.appointment || 0}></CardLayout>
-        <CardLayout title="Vouchers Sold" value={dashboardData?.voucher || 0}></CardLayout>
-        {/* <CardLayout title="Total Revenue" value={`฿ ${dashboardData?.revenue || 0}`}></CardLayout> */}
-        {/* <CardLayout title="Users" value={dashboardData?.users || 0}></CardLayout> */}
-        <CardLayout title="Therapist" value={dashboardData?.employees || 0}></CardLayout>
-        {/* <CardLayout title="Product Sales" value="฿0.00"></CardLayout> */}
+        <CardLayout title="Total Customers" value={dashboardData?.customers || 0}></CardLayout>
+        <CardLayout title="Returning Customers" value={dashboardData?.returningCustomerCount || 0}></CardLayout>
+        <CardLayout title="Transactions" value={`฿ ${dashboardData?.revenue || 0}`}></CardLayout>
+        {/* <CardLayout title="Returns & Refunds" value={`฿ ${dashboardData?.revenue || 0}`}></CardLayout> */}
       </section>
       <section className="flex">
         <div className="w-2/3">
-          <BarChartComponent data={dashboardData?.monthWiseAppointmentData || []} />
+          <BarChartComponent data={dashboardData?.revenueBarData || []} />
         </div>
         <div className="w-1/3">
-        {/* <PieChartComponent /> */}
+        <PieChartComponent />
         </div>
       </section>
       {/* <DataGrid /> */}

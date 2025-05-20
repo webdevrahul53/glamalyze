@@ -23,7 +23,7 @@ export default async function handler(req, res) {
         const userCount = Users.countDocuments();
         const employeeCount = Employees.countDocuments();
 
-        const revenuePromise = AppointmentServices.aggregate([
+        const monthlyAppointmentCount = AppointmentServices.aggregate([
             { $lookup: { from: "appointments", localField: "appointmentId", foreignField: "_id", as: "appointment", },  },
             { $unwind: { path: "$appointment", preserveNullAndEmptyArrays: true, }, },
             {
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
             {
             $group: {
                 _id: { $month: "$appointmentDate" },
-                totalSales: { $sum: "$price" }
+                totalAppointments: { $sum: 1 }
             }
             },
             {
@@ -42,23 +42,23 @@ export default async function handler(req, res) {
             }
         ]);
 
-        const [voucher, users, employees, appointment, totalRevenue] = await Promise.all([
+        const [voucher, users, employees, appointment, monthlyAppointment] = await Promise.all([
             voucherCount,
             userCount,
             employeeCount,
             appointmentCount,
-            revenuePromise
+            monthlyAppointmentCount
         ]);
 
-        const revenue = totalRevenue.reduce((acc, item) => acc + item.totalSales, 0);
-        const revenueBarData = totalRevenue.map(item => ({
-            name: monthNames[item._id - 1],
-            sales: item.totalSales
+        const monthWiseAppointmentData = monthlyAppointment.map(item => ({
+          name: monthNames[item._id - 1],
+          appointment: item.totalAppointments
         }));
+        
 
         res.status(200).json({
             status: 1,
-            data: { voucher, users, employees, appointment, revenueBarData, revenue }
+            data: { voucher, users, employees, appointment, monthWiseAppointmentData }
         });
 
     } catch (err) {
