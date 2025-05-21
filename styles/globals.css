@@ -67,7 +67,7 @@ body {
 
 
 /* Sidebar Accordion */
-.border-medium {
+.sidebar .border-medium {
   border-radius: 0;
   margin-bottom: 5px;
   /* border: none;
