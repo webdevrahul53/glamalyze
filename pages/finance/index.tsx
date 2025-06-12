@@ -36,12 +36,12 @@ const BarChartComponent = (props:any) => {
   );
 };
 
-const PieChartComponent = () => {
+const PieChartComponent = (props:any) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
         <Pie
-          data={pieData}
+          data={props?.data || []}
           cx="50%"
           cy="50%"
           outerRadius={100}
@@ -49,7 +49,7 @@ const PieChartComponent = () => {
           dataKey="value"
           label
         >
-          {pieData.map((entry, index) => (
+          {props?.data?.map((entry:any, index: number) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
@@ -119,15 +119,19 @@ export default function Finance() {
       <section className="flex gap-4 my-6">
         <CardLayout title="Total Customers" value={dashboardData?.customers || 0}></CardLayout>
         <CardLayout title="Returning Customers" value={dashboardData?.returningCustomerCount || 0}></CardLayout>
-        <CardLayout title="Transactions" value={`฿ ${dashboardData?.revenue || 0}`}></CardLayout>
+        <CardLayout title="Transactions" value={`${dashboardData?.transactions || 0}`}></CardLayout>
+        <CardLayout title="Gross Sales" value={`฿ ${dashboardData?.grossSales || 0}`}></CardLayout>
+        <CardLayout title="Net Sales" value={`฿ ${dashboardData?.netSales || 0}`}></CardLayout>
         {/* <CardLayout title="Returns & Refunds" value={`฿ ${dashboardData?.revenue || 0}`}></CardLayout> */}
       </section>
       <section className="flex">
         <div className="w-2/3">
           <BarChartComponent data={dashboardData?.revenueBarData || []} />
+          <h2 className="text-2xl text-center">Gross Sales Graph</h2>
         </div>
         <div className="w-1/3">
-        <PieChartComponent />
+          <PieChartComponent data={dashboardData?.paymentMethods || []} />
+          <h2 className="text-2xl text-center">Payment Methods</h2>
         </div>
       </section>
       {/* <DataGrid /> */}

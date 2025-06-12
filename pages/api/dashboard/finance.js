@@ -34,6 +34,26 @@ export default async function handler(req, res) {
             $count: "returningCustomers"
           }
         ]).then(result => (result.length > 0 ? result[0].returningCustomers : 0));
+        
+        const paymentMethodCountPromise = Appointments.aggregate([
+          {
+            $group: {
+              _id: "$paymentMethod",
+              count: { $sum: 1 }
+            }
+          }
+        ]).then(result => {
+            const paymentMethods = result.reduce((acc, item) => {
+            const method = item._id?.toLowerCase();
+            if (method) acc[method] = item.count || 0;
+            return acc;
+            }, { cash: 0, card: 0, transfer: 0 });
+
+            return Object.entries(paymentMethods).map(([key, value]) => ({
+              name: key.charAt(0).toUpperCase() + key.slice(1),
+              value,
+            }));
+        });
 
         const revenuePromise = AppointmentServices.aggregate([
             { $lookup: { from: "appointments", localField: "appointmentId", foreignField: "_id", as: "appointment", },  },
@@ -46,7 +66,9 @@ export default async function handler(req, res) {
             {
             $group: {
                 _id: { $month: "$appointmentDate" },
-                totalSales: { $sum: "$price" }
+                transactions: { $sum: { $cond: [{ $ifNull: ["$appointment.bookingId", false] }, 1, 0] } },
+                grossSales: { $sum: "$price" },
+                netSales: { $sum: "$subTotal" },
             }
             },
             {
@@ -54,21 +76,24 @@ export default async function handler(req, res) {
             }
         ]);
 
-        const [customers, returningCustomerCount, totalRevenue] = await Promise.all([
+        const [customers, returningCustomerCount, paymentMethods, totalRevenue] = await Promise.all([
             customerCount,
             returningCustomerPromise,
+            paymentMethodCountPromise,
             revenuePromise,
         ]);
 
-        const revenue = totalRevenue.reduce((acc, item) => acc + item.totalSales, 0);
+        const transactions = totalRevenue.reduce((acc, item) => acc + item.transactions, 0);
+        const grossSales = totalRevenue.reduce((acc, item) => acc + item.grossSales, 0);
+        const netSales = totalRevenue.reduce((acc, item) => acc + item.netSales, 0);
         const revenueBarData = totalRevenue.map(item => ({
             name: monthNames[item._id - 1],
-            sales: item.totalSales
+            sales: item.grossSales
         }));
 
         res.status(200).json({
             status: 1,
-            data: { customers, returningCustomerCount, revenueBarData, revenue }
+            data: { customers, returningCustomerCount, paymentMethods, revenueBarData, transactions, grossSales, netSales },
         });
 
     } catch (err) {
