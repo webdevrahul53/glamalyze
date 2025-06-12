@@ -7,13 +7,6 @@ import { toast } from "react-toastify";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const COLORS = ["#00C49F", "#FFBB28", "#FF8042", "#0088FE"];
-const pieData = [
-  { name: "Chrome", value: 65 },
-  { name: "Firefox", value: 15 },
-  { name: "Safari", value: 10 },
-  { name: "Edge", value: 10 },
-];
-
 
 const CardLayout = ({title, value}: {title: string, value: string}) => (
   <section className="w-1/6 p-6 bg-white rounded border-2">
