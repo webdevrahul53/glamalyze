@@ -1,4 +1,4 @@
-import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, ListIcon, UserIcon, SettingIcon, UserGroupIcon, ChairIcon, CalendarOutlinedIcon, CouponIcon, VoucherIcon, VoucherPurchasedIcon, FinanceIcon, PersonIcon } from "@/core/utilities/svgIcons";
+import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, ListIcon, UserIcon, SettingIcon, UserGroupIcon, ChairIcon, CalendarOutlinedIcon, CouponIcon, VoucherIcon, VoucherPurchasedIcon, FinanceIcon, PersonIcon, SaleSummaryIcon, SaleTrendsIcon } from "@/core/utilities/svgIcons";
 import Logo from "@/public/logo.svg";
 import Image from 'next/image'
 import Link from "next/link";
@@ -88,6 +88,7 @@ export default function Layout(props:any) {
           
           <ListboxWrapper Icon={DashboardIcon} href={"/"} title="Dashboard"/>
           <ListboxWrapper Icon={FinanceIcon} href={"/finance"} title="Finance Dashboard"/>
+          <ListboxWrapper Icon={SaleTrendsIcon} href={"/sales-summary"} title="Sales Summary"/>
           <Divider />
 
           <ListboxWrapper Icon={CodeBranch} href={"/branches"} title="Branches" />

@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       if(!req.query.page || !req.query.limit) {
         const result = await Customers.aggregate([
           { $addFields: { name: { $concat: ["$firstname", " ", "$lastname"] } } },
-          { $project: { _id: 1, image:1, name: 1, firstname:1, lastname:1, gender: 1, email:1, phonenumber:1, createdAt: 1} },
+          { $project: { _id: 1, image:1, name: 1, firstname:1, lastname:1, gender: 1, email:1, phonenumber:1, note: 1, createdAt: 1} },
         ])
         res.status(200).json(result)
       }else {
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
           { $match: { $or: [ 
             { name: { $regex: searchQuery, $options: "i" } }, 
           ]} },
-          { $project: { _id: 1, image:1, name: 1, firstname:1, lastname:1, gender: 1, email:1, phonenumber:1, status:1, createdAt: 1, updatedAt: 1 } },
+          { $project: { _id: 1, image:1, name: 1, firstname:1, lastname:1, gender: 1, email:1, phonenumber:1, note: 1, status:1, createdAt: 1, updatedAt: 1 } },
           { $skip: skip },
           { $limit: limit }
         ])
@@ -55,6 +55,7 @@ export default async function handler(req, res) {
       gender:req.body.gender,
       email:req.body.email,
       phonenumber:req.body.phonenumber,
+      note:req.body.note,
       status:req.body.status
     })
     customer.save().then(()=>{ 
@@ -69,6 +70,7 @@ export default async function handler(req, res) {
                 gender:customer.gender,
                 email:customer.email,
                 phonenumber:customer.phonenumber,
+                note:customer.note,
                 status:customer.status
             }
         })

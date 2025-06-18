@@ -1,7 +1,7 @@
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import React from "react";
 import { imageDb } from "../utilities/firebaseConfig";
-import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Radio, RadioGroup } from "@heroui/react";
+import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Radio, RadioGroup, Textarea } from "@heroui/react";
 import { ImageIcon, SaveIcon } from "../utilities/svgIcons";
 import { useForm, useWatch } from "react-hook-form";
 import { v4 } from "uuid";
@@ -10,7 +10,7 @@ import { CUSTOMERS_API_URL } from "../utilities/api-url";
 
 const AddEditCustomer = (props:any) => {
     const { register, handleSubmit, setValue, control, reset } = useForm({
-      defaultValues: {image: null, firstname: "", lastname: "", gender: "male", email: null, phonenumber: null, status: true}
+      defaultValues: {image: null, firstname: "", lastname: "", gender: "male", email: null, phonenumber: null, note: null, status: true}
     });
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false)
@@ -23,7 +23,7 @@ const AddEditCustomer = (props:any) => {
             reset(props.customer)
             setImagePreview(props.customer.image)
         }
-        else reset({image: null, firstname:"", lastname: "", email: null, phonenumber: null, gender: "male", status: true})
+        else reset({image: null, firstname:"", lastname: "", email: null, phonenumber: null, note: null, gender: "male", status: true})
     }, [props.customer])
 
     const onSubmit = async (data:any) => {
@@ -118,6 +118,9 @@ const AddEditCustomer = (props:any) => {
                       <Radio {...register("gender")} value="female">Female</Radio>
                       <Radio {...register("gender")} value="other">Other</Radio>
                     </RadioGroup>
+
+                    <Textarea {...register("note")} label="Note" placeholder="Enter Note" />
+
                     {/* <Checkbox {...register("status")} color="primary"> Active </Checkbox> */}
                     
                     
