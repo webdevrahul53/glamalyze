@@ -4,9 +4,9 @@ import { BRANCH_API_URL, DASHBOARD_API_URL } from "@/core/utilities/api-url";
 import { Progress, Select, SelectItem } from "@heroui/react";
 import React from "react";
 import { toast } from "react-toastify";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 
-const COLORS = ["#00C49F", "#FFBB28", "#FF8042", "#0088FE"];
+// const COLORS = ["#00C49F", "#FFBB28", "#FF8042", "#0088FE"];
 
 const LineChartComponent = (props: any) => {
   return (
