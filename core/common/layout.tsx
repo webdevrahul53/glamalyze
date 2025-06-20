@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect } from 'react'
-import {Accordion, AccordionItem, Avatar, Button, Divider, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger} from "@heroui/react";
+import {Accordion, AccordionItem, Avatar, Divider, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger} from "@heroui/react";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "../redux/userSlice/userSlice";
 
@@ -88,7 +88,8 @@ export default function Layout(props:any) {
           
           <ListboxWrapper Icon={DashboardIcon} href={"/"} title="Dashboard"/>
           <ListboxWrapper Icon={FinanceIcon} href={"/finance"} title="Finance Dashboard"/>
-          <ListboxWrapper Icon={SaleTrendsIcon} href={"/sales-summary"} title="Sales Summary"/>
+          <ListboxWrapper Icon={SaleSummaryIcon} href={"/sales-summary"} title="Sales Summary"/>
+          <ListboxWrapper Icon={SaleTrendsIcon} href={"/sales-trends"} title="Sales Trends"/>
           <Divider />
 
           <ListboxWrapper Icon={CodeBranch} href={"/branches"} title="Branches" />

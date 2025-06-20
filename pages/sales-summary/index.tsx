@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import DataGrid from "@/core/common/data-grid";
 import { BRANCH_API_URL, DASHBOARD_API_URL } from "@/core/utilities/api-url";
-import { Progress, Select, SelectItem } from "@heroui/react";
+import { DateRangePicker, Progress, Select, SelectItem } from "@heroui/react";
 import React from "react";
 import { toast } from "react-toastify";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
@@ -40,17 +40,26 @@ export default function SalesSummary() {
   const [loading, setLoading] = React.useState(false);
   const [branchList, setBranchList] = React.useState<any>([]);
   const [dashboardData, setDashboardData] = React.useState<any>(null);
+  const [selectedBranch, setSelectedBranch] = React.useState<string | null>(null);
+  const [startDate, setStartDate] = React.useState<Date | null>(new Date("2025-04-01"));
+  const [endDate, setEndDate] = React.useState<Date | null>(new Date("2025-06-30")); // Default to current month
 
   React.useEffect(() => { 
-    getDashboardData();
     getBranchList()
   }, [])
+
+  React.useEffect(() => {
+    if (startDate && endDate) {
+      getDashboardData(selectedBranch, startDate, endDate);
+    }
+  }, [selectedBranch, startDate, endDate]);
   
 
-  const getDashboardData = async (branchId: any = null) => {
+  const getDashboardData = async (branchId: any = null, startDate:any, endDate: any) => {
     try {
       setLoading(true)
-      const query = branchId ? `?branchId=${branchId}` : "";
+      const query = branchId 
+        ? `?branchId=${branchId}&startDate=${startDate}&endDate=${endDate}` : `?startDate=${startDate}&endDate=${endDate}`;
       const services = await fetch(`${DASHBOARD_API_URL}/sales-summary${query}`);
       const parsed = await services.json();
       console.log(parsed);
@@ -77,13 +86,20 @@ export default function SalesSummary() {
 
   return (
     <div style={{padding: "20px 40px 20px 30px"}}>
-      <Select label="Select Branch" placeholder="Choose a branch" variant="faded" className="max-w-xs mb-4" onChange={(e) => getDashboardData(e.target.value)} >
-        {branchList.map((item:any) => (
-          <SelectItem key={item._id} value={item._id}>
-            {item.branchname}
-          </SelectItem>
-        ))}
-      </Select>
+      <section className="flex gap-4 mb-6">
+        <Select label="Select Branch" placeholder="Choose a branch" variant="faded" className="max-w-xs mb-4" 
+        onChange={(e) => setSelectedBranch(e.target.value)} >
+          {branchList.map((item:any) => (
+            <SelectItem key={item._id} value={item._id}>
+              {item.branchname}
+            </SelectItem>
+          ))}
+        </Select>
+        
+        <DateRangePicker variant="faded" className="w-60" label="Date Range"
+            onChange={(range:any) => { setStartDate(range.start); setEndDate(range.end); }}
+          />
+      </section>
       {loading ? <Progress isIndeterminate aria-label="Loading..." size="sm" /> : <>
         <h2 className="text-xl text-center">Gross Sale By Date</h2>
         <LineChartComponent data={dashboardData?.revenueByDate || []} />

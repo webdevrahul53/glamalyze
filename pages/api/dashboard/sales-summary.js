@@ -8,16 +8,25 @@ export default async function handler(req, res) {
   if (req.method === "GET") {
     try {
         const branchId = req.query.branchId;
-        const matchStage = branchId
-        ? { "appointment.branchId": new mongoose.Types.ObjectId(branchId) }
-        : {};
+        const startDate = req.query.startDate ? new Date(req.query.startDate) : null;
+        const endDate = req.query.endDate ? new Date(req.query.endDate) : null;
+        
+        const matchStageRange = {
+          ...(branchId && { "appointment.branchId": new mongoose.Types.ObjectId(branchId) }),
+          ...(startDate && endDate && { 
+            "appointment.appointmentDate": { 
+              $gte: startDate, 
+              $lte: endDate 
+            } 
+          })
+        };
 
         const weekNames = ["Sun", "Mon", "Tue", "Wed", "Thurs", "Fri", "Sat"];
 
         const lookupFilter = [
           { $lookup: { from: "appointments", localField: "appointmentId", foreignField: "_id", as: "appointment", },  },
           { $unwind: { path: "$appointment", preserveNullAndEmptyArrays: true, }, },
-          matchStage ? { $match: matchStage } : {}
+          matchStageRange ? { $match: matchStageRange } : {}
         ]
 
         const totalSummaryPromise = AppointmentServices.aggregate([
