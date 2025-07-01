@@ -1,4 +1,4 @@
-import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, ListIcon, UserIcon, SettingIcon, UserGroupIcon, ChairIcon, CalendarOutlinedIcon, CouponIcon, VoucherIcon, VoucherPurchasedIcon, FinanceIcon, PersonIcon, SaleSummaryIcon, SaleTrendsIcon } from "@/core/utilities/svgIcons";
+import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, ListIcon, UserIcon, SettingIcon, UserGroupIcon, ChairIcon, CalendarOutlinedIcon, CouponIcon, VoucherIcon, VoucherPurchasedIcon, FinanceIcon, PersonIcon, SaleSummaryIcon, SaleTrendsIcon, TransactionIcon, HouseIcon } from "@/core/utilities/svgIcons";
 import Logo from "@/public/logo.svg";
 import Image from 'next/image'
 import Link from "next/link";
@@ -84,13 +84,28 @@ export default function Layout(props:any) {
             </AccordionItem>
           </Accordion> */}
 
-
           
           <ListboxWrapper Icon={DashboardIcon} href={"/"} title="Dashboard"/>
-          <ListboxWrapper Icon={FinanceIcon} href={"/finance"} title="Finance Dashboard"/>
-          <ListboxWrapper Icon={SaleSummaryIcon} href={"/sales-summary"} title="Sales Summary"/>
-          <ListboxWrapper Icon={SaleTrendsIcon} href={"/sales-trends"} title="Sales Trends"/>
-          <Divider />
+
+          <Accordion className="accordian flex flex-col gap-1 p-0" showDivider={false} variant="bordered"
+            selectedKeys={openAccordion ? [openAccordion] : []}
+            onSelectionChange={handleAccordionChange} >
+            <AccordionItem key="0" startContent={<FinanceIcon width={30} height={20} />} title="Finance">
+              <ListboxWrapper Icon={CircleDotIcon} href={"/finance"} title="Home"/>
+              <ListboxWrapper Icon={ServicesIcon} href={"#"} title="Items"/>
+              <ListboxWrapper Icon={TransactionIcon} href={"#"} title="Transactions"/>
+            </AccordionItem>
+          </Accordion>
+
+          
+          <Accordion className="accordian flex flex-col gap-1 p-0" showDivider={false} variant="bordered"
+            selectedKeys={openAccordion ? [openAccordion] : []}
+            onSelectionChange={handleAccordionChange} >
+            <AccordionItem key="1" startContent={<SaleTrendsIcon width={30} height={20} />} title="Reports">
+              <ListboxWrapper Icon={SaleSummaryIcon} href={"/sales-summary"} title="Sales Summary"/>
+              <ListboxWrapper Icon={SaleTrendsIcon} href={"/sales-trends"} title="Sales Trends"/>
+            </AccordionItem>
+          </Accordion>
 
           <ListboxWrapper Icon={CodeBranch} href={"/branches"} title="Branches" />
           <ListboxWrapper Icon={CalendarIcon} href={"/bookings"} title="Bookings" />
@@ -99,7 +114,7 @@ export default function Layout(props:any) {
           <Accordion className="accordian flex flex-col gap-1 p-0" showDivider={false} variant="bordered"
             selectedKeys={openAccordion ? [openAccordion] : []}
             onSelectionChange={handleAccordionChange} >
-            <AccordionItem key="1" startContent={<ServicesIcon width={30} height={20} />} title="Services">
+            <AccordionItem key="2" startContent={<ServicesIcon width={30} height={20} />} title="Services">
               <ListboxWrapper Icon={ListIcon} href={"/services"} title="List"/>
               <ListboxWrapper Icon={CircleDotIcon} href={"/services/categories"} title="Categories" />
             </AccordionItem>

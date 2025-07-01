@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import DataGrid from "@/core/common/data-grid";
 import { BRANCH_API_URL, DASHBOARD_API_URL } from "@/core/utilities/api-url";
-import { Progress, Select, SelectItem } from "@heroui/react";
+import { DateRangePicker, Progress, Select, SelectItem } from "@heroui/react";
 import React from "react";
 import { toast } from "react-toastify";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
@@ -58,18 +58,30 @@ export default function Finance() {
   const [loading, setLoading] = React.useState(false);
   const [branchList, setBranchList] = React.useState<any>([]);
   const [dashboardData, setDashboardData] = React.useState<any>(null);
+  const [selectedBranch, setSelectedBranch] = React.useState<string | null>(null);
+  const [startDate, setStartDate] = React.useState<Date | null>(new Date("2025-04-01"));
+  const [endDate, setEndDate] = React.useState<Date | null>(new Date("2025-06-30")); // Default to current month
 
   React.useEffect(() => { 
-    getDashboardData();
     getBranchList()
   }, [])
+
+  React.useEffect(() => {
+    if ((startDate && endDate) || selectedBranch) {
+      getDashboardData(selectedBranch, startDate, endDate);
+    }
+  }, [startDate, endDate, selectedBranch]);
   
 
-  const getDashboardData = async (branchId: any = null) => {
+  const getDashboardData = async (branchId: any = null, startDate:any, endDate: any) => {
     try {
       setLoading(true)
-      const query = branchId ? `?branchId=${branchId}` : "";
-      const services = await fetch(`${DASHBOARD_API_URL}/finance${query}`);
+      const query = branchId 
+        ? `?branchId=${branchId}&startDate=${startDate}&endDate=${endDate}` : `?startDate=${startDate}&endDate=${endDate}`;
+      const services = await fetch(`${DASHBOARD_API_URL}/finance${query}`, {
+        method: "POST",
+        body: JSON.stringify({ branchId: selectedBranch, startDate, endDate }),
+      });
       const parsed = await services.json();
       console.log(parsed);
       
@@ -99,32 +111,58 @@ export default function Finance() {
         <option value="">Select Branch</option>
         {branchList.map((item:any) => <option key={item._id} value={item._id}>{item.branchname}</option>)}
       </select> */}
-      
-      <Select label="Select Branch" placeholder="Choose a branch" variant="faded" className="max-w-xs mb-4" onChange={(e) => getDashboardData(e.target.value)} >
-        {branchList.map((item:any) => (
-          <SelectItem key={item._id} value={item._id}>
-            {item.branchname}
-          </SelectItem>
-        ))}
-      </Select>
+      <section className="flex gap-4 mb-2">
+        <Select label="Select Branch" placeholder="Choose a branch" variant="faded" className="max-w-xs mb-4" 
+        onChange={(e) => setSelectedBranch(e.target.value)} >
+          {branchList.map((item:any) => (
+            <SelectItem key={item._id} value={item._id}>
+              {item.branchname}
+            </SelectItem>
+          ))}
+        </Select>
+        
+        <DateRangePicker variant="faded" className="w-60" label="Date Range" onChange={(range:any) => { setStartDate(range.start); setEndDate(range.end); }} />
+      </section>
+
       {loading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
       {/* <h1 className="text-4xl">Dashboard</h1> */}
-      <section className="flex gap-4 my-6">
-        <CardLayout title="Total Customers" value={dashboardData?.customers || 0}></CardLayout>
-        <CardLayout title="Returning Customers" value={dashboardData?.returningCustomerCount || 0}></CardLayout>
-        <CardLayout title="Transactions" value={`${dashboardData?.transactions || 0}`}></CardLayout>
-        <CardLayout title="Gross Sales" value={`฿ ${dashboardData?.grossSales || 0}`}></CardLayout>
+      <section className="flex gap-4 mt-2">
         <CardLayout title="Net Sales" value={`฿ ${dashboardData?.netSales || 0}`}></CardLayout>
+        <CardLayout title="Gross Sales" value={`฿ ${dashboardData?.grossSales || 0}`}></CardLayout>
+        <CardLayout title="Transactions" value={`${dashboardData?.transactions || 0}`}></CardLayout>
+        <CardLayout title="Returns & Refunds" value={"0"}></CardLayout>
+        {/* <CardLayout title="Total Customers" value={dashboardData?.customers || 0}></CardLayout>
+        <CardLayout title="Returning Customers" value={dashboardData?.returningCustomerCount || 0}></CardLayout> */}
         {/* <CardLayout title="Returns & Refunds" value={`฿ ${dashboardData?.revenue || 0}`}></CardLayout> */}
       </section>
+
+      <section className="grid grid-cols-2 gap-3 my-6 w-4/5">
+        <div className="border-2 border-gray-500 p-2">
+          <h1 className="text-2xl text-primary mb-4">Customers</h1>
+          <h3>Total Customers :  <strong> {dashboardData?.customers || 0} </strong> </h3>
+          <h3>Returning Customers :  <strong> {dashboardData?.returningCustomerCount || 0} </strong> </h3>
+          <h3>Avg Spent Per Visit :  <strong>  </strong> </h3>
+        </div>
+        
+        <div className="border-2 border-gray-500 p-2">
+          <h1 className="text-2xl text-primary mb-4">Payment Methods</h1>
+          {dashboardData?.paymentMethods?.map((item:any) => (
+            <h3 key={item.name}>{item.name} : <strong> {item.value} </strong> </h3>
+          ))}
+        </div>
+
+      </section>
+
+
+      <br /><br /><br />
+      <h2 className="text-2xl text-center">Items by Gross Sales Graph</h2>
+      <BarChartComponent data={dashboardData?.revenueBarData || []} />
       <section className="flex">
         <div className="w-2/3">
-          <BarChartComponent data={dashboardData?.revenueBarData || []} />
-          <h2 className="text-2xl text-center">Gross Sales Graph</h2>
         </div>
         <div className="w-1/3">
-          <PieChartComponent data={dashboardData?.paymentMethods || []} />
-          <h2 className="text-2xl text-center">Payment Methods</h2>
+          {/* <PieChartComponent data={dashboardData?.paymentMethods || []} />
+          <h2 className="text-2xl text-center">Payment Methods</h2> */}
         </div>
       </section>
       {/* <DataGrid /> */}

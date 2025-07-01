@@ -7,18 +7,43 @@ import { Appointments } from "../../../core/model/appointments";
 export default async function handler(req, res) {
   await connectDB();
 
-  if (req.method === "GET") {
+  if (req.method === "POST") {
     try {
         const branchId = req.query.branchId;
-        // const matchStage = branchId
-        // ? { branchId: new mongoose.Types.ObjectId(branchId) }
-        // : {};
+        const startDate = req.query.startDate ? new Date(req.query.startDate) : null;
+        const endDate = req.query.endDate ? new Date(req.query.endDate) : null;
+
+        const matchStage = {
+          ...(branchId && { "appointment.branchId": new mongoose.Types.ObjectId(branchId) }),
+          ...(startDate && endDate && { 
+            "appointment.appointmentDate": { 
+              $gte: startDate, 
+              $lte: endDate 
+            } 
+          })
+        };
+
+
+        const dateFilter = {};
+        if (startDate) dateFilter.$gte = startDate;
+        if (endDate) dateFilter.$lte = endDate;
+
+        const appointmentMatchStage = {
+          ...branchId ? { branchId: new mongoose.Types.ObjectId(branchId) } : {},
+          ...Object.keys(dateFilter).length ? { appointmentDate: dateFilter } : {}
+        };
+
+        console.log(matchStage)
 
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
         const customerCount = Customers.countDocuments();
+        // if (Object.keys(matchStage).length > 0) {
+        //   customerCount.match(matchStage);
+        // }
         
         const returningCustomerPromise = Appointments.aggregate([
+          { $match: appointmentMatchStage },
           {
             $group: {
               _id: "$customerId",
@@ -36,6 +61,7 @@ export default async function handler(req, res) {
         ]).then(result => (result.length > 0 ? result[0].returningCustomers : 0));
         
         const paymentMethodCountPromise = Appointments.aggregate([
+          { $match: appointmentMatchStage },
           {
             $group: {
               _id: "$paymentMethod",
@@ -55,17 +81,16 @@ export default async function handler(req, res) {
             }));
         });
 
+        console.log(matchStage)
         const revenuePromise = AppointmentServices.aggregate([
             { $lookup: { from: "appointments", localField: "appointmentId", foreignField: "_id", as: "appointment", },  },
             { $unwind: { path: "$appointment", preserveNullAndEmptyArrays: true, }, },
-            {
-            $match: branchId
-                ? { "appointment.branchId": new mongoose.Types.ObjectId(branchId) }
-                : {} // fallback to no filtering
-            },
+            { $lookup: { from: "services", localField: "serviceId", foreignField: "_id", as: "services", },  },
+            { $unwind: { path: "$services", preserveNullAndEmptyArrays: true, }, },
+            { $match: matchStage },
             {
             $group: {
-                _id: { $month: "$appointmentDate" },
+                _id: "$services.name",
                 transactions: { $sum: { $cond: [{ $ifNull: ["$appointment.bookingId", false] }, 1, 0] } },
                 grossSales: { $sum: "$price" },
                 netSales: { $sum: "$subTotal" },
@@ -87,7 +112,7 @@ export default async function handler(req, res) {
         const grossSales = totalRevenue.reduce((acc, item) => acc + item.grossSales, 0);
         const netSales = totalRevenue.reduce((acc, item) => acc + item.netSales, 0);
         const revenueBarData = totalRevenue.map(item => ({
-            name: monthNames[item._id - 1],
+            name: item._id,
             sales: item.grossSales
         }));
 
