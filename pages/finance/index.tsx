@@ -4,9 +4,9 @@ import { BRANCH_API_URL, DASHBOARD_API_URL } from "@/core/utilities/api-url";
 import { DateRangePicker, Progress, Select, SelectItem } from "@heroui/react";
 import React from "react";
 import { toast } from "react-toastify";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
-const COLORS = ["#00C49F", "#FFBB28", "#FF8042", "#0088FE"];
+// const COLORS = ["#00C49F", "#FFBB28", "#FF8042", "#0088FE"];
 
 const CardLayout = ({title, value}: {title: string, value: string}) => (
   <section className="w-1/6 p-6 bg-white rounded border-2">
@@ -29,28 +29,28 @@ const BarChartComponent = (props:any) => {
   );
 };
 
-const PieChartComponent = (props:any) => {
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <PieChart>
-        <Pie
-          data={props?.data || []}
-          cx="50%"
-          cy="50%"
-          outerRadius={100}
-          fill="#8884d8"
-          dataKey="value"
-          label
-        >
-          {props?.data?.map((entry:any, index: number) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-        <Tooltip />
-      </PieChart>
-    </ResponsiveContainer>
-  );
-};
+// const PieChartComponent = (props:any) => {
+//   return (
+//     <ResponsiveContainer width="100%" height={300}>
+//       <PieChart>
+//         <Pie
+//           data={props?.data || []}
+//           cx="50%"
+//           cy="50%"
+//           outerRadius={100}
+//           fill="#8884d8"
+//           dataKey="value"
+//           label
+//         >
+//           {props?.data?.map((entry:any, index: number) => (
+//             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+//           ))}
+//         </Pie>
+//         <Tooltip />
+//       </PieChart>
+//     </ResponsiveContainer>
+//   );
+// };
 
 
 export default function Finance() {

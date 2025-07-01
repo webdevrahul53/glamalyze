@@ -35,7 +35,7 @@ export default async function handler(req, res) {
 
         console.log(matchStage)
 
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        // const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
         const customerCount = Customers.countDocuments();
         // if (Object.keys(matchStage).length > 0) {
