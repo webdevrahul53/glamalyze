@@ -15,7 +15,7 @@ export default function AvatarSelect({field, data = [], label, keyName, onChange
         placeholder={"Select " + label}
         disabledKeys={disabledKeys?.map((item: any) => item.employeeId)}
         selectedKeys={field?.value ? [field?.value] : []}
-        onSelectionChange={(keys) => {field.onChange([...keys][0]); onChange && onChange([...keys][0])}}
+        onSelectionChange={(keys) => {field?.onChange([...keys][0]); onChange && onChange([...keys][0])}}
         renderValue={(items:any) =>
         items?.map((item:any) => (
             <div key={item.key} className="flex items-center gap-2">

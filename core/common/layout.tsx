@@ -92,8 +92,8 @@ export default function Layout(props:any) {
             onSelectionChange={handleAccordionChange} >
             <AccordionItem key="0" startContent={<FinanceIcon width={30} height={20} />} title="Finance">
               <ListboxWrapper Icon={CircleDotIcon} href={"/finance"} title="Home"/>
-              <ListboxWrapper Icon={ServicesIcon} href={"#"} title="Items"/>
-              <ListboxWrapper Icon={TransactionIcon} href={"#"} title="Transactions"/>
+              <ListboxWrapper Icon={ServicesIcon} href={"/finance/items"} title="Items"/>
+              <ListboxWrapper Icon={TransactionIcon} href={"/finance/transactions"} title="Transactions"/>
             </AccordionItem>
           </Accordion>
 
@@ -102,8 +102,8 @@ export default function Layout(props:any) {
             selectedKeys={openAccordion ? [openAccordion] : []}
             onSelectionChange={handleAccordionChange} >
             <AccordionItem key="1" startContent={<SaleTrendsIcon width={30} height={20} />} title="Reports">
-              <ListboxWrapper Icon={SaleSummaryIcon} href={"/sales-summary"} title="Sales Summary"/>
-              <ListboxWrapper Icon={SaleTrendsIcon} href={"/sales-trends"} title="Sales Trends"/>
+              <ListboxWrapper Icon={SaleSummaryIcon} href={"/reports/sales-summary"} title="Sales Summary"/>
+              <ListboxWrapper Icon={SaleTrendsIcon} href={"/reports/sales-trends"} title="Sales Trends"/>
             </AccordionItem>
           </Accordion>
 
