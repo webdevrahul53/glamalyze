@@ -46,18 +46,18 @@ export default async function handler(req, res) {
              } },
         ]);
 
-        const [totalRevenue] = await Promise.all([
+        const [transactionsList] = await Promise.all([
             revenuePromise,
         ]);
 
-        const grossSales = totalRevenue.reduce((acc, item) => acc + item.price, 0);
-        const netSales = totalRevenue.reduce((acc, item) => acc + (item?.subTotal || 0), 0);
-        const transactions = totalRevenue.length;
+        const grossSales = transactionsList.reduce((acc, item) => acc + item.price, 0);
+        const netSales = transactionsList.reduce((acc, item) => acc + (item?.subTotal || 0), 0);
+        const transactions = transactionsList.length;
 
 
         res.status(200).json({
             status: 1,
-            data: {totalRevenue, grossSales, netSales, transactions},
+            data: {transactionsList, grossSales, netSales, transactions},
         });
 
     } catch (err) {

@@ -76,7 +76,7 @@ export default function Finance() {
       <section className="flex gap-4 mb-2">
         <Select label="Select Branch" placeholder="Choose a branch" variant="faded" className="max-w-xs mb-4" 
         onChange={(e) => setSelectedBranch(e.target.value)} >
-          {branchList.map((item:any) => (
+          {branchList?.map((item:any) => (
             <SelectItem key={item._id} value={item._id}>
               {item.branchname}
             </SelectItem>
@@ -95,8 +95,18 @@ export default function Finance() {
       {/* <h1 className="text-4xl">Dashboard</h1> */}
       <section className="flex gap-4 mt-2">
         <CardLayout title="Transactions" value={`${dashboardData?.transactions || 0}`}></CardLayout>
-        <CardLayout title="Gross Sales" value={`฿ ${dashboardData?.grossSales || 0}`}></CardLayout>
+        <CardLayout title="Total Collected" value={`฿ ${dashboardData?.grossSales || 0}`}></CardLayout>
         <CardLayout title="Net Sales" value={`฿ ${dashboardData?.netSales || 0}`}></CardLayout>
+      </section>
+
+
+      <section className="mt-4">
+        {dashboardData?.transactionsList?.map((transaction: any) => (
+          <div key={transaction._id} className="flex items-center justify-between p-2 border-t-2">
+            <div> <strong>{transaction.service.name}</strong> - <small className="text-gray-600">{transaction.branch.branchname}</small> </div>
+            <div>฿ {transaction.price.toFixed(2)}</div>
+          </div>
+        ))}
       </section>
 
 
