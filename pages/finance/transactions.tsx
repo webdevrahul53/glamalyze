@@ -23,28 +23,33 @@ export default function Finance() {
   const [branchList, setBranchList] = React.useState<any>([]);
   const [dashboardData, setDashboardData] = React.useState<any>(null);
   const [selectedBranch, setSelectedBranch] = React.useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = React.useState<string | null>(null);
+  const [status, setStatus] = React.useState<string | null>(null);
+
   const [startDate, setStartDate] = React.useState<any>(new Date("2025-04-01"));
   const [endDate, setEndDate] = React.useState<any>(new Date("2025-06-30")); // Default to current month
+
 
   React.useEffect(() => { 
     getBranchList()
   }, [])
 
   React.useEffect(() => {
-    if ((startDate && endDate) || selectedBranch) {
-      getDashboardData(selectedBranch, startDate, endDate);
-    }
-  }, [startDate, endDate, selectedBranch]);
+    getDashboardData();
+  }, [startDate, endDate, paymentMethod, status, selectedBranch]);
   
 
-  const getDashboardData = async (branchId: any = null, startDate:any, endDate: any) => {
+  const getDashboardData = async () => {
     try {
       setLoading(true)
       const stDate = startDate ? moment(startDate).format("YYYY-MM-DD") : null;
       const enDate = endDate ? moment(endDate).format("YYYY-MM-DD") : null;
       let query = "";
-      if (branchId) query += `?branchId=${branchId}`;
+      if (selectedBranch) query += `?branchId=${selectedBranch}`;
       if (startDate && endDate) query += `${query ? "&" : "?"}startDate=${stDate}&endDate=${enDate}`;
+      if (paymentMethod) query += `${query ? "&" : "?"}paymentMethod=${paymentMethod}`;
+      if (status) query += `${query ? "&" : "?"}status=${status}`;
+
       const services = await fetch(`${DASHBOARD_API_URL}/transactions${query}`);
 
       const parsed = await services.json();
@@ -74,7 +79,24 @@ export default function Finance() {
     <div style={{padding: "20px 40px 20px 30px"}}>
       
       <section className="flex gap-4 mb-2">
-        <Select label="Select Branch" placeholder="Choose a branch" variant="faded" className="max-w-xs mb-4" 
+        <DateRangePicker variant="faded" className="w-60" label="Date Range" onChange={(range:any) => { setStartDate(range.start); setEndDate(range.end); }} />
+
+        
+        <Select label={`${!paymentMethod ? "All " : ""}Payment Method`} variant="faded" className="w-60 mb-4" onChange={(e) => setPaymentMethod(e.target.value)} >
+          <SelectItem key="Cash">Cash</SelectItem>
+          <SelectItem key="Card">Card</SelectItem>
+          <SelectItem key="Transfer">Transfer</SelectItem>
+        </Select>
+
+        <Select label="Status" variant="faded" className="w-60 mb-4" onChange={(e) => setStatus(e.target.value)} >
+          <SelectItem key="Pending">Pending</SelectItem>
+          <SelectItem key="CheckedIn">CheckedIn</SelectItem>
+          <SelectItem key="CheckedOut">CheckedOut</SelectItem>
+          <SelectItem key="Completed">Completed</SelectItem>
+        </Select>
+        
+        
+        <Select label={`${!selectedBranch ? "All ": ""}Locations`} placeholder="Choose a branch" variant="faded" className="w-60 mb-4" 
         onChange={(e) => setSelectedBranch(e.target.value)} >
           {branchList?.map((item:any) => (
             <SelectItem key={item._id} value={item._id}>
@@ -82,8 +104,7 @@ export default function Finance() {
             </SelectItem>
           ))}
         </Select>
-        
-        <DateRangePicker variant="faded" className="w-60" label="Date Range" onChange={(range:any) => { setStartDate(range.start); setEndDate(range.end); }} />
+
       </section>
 
       <section className="p-2 my-5">
@@ -103,7 +124,7 @@ export default function Finance() {
       <section className="mt-4">
         {dashboardData?.transactionsList?.map((transaction: any) => (
           <div key={transaction._id} className="flex items-center justify-between p-2 border-t-2">
-            <div> <strong>{transaction.service.name}</strong> - <small className="text-gray-600">{transaction.branch.branchname}</small> </div>
+            <div> <strong>{transaction.service.name}</strong> ( {transaction.duration} min ) - <small className="text-gray-600">{transaction.branch.branchname}</small> </div>
             <div>฿ {transaction.price.toFixed(2)}</div>
           </div>
         ))}

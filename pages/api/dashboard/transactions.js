@@ -11,9 +11,13 @@ export default async function handler(req, res) {
         const branchId = req.query.branchId;
         const startDate = req.query.startDate ? new Date(req.query.startDate) : null;
         const endDate = req.query.endDate ? new Date(req.query.endDate) : null;
+        const paymentMethod = req.query.paymentMethod;
+        const taskStatus = req.query.status;
 
         const matchStage = {
           ...(branchId && { "appointment.branchId": new mongoose.Types.ObjectId(branchId) }),
+          ...(paymentMethod && { "appointment.paymentMethod": paymentMethod }),
+          ...(taskStatus && { "appointment.taskStatus": taskStatus }),
           ...(startDate && endDate && { 
             "appointment.appointmentDate": { 
               $gte: startDate, 
@@ -38,6 +42,8 @@ export default async function handler(req, res) {
                 branch: 1,
                 service: 1,
                 appointmentDate: "$appointment.appointmentDate",
+                paymentMethod: "$appointment.paymentMethod",
+                taskStatus: "$appointment.taskStatus",
                 duration: 1,
                 price: 1,
                 subTotal: 1,
