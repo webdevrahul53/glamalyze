@@ -113,8 +113,8 @@ export default function Finance() {
       <section className="flex gap-4 mb-2 w-3/5">
         
         <Input variant="faded" className="max-w-xs" label="Search" type="text" onChange={e => setSearchText(e.target.value)} />
-        <AvatarSelect data={branchList} label="Branch" keyName="branchname" field={{value: selectedBranch, onChange: (e:any) => setSelectedBranch(e?.target?.value || null)}}  />
         <AvatarSelect data={categoryList} label="Category" keyName="categoryname" field={{value: selectedCategory, onChange: (e:any) => setSelectedCategory(e?.target?.value || null)}} />
+        <AvatarSelect data={branchList} label="Branch" keyName="branchname" field={{value: selectedBranch, onChange: (e:any) => setSelectedBranch(e?.target?.value || null)}}  />
         
       </section>
       {loading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}      

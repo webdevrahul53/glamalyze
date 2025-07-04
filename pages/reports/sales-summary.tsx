@@ -13,7 +13,7 @@ const LineChartComponent = (props: any) => {
     <ResponsiveContainer width="100%" height={240}>
       <AreaChart data={props.data || []}>
         <XAxis dataKey="name" />
-        <YAxis />
+        <YAxis tickFormatter={(value) => `฿ ${value}`} />
         <Tooltip />
         <Area type="monotone" dataKey="sales" fill="#cdd2f3" dot={true} stroke="#8884d8" strokeWidth={3} />
       </AreaChart>
@@ -27,7 +27,7 @@ const BarChartComponent = (props:any) => {
     <ResponsiveContainer width="100%" height={240}>
       <BarChart data={props.data || []}>
         <XAxis dataKey="name" />
-        <YAxis />
+        <YAxis tickFormatter={(value) => `฿ ${value}`} />
         <Tooltip />
         <Bar dataKey="sales" fill="#8884d8" />
       </BarChart>
@@ -41,8 +41,8 @@ export default function SalesSummary() {
   const [branchList, setBranchList] = React.useState<any>([]);
   const [dashboardData, setDashboardData] = React.useState<any>(null);
   const [selectedBranch, setSelectedBranch] = React.useState<string | null>(null);
-  const [startDate, setStartDate] = React.useState<Date | null>(new Date("2025-04-01"));
-  const [endDate, setEndDate] = React.useState<Date | null>(new Date("2025-06-30")); // Default to current month
+  const [startDate, setStartDate] = React.useState<any>(new Date("2025-04-01"));
+  const [endDate, setEndDate] = React.useState<any>(new Date("2025-06-30")); // Default to current month
 
   React.useEffect(() => { 
     getBranchList()
@@ -87,7 +87,10 @@ export default function SalesSummary() {
   return (
     <div style={{padding: "20px 40px 20px 30px"}}>
       <section className="flex gap-4 mb-6">
-        <Select label="Select Branch" placeholder="Choose a branch" variant="faded" className="max-w-xs mb-4" 
+        <DateRangePicker variant="faded" className="w-60" label="Date Range"
+            onChange={(range:any) => { setStartDate(range.start); setEndDate(range.end); }}
+          />
+        <Select label={`${!selectedBranch ? "All ": ""}Locations`} placeholder="Choose a branch" variant="faded" className="max-w-xs mb-4" 
         onChange={(e) => setSelectedBranch(e.target.value)} >
           {branchList.map((item:any) => (
             <SelectItem key={item._id} value={item._id}>
@@ -95,11 +98,13 @@ export default function SalesSummary() {
             </SelectItem>
           ))}
         </Select>
-        
-        <DateRangePicker variant="faded" className="w-60" label="Date Range"
-            onChange={(range:any) => { setStartDate(range.start); setEndDate(range.end); }}
-          />
       </section>
+
+      <section className="p-2 my-5">
+        <div className="text-3xl">{`${new Date(startDate).toDateString()} - ${new Date(endDate).toDateString()}`}</div>
+        <p className="text-gray-500">All Day (00:00 - 00:00)</p>
+      </section>
+
       {loading ? <Progress isIndeterminate aria-label="Loading..." size="sm" /> : <>
         <h2 className="text-xl text-center">Gross Sale By Date</h2>
         <LineChartComponent data={dashboardData?.revenueByDate || []} />
@@ -116,29 +121,70 @@ export default function SalesSummary() {
         </section>
 
         <section className="">
-          <div className="flex justify-between items-center px-2 border-b-2">
-            <strong className="text-2xl">Gross Sales</strong>
+          <div className="text-lg font-bold p-2 border-b-2 border-gray-400">Sales</div>
+
+          <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
+            <strong className="text-lg">Gross Sales</strong>
             <span className="text-2xl"> ฿ {dashboardData?.totalSummary[0].grossSales.toFixed(2)} </span>
           </div>
-          <div className="flex justify-between items-center px-2 border-b-2">
-            <strong className="text-2xl">Net Sales</strong>
+          <ul className="ms-4">
+            <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
+              <span className="text-lg text-gray-400">Items</span>
+              <span className="text-2xl text-gray-400"> ฿ {dashboardData?.totalSummary[0].grossSales.toFixed(2)} </span>
+            </div>
+            <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
+              <span className="text-lg text-gray-400">Service Charge</span>
+              <span className="text-2xl text-gray-400"> ฿ 0.00 </span>
+            </div>
+          </ul>
+          <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
+            <span className="text-lg">Returns</span>
+            <span className="text-2xl"> ฿ 0.00 </span>
+          </div>
+          <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
+            <span className="text-lg">Discounts & Coupons</span>
+            <span className="text-2xl"> - ฿ {(dashboardData?.totalSummary[0].discount + dashboardData?.totalSummary[0].voucherDiscount).toFixed(2)} </span>
+          </div>
+          <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
+            <strong className="text-lg">Net Sales</strong>
             <span className="text-2xl"> ฿ {dashboardData?.totalSummary[0].netSales.toFixed(2)} </span>
           </div>
-          <div className="flex justify-between items-center px-2 border-b-2">
-            <strong className="text-2xl">Coupon Discount</strong>
-            <span className="text-2xl"> - ฿ {dashboardData?.totalSummary[0].discount.toFixed(2)} </span>
-          </div>
-          <div className="flex justify-between items-center px-2 border-b-2">
-            <strong className="text-2xl">Voucher Discount</strong>
-            <span className="text-2xl"> - ฿ {dashboardData?.totalSummary[0].voucherDiscount.toFixed(2)} </span>
-          </div>
-          <div className="flex justify-between items-center px-2 border-b-2">
-            <strong className="text-2xl">Taxes</strong>
+          <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
+            <span className="text-lg">Taxes</span>
             <span className="text-2xl"> - ฿ 0.00 </span>
           </div>
-          <div className="flex justify-between items-center px-2 border-b-2">
-            <strong className="text-2xl">Total Sales</strong>
+          <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
+            <strong className="text-lg">Total Sales</strong>
             <span className="text-2xl"> ฿ {dashboardData?.totalSummary[0].grossSales.toFixed(2)} </span>
+          </div>
+        </section>
+
+
+        
+        <section className="mt-6">
+          <div className="text-lg font-bold p-2 border-b-2 border-gray-400">Payment</div>
+
+          <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
+            <strong className="text-lg">Total Collected</strong>
+            <span className="text-2xl"> ฿ {(dashboardData?.paymentMethods.cash + dashboardData?.paymentMethods.card + dashboardData?.paymentMethods.transfer).toFixed(2)} </span>
+          </div>
+          <ul className="ms-4">
+            <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
+              <span className="text-lg text-gray-400">Cash</span>
+              <span className="text-2xl text-gray-400"> ฿ {dashboardData?.paymentMethods.cash.toFixed(2)} </span>
+            </div>
+            <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
+              <span className="text-lg text-gray-400">Others</span>
+              <span className="text-2xl text-gray-400"> ฿ {(dashboardData?.paymentMethods.card + dashboardData?.paymentMethods.transfer).toFixed(2)} </span>
+            </div>
+          </ul>
+          <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
+            <span className="text-lg">Fees</span>
+            <span className="text-2xl">฿ 0.00 </span>
+          </div>
+          <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
+            <strong className="text-lg">Net Total</strong>
+            <span className="text-2xl"> ฿ {(dashboardData?.paymentMethods.cash + dashboardData?.paymentMethods.card + dashboardData?.paymentMethods.transfer).toFixed(2)} </span>
           </div>
         </section>
         {/* <DataGrid /> */}

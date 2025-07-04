@@ -1,6 +1,7 @@
 import { connectDB } from "@/core/db";
 import { AppointmentServices } from "../../../core/model/appointment-services";
 import mongoose from "mongoose";
+import { Appointments } from "../../../core/model/appointments";
 
 export default async function handler(req, res) {
   await connectDB();
@@ -20,6 +21,15 @@ export default async function handler(req, res) {
             } 
           })
         };
+        
+        const dateFilter = {};
+        if (startDate) dateFilter.$gte = startDate;
+        if (endDate) dateFilter.$lte = endDate;
+
+        const appointmentMatchStage = {
+          ...branchId ? { branchId: new mongoose.Types.ObjectId(branchId) } : {},
+          ...Object.keys(dateFilter).length ? { appointmentDate: dateFilter } : {}
+        };
 
         const weekNames = ["Sun", "Mon", "Tue", "Wed", "Thurs", "Fri", "Sat"];
 
@@ -28,6 +38,24 @@ export default async function handler(req, res) {
           { $unwind: { path: "$appointment", preserveNullAndEmptyArrays: true, }, },
           matchStageRange ? { $match: matchStageRange } : {}
         ]
+
+        const paymentMethodCountPromise = Appointments.aggregate([
+          { $match: appointmentMatchStage },
+          {
+            $group: {
+              _id: "$paymentMethod",
+              count: { $sum: "$totalAmount" }
+            }
+          }
+        ]).then(result => {
+            const paymentMethods = result.reduce((acc, item) => {
+            const method = item._id?.toLowerCase();
+            if (method) acc[method] = item.count || 0;
+            return acc;
+            }, { cash: 0, card: 0, transfer: 0 });
+
+            return paymentMethods
+        });
 
         const totalSummaryPromise = AppointmentServices.aggregate([
           ...lookupFilter,
@@ -80,7 +108,7 @@ export default async function handler(req, res) {
         ]);
         
 
-        const [totalRevenueByDate, totalRevenueByWeek, totalRevenueByHour, totalSummary] = await Promise.all([ revenueByDatePromise, revenueByWeekPromise, revenueByHourPromise, totalSummaryPromise ]);
+        const [totalRevenueByDate, totalRevenueByWeek, totalRevenueByHour, totalSummary, paymentMethods] = await Promise.all([ revenueByDatePromise, revenueByWeekPromise, revenueByHourPromise, totalSummaryPromise, paymentMethodCountPromise ]);
 
         const revenueByDate = totalRevenueByDate.map(item => ({
             name: item._id,
@@ -99,7 +127,7 @@ export default async function handler(req, res) {
 
         res.status(200).json({
             status: 1,
-            data: { revenueByDate, revenueByWeek, revenueByHour, totalSummary },
+            data: { revenueByDate, revenueByWeek, revenueByHour, totalSummary, paymentMethods },
         });
 
     } catch (err) {
