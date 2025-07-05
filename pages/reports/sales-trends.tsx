@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import DataGrid from "@/core/common/data-grid";
 import { BRANCH_API_URL, DASHBOARD_API_URL } from "@/core/utilities/api-url";
+import { ArrowDownIcon, ArrowUpIcon } from "@/core/utilities/svgIcons";
 import { DateRangePicker, Progress, Select, SelectItem } from "@heroui/react";
 import moment from "moment";
 import React from "react";
 import { toast } from "react-toastify";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 // const COLORS = ["#00C49F", "#FFBB28", "#FF8042", "#0088FE"];
 
@@ -45,9 +46,9 @@ const HorizontalBarChartComponent = (props:any) => {
         margin={{ top: 20, right: 30, left: 40, bottom: 40 }}
       >
         <XAxis dataKey="name" /> {/* Categories at bottom */}
-        <YAxis /> {/* Net sales on left */}
+        <YAxis tickFormatter={(value) => `฿ ${value}`} /> {/* Net sales on left */}
         <Tooltip />
-        <Legend />
+        {/* <Legend /> */}
         <Bar dataKey="sales1" fill="#8884d8" name={name} />
         <Bar dataKey="sales2" fill="#82ca9d" name={name2} />
       </BarChart>
@@ -62,10 +63,17 @@ export default function SalesTrends() {
   const [branchList, setBranchList] = React.useState<any>([]);
   const [dashboardData, setDashboardData] = React.useState<any>(null);
   const [selectedBranch, setSelectedBranch] = React.useState<string | null>(null);
-  const [startDate, setStartDate] = React.useState<Date | null>(new Date("2025-04-01"));
-  const [endDate, setEndDate] = React.useState<Date | null>(new Date("2025-04-30")); // Default to current month
-  const [startDate2, setStartDate2] = React.useState<Date | null>(new Date("2025-05-1")); // Default to current month)); 
-  const [endDate2, setEndDate2] = React.useState<Date | null>(new Date("2025-05-31")); // Default to current month);
+  const [startDate, setStartDate] = React.useState<any>(new Date("2025-04-01"));
+  const [endDate, setEndDate] = React.useState<any>(new Date("2025-04-30")); // Default to current month
+  const [startDate2, setStartDate2] = React.useState<any>(new Date("2025-05-1")); // Default to current month)); 
+  const [endDate2, setEndDate2] = React.useState<any>(new Date("2025-05-31")); // Default to current month);
+
+
+  const [netSalesByDateSales1, setNetSalesByDateSales1] = React.useState(0)
+  const [netSalesByDateSales2, setNetSalesByDateSales2] = React.useState(0)
+  
+  const [grossSalesByDateSales1, setGrossSalesByDateSales1] = React.useState(0)
+  const [grossSalesByDateSales2, setGrossSalesByDateSales2] = React.useState(0)
 
 
   React.useEffect(() => {
@@ -87,8 +95,14 @@ export default function SalesTrends() {
       const services = await fetch(`${DASHBOARD_API_URL}/sales-trends${query}`);
       const parsed = await services.json();
       console.log(parsed);
-      
       setDashboardData(parsed.data);
+      setNetSalesByDateSales1(parsed?.data?.netSalesByDate?.range1?.map((e:any)=>e.sales).reduce((a:any,b:any) => +a+b, 0))
+      setNetSalesByDateSales2(parsed?.data?.netSalesByDate?.range2?.map((e:any)=>e.sales).reduce((a:any,b:any) => +a+b, 0))
+
+    
+      setGrossSalesByDateSales1(parsed?.data?.grossSalesByDate?.range1?.map((e:any)=>e.sales).reduce((a:any,b:any) => +a+b, 0))
+      setGrossSalesByDateSales2(parsed?.data?.grossSalesByDate?.range2?.map((e:any)=>e.sales).reduce((a:any,b:any) => +a+b, 0))
+
       setLoading(false)
     } catch (err: any) {
       setLoading(false)
@@ -132,11 +146,67 @@ export default function SalesTrends() {
 
       <section>
         {loading ? <Progress isIndeterminate aria-label="Loading..." size="sm" /> : <>
-          <h2 className="text-xl text-center">Net Sales By Date</h2>
+          <section className="px-6 mb-6">
+            <h2 className="text-xl font-bold">Net Sales By Date</h2>
+            <div className="flex items-center"> 
+              <small className="p-2 me-2" style={{backgroundColor: "#8884d8"}}></small> 
+              <span className="text-lg">{`${new Date(startDate).toDateString()} - ${new Date(endDate).toDateString()}`}</span>
+              <strong className="ms-2">฿ {netSalesByDateSales1}</strong>
+            </div>
+            <div className="flex items-center"> 
+              <small className="p-2 me-2" style={{backgroundColor: "#82ca9d"}}></small> 
+              <span className="text-lg">{`${new Date(startDate2).toDateString()} - ${new Date(endDate2).toDateString()}`}</span>
+              <strong className="ms-2">฿ {netSalesByDateSales2}</strong>
+            </div>
+            <div className={`text-center text-${netSalesByDateSales2 >= netSalesByDateSales1 ? "green":"red"}-800`}> 
+              <span className={`flex items-center justify-center gap-1 border-2 border-${netSalesByDateSales2 >= netSalesByDateSales1 ? "green":"red"}-800 rounded inline-flex py-1 p-2`}>
+                {netSalesByDateSales2 >= netSalesByDateSales1 ? 
+                <ArrowUpIcon width={30} height={20} color="darkgreen" />:
+                <ArrowDownIcon width={30} height={20} color="darkred" />}
+                <span> {(((netSalesByDateSales2 - netSalesByDateSales1) / netSalesByDateSales1) * 100).toFixed(2)} % </span>
+              </span>
+            </div>
+          </section>
           <HorizontalBarChartComponent data={dashboardData?.netSalesByDate || {}} startDate={startDate} endDate={endDate} startDate2={startDate2} endDate2={endDate2} />
-          <h2 className="text-xl text-center">Gross Sales By Date</h2>
+          <hr className="border-1 border-gray-500 mb-6" />
+
+
+          <section className="px-6 mb-6">
+            <h2 className="text-xl font-bold">Gross Sales By Date</h2>
+            <div className="flex items-center"> 
+              <small className="p-2 me-2" style={{backgroundColor: "#8884d8"}}></small> 
+              <span className="text-lg">{`${new Date(startDate).toDateString()} - ${new Date(endDate).toDateString()}`}</span>
+              <strong className="ms-2">฿ {grossSalesByDateSales1}</strong>
+            </div>
+            <div className="flex items-center"> 
+              <small className="p-2 me-2" style={{backgroundColor: "#82ca9d"}}></small> 
+              <span className="text-lg">{`${new Date(startDate2).toDateString()} - ${new Date(endDate2).toDateString()}`}</span>
+              <strong className="ms-2">฿ {grossSalesByDateSales2}</strong>
+            </div>
+            <div className={`text-center text-${grossSalesByDateSales2 >= grossSalesByDateSales1 ? "green":"red"}-800`}> 
+              <span className={`flex items-center justify-center gap-1 border-2 border-${grossSalesByDateSales2 >= grossSalesByDateSales1 ? "green":"red"}-800 rounded inline-flex py-1 p-2`}>
+                {grossSalesByDateSales2 >= grossSalesByDateSales1 ? 
+                <ArrowUpIcon width={30} height={20} color="darkgreen" />:
+                <ArrowDownIcon width={30} height={20} color="darkred" />}
+                <span> {(((grossSalesByDateSales2 - grossSalesByDateSales1) / grossSalesByDateSales1) * 100).toFixed(2)} % </span>
+              </span>
+            </div>
+          </section>
           <HorizontalBarChartComponent data={dashboardData?.grossSalesByDate || {}} startDate={startDate} endDate={endDate} startDate2={startDate2} endDate2={endDate2} />
-          <h2 className="text-xl text-center">Gross Sales By Month</h2>
+          <hr className="border-1 border-gray-500 mb-6" />
+
+          
+          <section className="px-6 mb-6">
+            <h2 className="text-xl font-bold">Gross Sales By Month</h2>
+            <div className="flex items-center"> 
+              <small className="p-2 me-2" style={{backgroundColor: "#8884d8"}}></small> 
+              <span className="text-lg">{`${new Date(startDate).toDateString()} - ${new Date(endDate).toDateString()}`}</span>
+            </div>
+            <div className="flex items-center"> 
+              <small className="p-2 me-2" style={{backgroundColor: "#82ca9d"}}></small> 
+              <span className="text-lg">{`${new Date(startDate2).toDateString()} - ${new Date(endDate2).toDateString()}`}</span>
+            </div>
+          </section>
           <HorizontalBarChartComponent data={dashboardData?.grossSalesByMonth || {}} startDate={startDate} endDate={endDate} startDate2={startDate2} endDate2={endDate2} />
           
           
