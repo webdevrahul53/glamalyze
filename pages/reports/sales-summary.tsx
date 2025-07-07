@@ -15,7 +15,7 @@ const LineChartComponent = (props: any) => {
         <XAxis dataKey="name" />
         <YAxis tickFormatter={(value) => `฿ ${value}`} />
         <Tooltip />
-        <Area type="monotone" dataKey="sales" fill="#cdd2f3" dot={true} stroke="#8884d8" strokeWidth={3} />
+        <Area type="monotone" dataKey="sales" fill="#d2e2ff" dot={true} stroke="#006aff" strokeWidth={3} />
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -29,7 +29,7 @@ const BarChartComponent = (props:any) => {
         <XAxis dataKey="name" />
         <YAxis tickFormatter={(value) => `฿ ${value}`} />
         <Tooltip />
-        <Bar dataKey="sales" fill="#8884d8" />
+        <Bar dataKey="sales" fill="#006aff" />
       </BarChart>
     </ResponsiveContainer>
   );

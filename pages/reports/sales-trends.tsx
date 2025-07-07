@@ -30,6 +30,10 @@ const mergeData = (range1: any[], range2: any[]) => {
   return Object.values(map).sort((a, b) => parseInt(a.name) - parseInt(b.name));
 };
 
+const DottedBar = (props: any) => {
+  const { x, y, width, height } = props;
+  return ( <rect x={x} y={y} width={width} height={height} fill={props.color2} stroke={props.color1} strokeDasharray="4 2" strokeWidth={2} /> );
+};
 
 const HorizontalBarChartComponent = (props:any) => {
   const mergedData = mergeData(props.data.range1, props.data.range2);
@@ -49,8 +53,8 @@ const HorizontalBarChartComponent = (props:any) => {
         <YAxis tickFormatter={(value) => `฿ ${value}`} /> {/* Net sales on left */}
         <Tooltip />
         {/* <Legend /> */}
-        <Bar dataKey="sales1" fill="#8884d8" name={name} />
-        <Bar dataKey="sales2" fill="#82ca9d" name={name2} />
+        <Bar dataKey="sales1" fill={props.color1} name={name} />
+        <Bar dataKey="sales2" fill={props.color2} name={name2} shape={<DottedBar color1={props.color1} color2={props.color2} />} />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -149,12 +153,12 @@ export default function SalesTrends() {
           <section className="px-6 mb-6">
             <h2 className="text-xl font-bold">Net Sales By Date</h2>
             <div className="flex items-center"> 
-              <small className="p-2 me-2" style={{backgroundColor: "#8884d8"}}></small> 
+              <small className="p-2 me-2" style={{backgroundColor: "#13bf95"}}></small> 
               <span className="text-lg">{`${new Date(startDate).toDateString()} - ${new Date(endDate).toDateString()}`}</span>
               <strong className="ms-2">฿ {netSalesByDateSales1}</strong>
             </div>
             <div className="flex items-center"> 
-              <small className="p-2 me-2" style={{backgroundColor: "#82ca9d"}}></small> 
+              <small className="p-2 me-2" style={{backgroundColor: "#ccfff2", border: "2px dashed #13bf95"}}></small> 
               <span className="text-lg">{`${new Date(startDate2).toDateString()} - ${new Date(endDate2).toDateString()}`}</span>
               <strong className="ms-2">฿ {netSalesByDateSales2}</strong>
             </div>
@@ -167,19 +171,20 @@ export default function SalesTrends() {
               </span>
             </div>
           </section>
-          <HorizontalBarChartComponent data={dashboardData?.netSalesByDate || {}} startDate={startDate} endDate={endDate} startDate2={startDate2} endDate2={endDate2} />
+          <HorizontalBarChartComponent data={dashboardData?.netSalesByDate || {}} startDate={startDate} endDate={endDate} 
+          startDate2={startDate2} endDate2={endDate2} color1={"#13bf95"} color2={"#ccfff2"} />
           <hr className="border-1 border-gray-500 mb-6" />
 
 
           <section className="px-6 mb-6">
             <h2 className="text-xl font-bold">Gross Sales By Date</h2>
             <div className="flex items-center"> 
-              <small className="p-2 me-2" style={{backgroundColor: "#8884d8"}}></small> 
+              <small className="p-2 me-2" style={{backgroundColor: "#2793ff"}}></small> 
               <span className="text-lg">{`${new Date(startDate).toDateString()} - ${new Date(endDate).toDateString()}`}</span>
               <strong className="ms-2">฿ {grossSalesByDateSales1}</strong>
             </div>
             <div className="flex items-center"> 
-              <small className="p-2 me-2" style={{backgroundColor: "#82ca9d"}}></small> 
+              <small className="p-2 me-2" style={{backgroundColor: "#cce1ff", border: "2px dashed #2793ff"}}></small> 
               <span className="text-lg">{`${new Date(startDate2).toDateString()} - ${new Date(endDate2).toDateString()}`}</span>
               <strong className="ms-2">฿ {grossSalesByDateSales2}</strong>
             </div>
@@ -192,22 +197,24 @@ export default function SalesTrends() {
               </span>
             </div>
           </section>
-          <HorizontalBarChartComponent data={dashboardData?.grossSalesByDate || {}} startDate={startDate} endDate={endDate} startDate2={startDate2} endDate2={endDate2} />
+          <HorizontalBarChartComponent data={dashboardData?.grossSalesByDate || {}} startDate={startDate} endDate={endDate} 
+          startDate2={startDate2} endDate2={endDate2} color1={"#2793ff"} color2={"#cce1ff"} />
           <hr className="border-1 border-gray-500 mb-6" />
 
           
           <section className="px-6 mb-6">
             <h2 className="text-xl font-bold">Gross Sales By Month</h2>
             <div className="flex items-center"> 
-              <small className="p-2 me-2" style={{backgroundColor: "#8884d8"}}></small> 
+              <small className="p-2 me-2" style={{backgroundColor: "#2793ff"}}></small> 
               <span className="text-lg">{`${new Date(startDate).toDateString()} - ${new Date(endDate).toDateString()}`}</span>
             </div>
             <div className="flex items-center"> 
-              <small className="p-2 me-2" style={{backgroundColor: "#82ca9d"}}></small> 
+              <small className="p-2 me-2" style={{backgroundColor: "#cce1ff", border: "2px dashed #2793ff"}}></small> 
               <span className="text-lg">{`${new Date(startDate2).toDateString()} - ${new Date(endDate2).toDateString()}`}</span>
             </div>
           </section>
-          <HorizontalBarChartComponent data={dashboardData?.grossSalesByMonth || {}} startDate={startDate} endDate={endDate} startDate2={startDate2} endDate2={endDate2} />
+          <HorizontalBarChartComponent data={dashboardData?.grossSalesByMonth || {}} startDate={startDate} endDate={endDate} 
+          startDate2={startDate2} endDate2={endDate2} color1={"#2793ff"} color2={"#cce1ff"} />
           
           
           {/* <DataGrid /> */}

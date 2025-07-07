@@ -118,11 +118,11 @@ export default function Finance() {
         
       </section>
       {loading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}      
-      <Accordion>
+      <Accordion itemType="single" defaultExpandedKeys={"0"}>
         {serviceData?.length && serviceData?.map((item:any, index:number) => <AccordionItem key={index} title={<div>
           <div className="flex justify-between items-center px-3">
             <div className="flex items-center gap-2">
-              <img src={item.service.image} width={30} alt="" className="rounded-full" />
+              <img src={item.service.image} width={30} alt="" className="rounded" />
               <div>
                 <span className="text-lg font-semibold">{item.service.name}  </span>
                 <i>- {item.category.categoryname}</i> 
@@ -134,7 +134,7 @@ export default function Finance() {
         </div>}>
 
           {item.children.map((child:any, childIndex:number) => (
-            <div key={childIndex} className="px-6 py-1 border-b-2">
+            <div key={childIndex} className="px-6 py-2 border-b-2">
               <div className="flex justify-between items-center">
                 <div>{child.duration} min -  <small>( {item.branch.branchname} )</small> </div>
                 <span className="text-gray-500">฿ {child.price}</span>
