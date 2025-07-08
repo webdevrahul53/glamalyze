@@ -1,4 +1,4 @@
-import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, ListIcon, UserIcon, SettingIcon, UserGroupIcon, ChairIcon, CalendarOutlinedIcon, CouponIcon, VoucherIcon, VoucherPurchasedIcon, FinanceIcon, PersonIcon, SaleSummaryIcon, SaleTrendsIcon, TransactionIcon, HouseIcon } from "@/core/utilities/svgIcons";
+import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, ListIcon, UserIcon, SettingIcon, UserGroupIcon, ChairIcon, CalendarOutlinedIcon, CouponIcon, VoucherIcon, VoucherPurchasedIcon, FinanceIcon, PersonIcon, SaleSummaryIcon, SaleTrendsIcon, TransactionIcon } from "@/core/utilities/svgIcons";
 import Logo from "@/public/logo.svg";
 import Image from 'next/image'
 import Link from "next/link";
@@ -104,6 +104,7 @@ export default function Layout(props:any) {
             <AccordionItem key="1" startContent={<SaleTrendsIcon width={30} height={20} />} title="Reports">
               <ListboxWrapper Icon={SaleSummaryIcon} href={"/reports/sales-summary"} title="Sales Summary"/>
               <ListboxWrapper Icon={SaleTrendsIcon} href={"/reports/sales-trends"} title="Sales Trends"/>
+              <ListboxWrapper Icon={TransactionIcon} href={"/reports/payment-methods"} title="Payment Methods"/>
             </AccordionItem>
           </Accordion>
 

@@ -2,11 +2,9 @@ import React, { lazy, Suspense } from 'react'
 import { CalendarIcon, ListIcon, PlusIcon } from '../utilities/svgIcons'
 import { CircularProgress, useDisclosure } from '@heroui/react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 const NewAppointment = lazy(() => import("@/core/drawer/new-appointment"));
 
 export const PageTitle = ({title, showCalendarButton = false, showDatatableButton = false, pageRefresh = ()=>{}}: {title: string, showCalendarButton?: boolean, showDatatableButton?: boolean, pageRefresh?: any}) => {
-  const router = useRouter()
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const handleOpen = () => { onOpen(); };
 

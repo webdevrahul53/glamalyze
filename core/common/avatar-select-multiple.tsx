@@ -1,4 +1,4 @@
-import { Avatar, Chip, Select, SelectItem } from '@heroui/react'
+import { Avatar, Select, SelectItem } from '@heroui/react'
 import React from 'react'
 
 type propsType = {field:any, data:any, label:string, keyName: string}

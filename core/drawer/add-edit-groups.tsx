@@ -1,5 +1,5 @@
 import React from "react";
-import { Autocomplete, AutocompleteItem, Avatar, Button, Card, CardHeader, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input } from "@heroui/react";
+import { Autocomplete, AutocompleteItem, Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input } from "@heroui/react";
 import { SaveIcon } from "../utilities/svgIcons";
 import { useForm } from "react-hook-form";
 import { BRANCH_API_URL, EMPLOYEES_API_URL, GROUP_API_URL } from "../utilities/api-url";
