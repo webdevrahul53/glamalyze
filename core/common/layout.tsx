@@ -105,6 +105,8 @@ export default function Layout(props:any) {
               <ListboxWrapper Icon={SaleSummaryIcon} href={"/reports/sales-summary"} title="Sales Summary"/>
               <ListboxWrapper Icon={SaleTrendsIcon} href={"/reports/sales-trends"} title="Sales Trends"/>
               <ListboxWrapper Icon={TransactionIcon} href={"/reports/payment-methods"} title="Payment Methods"/>
+              <ListboxWrapper Icon={ListIcon} href={"/reports/item-sales"} title="Item Sales"/>
+              <ListboxWrapper Icon={CircleDotIcon} href={"/reports/category-sales"} title="Category Sales"/>
             </AccordionItem>
           </Accordion>
 

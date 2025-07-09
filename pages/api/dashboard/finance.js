@@ -100,12 +100,34 @@ export default async function handler(req, res) {
                 $sort: { "_id": 1 }
             }
         ]);
+        
+        const categoryRevenuePromise = AppointmentServices.aggregate([
+          { $lookup: { from: "appointments", localField: "appointmentId", foreignField: "_id", as: "appointment", },  },
+          { $unwind: { path: "$appointment", preserveNullAndEmptyArrays: true, }, },
+          { $lookup: { from: "services", localField: "serviceId", foreignField: "_id", as: "services", },  },
+          { $unwind: { path: "$services", preserveNullAndEmptyArrays: true, }, },
+          { $lookup: { from: "categories", localField: "services.categoryId", foreignField: "_id", as: "categories", },  },
+          { $unwind: { path: "$categories", preserveNullAndEmptyArrays: true, }, },
+          { $match: matchStage },
+          {
+          $group: {
+              _id: "$categories.categoryname",
+              transactions: { $sum: { $cond: [{ $ifNull: ["$appointment.bookingId", false] }, 1, 0] } },
+              grossSales: { $sum: "$price" },
+              netSales: { $sum: "$subTotal" },
+          }
+          },
+          {
+              $sort: { "_id": 1 }
+          }
+      ]);
 
-        const [customers, returningCustomerCount, paymentMethods, totalRevenue] = await Promise.all([
+        const [customers, returningCustomerCount, paymentMethods, totalRevenue, categoryTotalRevenue] = await Promise.all([
             customerCount,
             returningCustomerPromise,
             paymentMethodCountPromise,
             revenuePromise,
+            categoryRevenuePromise
         ]);
 
         const transactions = totalRevenue.reduce((acc, item) => acc + item.transactions, 0);
@@ -115,10 +137,14 @@ export default async function handler(req, res) {
             name: item._id,
             sales: item.grossSales
         }));
+        const categroyRevenueBarData = categoryTotalRevenue.map(item => ({
+            name: item._id,
+            sales: item.grossSales
+        }));
 
         res.status(200).json({
             status: 1,
-            data: { customers, returningCustomerCount, paymentMethods, revenueBarData, transactions, grossSales, netSales },
+            data: { customers, returningCustomerCount, paymentMethods, revenueBarData, categroyRevenueBarData, transactions, grossSales, netSales },
         });
 
     } catch (err) {

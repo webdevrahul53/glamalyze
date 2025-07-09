@@ -153,16 +153,12 @@ export default function Finance() {
 
       </section>
 
-
-      <br /><br /><br />
-      <h2 className="text-2xl text-center">Items by Gross Sales Graph</h2>
-      <BarChartComponent data={dashboardData?.revenueBarData || []} />
       <section className="flex">
-        <div className="w-2/3">
+        <div className="w-1/2">
+          <BarChartComponent data={dashboardData?.revenueBarData || []} />
         </div>
-        <div className="w-1/3">
-          {/* <PieChartComponent data={dashboardData?.paymentMethods || []} />
-          <h2 className="text-2xl text-center">Payment Methods</h2> */}
+        <div className="w-1/2">
+          <BarChartComponent data={dashboardData?.categroyRevenueBarData || []} />
         </div>
       </section>
       {/* <DataGrid /> */}
