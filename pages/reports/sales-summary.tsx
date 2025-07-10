@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import DataGrid from "@/core/common/data-grid";
 import { BRANCH_API_URL, DASHBOARD_API_URL } from "@/core/utilities/api-url";
-import { DateRangePicker, Progress, Select, SelectItem } from "@heroui/react";
+import { DownloadIcon, PrintIcon } from "@/core/utilities/svgIcons";
+import { Button, DateRangePicker, Progress, Select, SelectItem } from "@heroui/react";
 import React from "react";
 import { toast } from "react-toastify";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
@@ -82,6 +83,7 @@ export default function SalesSummary() {
     }catch(err:any) { toast.error(err.error) }
   }
   
+  
 
 
   return (
@@ -98,6 +100,9 @@ export default function SalesSummary() {
             </SelectItem>
           ))}
         </Select>
+        <Button variant="bordered" className="pe-5 mt-2"><PrintIcon width={20} height={15} /> Print</Button>
+        <Button className="pe-5 mt-2"><DownloadIcon width={20} height={15} /> Download</Button>
+
       </section>
 
       <section className="p-2 my-5">

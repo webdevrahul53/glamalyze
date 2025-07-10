@@ -41,6 +41,7 @@ export default async function handler(req, res) {
                 category: 1,
                 branch: 1,
                 service: 1,
+                startTime: 1,
                 appointmentDate: "$appointment.appointmentDate",
                 paymentMethod: "$appointment.paymentMethod",
                 taskStatus: "$appointment.taskStatus",

@@ -84,17 +84,17 @@ export default function PaymentMethods() {
       
       <section className="p-2 my-5">
         <p className="text-gray-500">Total Collected</p>
-        <div className="text-3xl">฿ {dashboardData?.totalCollected}</div>
+        <div className="text-3xl font-bold">฿ {dashboardData?.totalCollected.toFixed(2)}</div>
       </section>
 
       {loading ? <Progress isIndeterminate aria-label="Loading..." size="sm" /> : <></>}
       <hr className="border-gray-300 mb-4" />
 
-      <p className="text-gray-500">Total Payment Methods by Total Collected</p>
+      <p className="text-gray-500 mb-3">Total Payment Methods by Total Collected</p>
       
       <PaymentBar data={dashboardData?.paymentMethods || []} />
       
-      <div className="my-6 py-6"></div>
+      <div className="my-6 py-1"></div>
 
       <SummaryTable data={dashboardData?.paymentMethods || []} />
 
@@ -117,7 +117,7 @@ const PaymentBar = ({ data }: { data: { method: string; payment: number }[] }) =
     <div className="w-full space-y-2">
       {/* Progress Bar */}
       <div className="w-full flex overflow-hidden rounded-full" style={{height: "2.5rem"}}>
-        {data.map((item) => {
+        {data.map((item, idx) => {
           const key = item.method.toLowerCase();
           const percentage = (item.payment / total) * 100;
           return (
@@ -125,7 +125,10 @@ const PaymentBar = ({ data }: { data: { method: string; payment: number }[] }) =
               key={key}
               style={{
                 width: `${percentage}%`,
+                marginLeft: "-2rem",
                 backgroundColor: colors[key],
+                borderRadius: "5rem",
+                zIndex: idx === 0 ? 100 : 1
               }}
             />
           );
@@ -133,10 +136,10 @@ const PaymentBar = ({ data }: { data: { method: string; payment: number }[] }) =
       </div>
 
       {/* Legend */}
-      <div className="flex justify-between flex-wrap text-sm">
+      <div className="flex justify-between flex-wrap text-sm" style={{width: "90%"}}>
         {data.map((item) => {
           const key = item.method.toLowerCase();
-          const percentage = total === 0 ? 0 : ((item.payment / total) * 100).toFixed(1);
+          // const percentage = total === 0 ? 0 : ((item.payment / total) * 100).toFixed(1);
           return (
             <div key={key} className="flex items-center gap-2 mb-1">
               <div
@@ -144,7 +147,8 @@ const PaymentBar = ({ data }: { data: { method: string; payment: number }[] }) =
                 style={{ backgroundColor: colors[key] }}
               />
               <div>
-                <strong className="capitalize text-xl">{item.method}</strong>: <span>฿{item.payment.toLocaleString()} ({percentage}%)</span>
+                <strong className="capitalize text-3xl">{item.method}</strong>
+                {/* : <span>฿{item.payment.toLocaleString()} ({percentage}%)</span> */}
               </div>
             </div>
           );
@@ -169,7 +173,7 @@ const SummaryTable = ({data}: {data: { method: string; payment: number, refund: 
   );
 
   const formatCurrency = (amount: number) =>
-    `฿${Math.abs(amount).toLocaleString(undefined, {
+    `฿ ${Math.abs(amount).toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -178,23 +182,23 @@ const SummaryTable = ({data}: {data: { method: string; payment: number, refund: 
     <div className="overflow-x-auto text-sm">
       <table className="min-w-full text-left border-separate border-spacing-y-1">
         <thead>
-          <tr className="text-gray-600 font-medium border-b">
-            <th className="px-4 py-2">Summary<br /><span className="text-xs text-gray-400">All Day (00:00–00:00)</span></th>
-            <th className="px-4 py-2 text-right">
+          <tr className="text-gray-600 font-medium">
+            <th className="px-4 py-2 border-gray-300 border-b-2 border-e-2">Summary<br /><span className="text-xs text-gray-400">All Day (00:00–00:00)</span></th>
+            <th className="px-4 py-2 border-gray-300 border-b-2 text-right">
               Payment amount
             </th>
-            <th className="px-4 py-2 text-right">
+            <th className="px-4 py-2 border-gray-300 border-b-2 text-right">
               Refund amount
             </th>
-            <th className="px-4 py-2 text-right">
+            <th className="px-4 py-2 border-gray-300 border-b-2 text-right">
               Total fees (incl taxes)
             </th>
           </tr>
         </thead>
         <tbody>
           {data.map((row, index) => (
-            <tr key={index} className="border-t">
-              <td className="px-4 py-2">{row.method}</td>
+            <tr key={index}>
+              <td className="px-4 py-2 border-e-2 border-gray-300">{row.method}</td>
               <td className="px-4 py-2 text-right">{formatCurrency(row.payment)}</td>
               <td className="px-4 py-2 text-right">
                 {row.refund < 0 ? `(${formatCurrency(row.refund)})` : formatCurrency(row.refund)}
@@ -202,13 +206,13 @@ const SummaryTable = ({data}: {data: { method: string; payment: number, refund: 
               <td className="px-4 py-2 text-right">{formatCurrency(row.fees)}</td>
             </tr>
           ))}
-          <tr className="font-semibold border-t">
-            <td className="px-4 py-2">Total</td>
-            <td className="px-4 py-2 text-right">{formatCurrency(total.payment)}</td>
-            <td className="px-4 py-2 text-right">
+          <tr className="font-semibold border-2">
+            <td className="px-4 py-2 border-e-2 border-t-2 border-gray-300">Total</td>
+            <td className="px-4 py-2 border-t-2 border-gray-300 text-right">{formatCurrency(total.payment)}</td>
+            <td className="px-4 py-2 border-t-2 border-gray-300 text-right">
               {total.refund < 0 ? `(${formatCurrency(total.refund)})` : formatCurrency(total.refund)}
             </td>
-            <td className="px-4 py-2 text-right">{formatCurrency(total.fees)}</td>
+            <td className="px-4 py-2 border-t-2 border-gray-300 text-right">{formatCurrency(total.fees)}</td>
           </tr>
         </tbody>
       </table>

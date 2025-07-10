@@ -9,7 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 // const COLORS = ["#00C49F", "#FFBB28", "#FF8042", "#0088FE"];
 
 const CardLayout = ({title, value}: {title: string, value: string}) => (
-  <section className="w-1/6 p-6 bg-white rounded border-2">
+  <section className="w-1/4 p-6 bg-white rounded border-2">
     <h1 className="text-2xl">{value}</h1>
     <h3 className="text-md mt-2 text-gray-500">{title}</h3>
   </section>
@@ -131,21 +131,18 @@ export default function Finance() {
         <CardLayout title="Gross Sales" value={`฿ ${dashboardData?.grossSales || 0}`}></CardLayout>
         <CardLayout title="Transactions" value={`${dashboardData?.transactions || 0}`}></CardLayout>
         <CardLayout title="Returns & Refunds" value={"0"}></CardLayout>
-        {/* <CardLayout title="Total Customers" value={dashboardData?.customers || 0}></CardLayout>
-        <CardLayout title="Returning Customers" value={dashboardData?.returningCustomerCount || 0}></CardLayout> */}
-        {/* <CardLayout title="Returns & Refunds" value={`฿ ${dashboardData?.revenue || 0}`}></CardLayout> */}
       </section>
 
-      <section className="grid grid-cols-2 gap-3 my-6 w-4/5">
-        <div className="border-2 border-gray-500 p-2">
-          <h1 className="text-2xl text-primary mb-4">Customers</h1>
+      <section className="grid grid-cols-2 gap-3 my-6 w-full">
+        <div className="border-2 border-gray-500 rounded p-4">
+          <h1 className="text-3xl text-primary mb-3">Customers</h1>
           <h3>Total Customers :  <strong> {dashboardData?.customers || 0} </strong> </h3>
           <h3>Returning Customers :  <strong> {dashboardData?.returningCustomerCount || 0} </strong> </h3>
           <h3>Avg Spent Per Visit :  <strong>  </strong> </h3>
         </div>
         
-        <div className="border-2 border-gray-500 p-2">
-          <h1 className="text-2xl text-primary mb-4">Payment Methods</h1>
+        <div className="border-2 border-gray-500 rounded p-4">
+          <h1 className="text-3xl text-primary mb-3">Payment Methods</h1>
           {dashboardData?.paymentMethods?.map((item:any) => (
             <h3 key={item.name}>{item.name} : <strong> {item.value} </strong> </h3>
           ))}
@@ -153,11 +150,11 @@ export default function Finance() {
 
       </section>
 
-      <section className="flex">
-        <div className="w-1/2">
+      <section className="flex gap-3">
+        <div className="w-1/2 border-2 border-gray-500 rounded shadow-sm p-4">
           <BarChartComponent data={dashboardData?.revenueBarData || []} />
         </div>
-        <div className="w-1/2">
+        <div className="w-1/2 border-2 border-gray-500 rounded shadow-sm p-4">
           <BarChartComponent data={dashboardData?.categroyRevenueBarData || []} />
         </div>
       </section>

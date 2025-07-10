@@ -2,6 +2,7 @@
 // import DataGrid from "@/core/common/data-grid";
 import AvatarSelect from "@/core/common/avatar-select";
 import { BRANCH_API_URL, CATEGORIES_API_URL, DASHBOARD_API_URL } from "@/core/utilities/api-url";
+import { ImageIcon } from "@/core/utilities/svgIcons";
 import { Accordion, AccordionItem, Input, Progress } from "@heroui/react";
 import React from "react";
 import { toast } from "react-toastify";
@@ -117,27 +118,54 @@ export default function Finance() {
         <AvatarSelect data={branchList} label="Branch" keyName="branchname" field={{value: selectedBranch, onChange: (e:any) => setSelectedBranch(e?.target?.value || null)}}  />
         
       </section>
+
+
+      
+      <div className="grid grid-cols-2 gap-3 border-b-2 border-gray-400" style={{padding: "10px 15px"}}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <ImageIcon width={40} height={30} />
+            <strong>Item</strong>
+          </div>
+          <strong>Reporting Category</strong>
+        </div>
+        <div className="flex items-center justify-between">
+          <strong>Location</strong>
+          <strong style={{paddingRight: "35px"}}>Price</strong>
+        </div>
+      </div>
       {loading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}      
+
       <Accordion itemType="single" defaultExpandedKeys={"0"}>
         {serviceData?.length && serviceData?.map((item:any, index:number) => <AccordionItem key={index} title={<div>
-          <div className="flex justify-between items-center px-3">
-            <div className="flex items-center gap-2">
-              <img src={item.service.image} width={30} alt="" className="rounded" />
-              <div>
+          <div className="grid grid-cols-2 px-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-3">
+                <img src={item.service.image} width={30} alt="" className="rounded" />
                 <span className="text-lg font-semibold">{item.service.name}  </span>
-                <i>- {item.category.categoryname}</i> 
-                <small className="ms-3 p-1 border-2 border-gray-800 rounded">{item.branch.branchname}</small> 
+              </div>
+              <div>
+                <i>{item.category.categoryname}</i> 
               </div>
             </div>
-            <span className="text-sm text-gray-500">{item.priceRange}</span>
+            <div className="flex items-center justify-between gap-2">
+              <small className="ms-3 p-1">{item.branch.branchname}</small> 
+              <span className="text-sm text-gray-500">{item.priceRange}</span>
+            </div>
           </div>
         </div>}>
 
           {item.children.map((child:any, childIndex:number) => (
-            <div key={childIndex} className="px-6 py-2 border-b-2">
-              <div className="flex justify-between items-center">
-                <div>{child.duration} min -  <small>( {item.branch.branchname} )</small> </div>
-                <span className="text-gray-500">฿ {child.price}</span>
+            <div key={childIndex} className="border-b-2" style={{padding: "10px 40px"}}>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-3">
+                  <ImageIcon width={30} height={20} />
+                  <div>{child.duration} min </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <small>{item.branch.branchname}</small>
+                  <span className="text-gray-500">฿ {child.price}</span>
+                </div>
               </div>
               
             </div>
