@@ -150,6 +150,12 @@ export default function SalesTrends() {
 
       <section>
         {loading ? <Progress isIndeterminate aria-label="Loading..." size="sm" /> : <>
+          {(netSalesByDateSales1 == 0 && netSalesByDateSales2 == 0) ? <>
+            <section className="px-6 mb-6">
+              <h2 className="text-xl font-bold">Net Sales By Date</h2>
+              <p className="text-gray-500">No Data Found for selected date range or filter, Try changing filter values.</p>
+            </section>
+          </> : <>
           <section className="px-6 mb-6">
             <h2 className="text-xl font-bold">Net Sales By Date</h2>
             <div className="flex items-center"> 
@@ -174,50 +180,63 @@ export default function SalesTrends() {
           <HorizontalBarChartComponent data={dashboardData?.netSalesByDate || {}} startDate={startDate} endDate={endDate} 
           startDate2={startDate2} endDate2={endDate2} color1={"#13bf95"} color2={"#ccfff2"} />
           <hr className="border-1 border-gray-500 mb-6" />
+          </>}
 
-
-          <section className="px-6 mb-6">
-            <h2 className="text-xl font-bold">Gross Sales By Date</h2>
-            <div className="flex items-center"> 
-              <small className="p-2 me-2" style={{backgroundColor: "#2793ff"}}></small> 
-              <span className="text-lg">{`${new Date(startDate).toDateString()} - ${new Date(endDate).toDateString()}`}</span>
-              <strong className="ms-2">฿ {grossSalesByDateSales1}</strong>
-            </div>
-            <div className="flex items-center"> 
-              <small className="p-2 me-2" style={{backgroundColor: "#cce1ff", border: "2px dashed #2793ff"}}></small> 
-              <span className="text-lg">{`${new Date(startDate2).toDateString()} - ${new Date(endDate2).toDateString()}`}</span>
-              <strong className="ms-2">฿ {grossSalesByDateSales2}</strong>
-            </div>
-            <div className={`text-center text-${grossSalesByDateSales2 >= grossSalesByDateSales1 ? "green":"red"}-800`}> 
-              <span className={`flex items-center justify-center gap-1 border-2 border-${grossSalesByDateSales2 >= grossSalesByDateSales1 ? "green":"red"}-800 rounded inline-flex py-1 p-2`}>
-                {grossSalesByDateSales2 >= grossSalesByDateSales1 ? 
-                <ArrowUpIcon width={30} height={20} color="darkgreen" />:
-                <ArrowDownIcon width={30} height={20} color="darkred" />}
-                <span> {(((grossSalesByDateSales2 - grossSalesByDateSales1) / grossSalesByDateSales1) * 100).toFixed(2)} % </span>
-              </span>
-            </div>
-          </section>
-          <HorizontalBarChartComponent data={dashboardData?.grossSalesByDate || {}} startDate={startDate} endDate={endDate} 
-          startDate2={startDate2} endDate2={endDate2} color1={"#2793ff"} color2={"#cce1ff"} />
-          <hr className="border-1 border-gray-500 mb-6" />
+          {(grossSalesByDateSales1 == 0 && grossSalesByDateSales2 == 0) ? <>
+            <section className="px-6 mb-6">
+              <h2 className="text-xl font-bold">Gross Sales By Date</h2>
+              <p className="text-gray-500">No Data Found for selected date range or filter, Try changing filter values.</p>
+            </section>
+          </> : <>
+            <section className="px-6 mb-6">
+              <h2 className="text-xl font-bold">Gross Sales By Date</h2>
+              <div className="flex items-center"> 
+                <small className="p-2 me-2" style={{backgroundColor: "#2793ff"}}></small> 
+                <span className="text-lg">{`${new Date(startDate).toDateString()} - ${new Date(endDate).toDateString()}`}</span>
+                <strong className="ms-2">฿ {grossSalesByDateSales1}</strong>
+              </div>
+              <div className="flex items-center"> 
+                <small className="p-2 me-2" style={{backgroundColor: "#cce1ff", border: "2px dashed #2793ff"}}></small> 
+                <span className="text-lg">{`${new Date(startDate2).toDateString()} - ${new Date(endDate2).toDateString()}`}</span>
+                <strong className="ms-2">฿ {grossSalesByDateSales2}</strong>
+              </div>
+              <div className={`text-center text-${grossSalesByDateSales2 >= grossSalesByDateSales1 ? "green":"red"}-800`}> 
+                <span className={`flex items-center justify-center gap-1 border-2 border-${grossSalesByDateSales2 >= grossSalesByDateSales1 ? "green":"red"}-800 rounded inline-flex py-1 p-2`}>
+                  {grossSalesByDateSales2 >= grossSalesByDateSales1 ? 
+                  <ArrowUpIcon width={30} height={20} color="darkgreen" />:
+                  <ArrowDownIcon width={30} height={20} color="darkred" />}
+                  <span> {(((grossSalesByDateSales2 - grossSalesByDateSales1) / grossSalesByDateSales1) * 100).toFixed(2)} % </span>
+                </span>
+              </div>
+            </section>
+            <HorizontalBarChartComponent data={dashboardData?.grossSalesByDate || {}} startDate={startDate} endDate={endDate} 
+            startDate2={startDate2} endDate2={endDate2} color1={"#2793ff"} color2={"#cce1ff"} />
+            <hr className="border-1 border-gray-500 mb-6" />
+          </>}
 
           
-          <section className="px-6 mb-6">
-            <h2 className="text-xl font-bold">Gross Sales By Month</h2>
-            <div className="flex items-center"> 
-              <small className="p-2 me-2" style={{backgroundColor: "#2793ff"}}></small> 
-              <span className="text-lg">{`${new Date(startDate).toDateString()} - ${new Date(endDate).toDateString()}`}</span>
-            </div>
-            <div className="flex items-center"> 
-              <small className="p-2 me-2" style={{backgroundColor: "#cce1ff", border: "2px dashed #2793ff"}}></small> 
-              <span className="text-lg">{`${new Date(startDate2).toDateString()} - ${new Date(endDate2).toDateString()}`}</span>
-            </div>
-          </section>
-          <HorizontalBarChartComponent data={dashboardData?.grossSalesByMonth || {}} startDate={startDate} endDate={endDate} 
-          startDate2={startDate2} endDate2={endDate2} color1={"#2793ff"} color2={"#cce1ff"} />
-          
-          
-          {/* <DataGrid /> */}
+          {!dashboardData?.grossSalesByMonth.range1.length && !dashboardData?.grossSalesByMonth.range2.length ? <>
+            <section className="px-6 mb-6">
+              <h2 className="text-xl font-bold">Sales Trends</h2>
+              <p className="text-gray-500">No Data Found for selected date range or filter, Try changing filter values.</p>
+            </section>
+          </> : <>
+            <section className="px-6 mb-6">
+              <h2 className="text-xl font-bold">Gross Sales By Month</h2>
+              <div className="flex items-center"> 
+                <small className="p-2 me-2" style={{backgroundColor: "#2793ff"}}></small> 
+                <span className="text-lg">{`${new Date(startDate).toDateString()} - ${new Date(endDate).toDateString()}`}</span>
+              </div>
+              <div className="flex items-center"> 
+                <small className="p-2 me-2" style={{backgroundColor: "#cce1ff", border: "2px dashed #2793ff"}}></small> 
+                <span className="text-lg">{`${new Date(startDate2).toDateString()} - ${new Date(endDate2).toDateString()}`}</span>
+              </div>
+            </section>
+            <HorizontalBarChartComponent data={dashboardData?.grossSalesByMonth || {}} startDate={startDate} endDate={endDate} 
+            startDate2={startDate2} endDate2={endDate2} color1={"#2793ff"} color2={"#cce1ff"} />
+          </>}
+            
+            
         </>}
       </section>
 
