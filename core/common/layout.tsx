@@ -1,4 +1,4 @@
-import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, ListIcon, UserIcon, SettingIcon, UserGroupIcon, ChairIcon, CalendarOutlinedIcon, CouponIcon, VoucherIcon, VoucherPurchasedIcon, FinanceIcon, PersonIcon, SaleSummaryIcon, SaleTrendsIcon, TransactionIcon } from "@/core/utilities/svgIcons";
+import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, ListIcon, UserIcon, SettingIcon, UserGroupIcon, ChairIcon, CalendarOutlinedIcon, CouponIcon, VoucherIcon, VoucherPurchasedIcon, FinanceIcon, PersonIcon, SaleSummaryIcon, SaleTrendsIcon, TransactionIcon, GiftUnboxedIcon } from "@/core/utilities/svgIcons";
 import Logo from "@/public/logo.svg";
 import Image from 'next/image'
 import Link from "next/link";
@@ -107,6 +107,7 @@ export default function Layout(props:any) {
               <ListboxWrapper Icon={TransactionIcon} href={"/reports/payment-methods"} title="Payment Methods"/>
               <ListboxWrapper Icon={ListIcon} href={"/reports/item-sales"} title="Item Sales"/>
               <ListboxWrapper Icon={CircleDotIcon} href={"/reports/category-sales"} title="Category Sales"/>
+              <ListboxWrapper Icon={GiftUnboxedIcon} href={"/reports/discounts"} title="Discounts"/>
             </AccordionItem>
           </Accordion>
 
