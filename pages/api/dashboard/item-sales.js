@@ -57,7 +57,8 @@ export default async function handler(req, res) {
               date: { $substrBytes: ["$startTime", 0, 2] },
               serviceName: "$service.name"
             },
-            sales: { $sum: "$price" }
+            sales: { $sum: "$price" },
+            itemSold: { $sum: 1 } // Count the number of services sold
           }
         },
 
@@ -67,6 +68,7 @@ export default async function handler(req, res) {
             name: "$_id.date",
             serviceName: "$_id.serviceName",
             sales: 1,
+            itemSold: 1,
             _id: 0
           }
         },

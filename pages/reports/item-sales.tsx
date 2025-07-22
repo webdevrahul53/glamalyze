@@ -150,8 +150,66 @@ export default function ItemSales() {
 
       {/* {dashboardData?.revenueBarData?.length && <MultiLineChart data={dashboardData?.revenueBarData || []} />} */}
       {dashboardData?.revenueBarData?.length && <LineChartComponent  rawData={dashboardData?.revenueBarData || []} />}
+      {dashboardData?.revenueBarData?.length && <ServiceTable data={dashboardData?.revenueBarData || []} />}
       
     </div>
   );
 }
 
+
+const ServiceTable = ({ data }:any) => {
+  const rows = groupByService(data);
+
+  return (
+    <div className="overflow-x-auto my-6">
+      <table className="min-w-full">
+        <thead>
+          <tr className="text-left text-sm font-medium border-b-2 border-gray-300">
+            <th className="p-2 border-e-2">Item</th>
+            <th className="p-2 border-e-2 text-end">Items Sold</th>
+            <th className="p-2 border-e-2 text-end">Gross Sales (฿)</th>
+          </tr>
+        </thead>
+        <tbody className="text-sm">
+          {rows.map((row) => (
+            <tr
+              key={row.category}
+              className={row.category === "Total" ? "font-semibold" : ""}
+            >
+              <td className="p-2 border-e-2 border-b-2">{row.category}</td>
+              <td className="p-2 border-e-2 border-b-2 text-right">{row.itemSold.toLocaleString()}</td>
+              <td className="p-2 border-e-2 border-b-2 text-right">฿{row.sales.toLocaleString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+
+function groupByService(data:any) {
+  const summary:any = {};
+
+  data.forEach(({ serviceName, itemSold, sales }: any) => {
+    if (!summary[serviceName]) {
+      summary[serviceName] = { items: 0, sales: 0 };
+    }
+    summary[serviceName].items += itemSold;
+    summary[serviceName].sales += sales;
+  });
+
+  // Convert to array
+  const rows = Object.entries(summary).map(([category, values]: any) => ({
+    category,
+    itemSold: values.items,
+    sales: values.sales,
+  }));
+
+  // Add total row
+  const totalItems = rows.reduce((sum, row) => sum + row.itemSold, 0);
+  const totalSales = rows.reduce((sum, row) => sum + row.sales, 0);
+  rows.push({ category: "Total", itemSold: totalItems, sales: totalSales });
+
+  return rows;
+}

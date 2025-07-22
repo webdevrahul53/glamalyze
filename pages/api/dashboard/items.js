@@ -28,18 +28,34 @@ export default async function handler(req, res) {
             { $lookup: { from: "categories", localField: "service.categoryId", foreignField: "_id", as: "category", },  },
             { $unwind: { path: "$category", preserveNullAndEmptyArrays: true, }, },
             { $match: matchStage },
-            { $project: { 
-                _id: 1,
-                category: 1,
-                branch: 1,
-                service: 1,
-                appointmentDate: "$appointment.appointmentDate",
-                duration: 1,
-                price: 1,
-                subTotal: 1,
-                discount: 1,
-                voucherDiscount: 1,
-             } },
+            
+            // Group by category + duration
+            {
+              $group: {
+                _id: {
+                  categoryId: "$category._id",
+                  duration: "$duration"
+                },
+                totalPrice: { $sum: "$price" },
+                firstRecord: { $first: "$$ROOT" }
+              }
+            },
+
+            // Reshape to original format + summed price
+            {
+              $project: {
+                _id: "$firstRecord._id",
+                category: "$firstRecord.category",
+                branch: "$firstRecord.branch",
+                service: "$firstRecord.service",
+                appointmentDate: "$firstRecord.appointment.appointmentDate",
+                duration: "$_id.duration",
+                price: "$totalPrice", // summed price
+                subTotal: "$firstRecord.subTotal",
+                discount: "$firstRecord.discount",
+                voucherDiscount: "$firstRecord.voucherDiscount"
+              }
+            }
         ]);
 
         const [totalRevenue] = await Promise.all([
