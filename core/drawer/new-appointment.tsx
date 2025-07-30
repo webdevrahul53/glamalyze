@@ -35,7 +35,7 @@ const NewAppointment = (props:any) => {
           durationList: [], duration: null, 
           couponList: [], couponUsed: null, 
           voucherUsed: null, 
-          voucherDiscount: 0, discount: 0, price: 0, subTotal: 0, 
+          voucherDiscount: 0, discount: 0, price: 0, staffCommission: 0, subTotal: 0, 
           assetId: null, assetTypeId: null, assetList: [], 
           busyEmployees: [], employeeList: [], employeeId: []
         }] ],
@@ -129,7 +129,7 @@ const NewAppointment = (props:any) => {
         durationList: [], duration: null, 
         couponList: [], couponUsed: null, 
         voucherUsed: null, 
-        voucherDiscount: 0, discount: 0, price: 0, subTotal: 0, 
+        voucherDiscount: 0, discount: 0, price: 0, staffCommission: 0, subTotal: 0, 
         assetId: null, assetTypeId: null, assetList: [], 
         busyEmployees: [], employeeList: [], employeeId: []
       }] ])
@@ -265,7 +265,7 @@ const NewAppointment = (props:any) => {
         while (updatedPax.length < value) {
           updatedPax.push([{ 
             serviceId: null, 
-            price: null, 
+            price: null, staffCommission: 0,
             duration: null, durationList: [], 
             assetId: null, assetTypeId: null, assetList: [],
             employeeId: [], employeeList: [], busyEmployees: [],
@@ -302,7 +302,7 @@ const NewAppointment = (props:any) => {
           "serviceDuration": 60,
           "defaultPrice": 50,
           "_id": "67fcbfc92e5d5efc267985b1"
-      }], duration: "60", couponList: [], couponUsed: null, voucherUsed: null, voucherDiscount: 0, discount: 0, price: 0, subTotal: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}]
+      }], duration: "60", couponList: [], couponUsed: null, voucherUsed: null, voucherDiscount: 0, discount: 0, price: 0, staffCommission: 0, subTotal: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}]
       ]
       // console.log(data);
       // return;

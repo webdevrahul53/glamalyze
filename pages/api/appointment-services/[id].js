@@ -122,6 +122,7 @@ export default async function handler(req, res) {
               couponUsed: service.couponUsed ? service.couponUsed : null,
               voucherUsed: service.voucherUsed ? service.voucherUsed : null,
               price: service.price,
+              staffCommission: service.staffCommission,
               voucherDiscount: service.voucherDiscount,
               discount: service.discount,
               subTotal: service.subTotal,

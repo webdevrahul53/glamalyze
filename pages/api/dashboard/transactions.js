@@ -47,6 +47,7 @@ export default async function handler(req, res) {
                 taskStatus: "$appointment.taskStatus",
                 duration: 1,
                 price: 1,
+                staffCommission: 1,
                 subTotal: 1,
                 discount: 1,
                 voucherDiscount: 1,

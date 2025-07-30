@@ -58,7 +58,7 @@ export default async function handler(req, res) {
         },
         { $project: { _id: 1, appointmentId: 1, bookingId: 1, start: 1, customer: 1, employee: 1, asset: 1, 
           serviceName: "$service.name", taskStatus: "$appointment.taskStatus", paymentStatus: "$appointment.paymentStatus", paymentMethod: "$appointment.paymentMethod",
-          duration: 1, price: 1, voucherDiscount: 1, discount: 1, subTotal: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+          duration: 1, price: 1, staffCommission: 1, voucherDiscount: 1, discount: 1, subTotal: 1, status: 1, createdAt: 1, updatedAt: 1 } },
           
         { $sort: { createdAt: -1 } },
         { $skip: skip },
@@ -155,6 +155,7 @@ export default async function handler(req, res) {
                     couponUsed: service.couponUsed ? service.couponUsed : null,
                     voucherUsed: service.voucherUsed ? service.voucherUsed : null,
                     price: service.price,
+                    staffCommission: service.staffCommission,
                     voucherDiscount: service.voucherDiscount,
                     discount: service.discount,
                     subTotal: service.subTotal,

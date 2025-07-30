@@ -8,7 +8,11 @@ const ServicesSchema = mongoose.Schema({
     assetTypeId:{type:mongoose.Schema.Types.ObjectId,required:true, ref: "AssetTypes"},
     categoryId:{type:mongoose.Schema.Types.ObjectId,required:true, ref: "Categories"},
     subCategoryId:{type:mongoose.Schema.Types.ObjectId,required:false, ref: "SubCategories", default: null},
-    variants: [{ serviceDuration:{type: Number, required: true}, defaultPrice:{type: Number, required: true}, }],
+    variants: [{ 
+        serviceDuration:{type: Number, required: true}, 
+        defaultPrice:{type: Number, required: true}, 
+        staffCommission:{type: Number, required: true},
+    }],
     description:{type:String},
     status:{type:Boolean,required:true},
 },{ timestamps: true })
