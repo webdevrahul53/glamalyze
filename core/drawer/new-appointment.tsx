@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from "react";
 import { Autocomplete, AutocompleteItem, Avatar, Button, DatePicker, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Progress, Textarea, useDisclosure } from "@heroui/react";
-import { ChairIcon, CheckIcon, DoorOpenIcon, PlusIcon, SaveIcon } from "../utilities/svgIcons";
+import { ChairIcon, CheckIcon, DoorOpenIcon, PlusIcon, PrintIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import AvatarSelect from "../common/avatar-select";
 import {parseDate} from "@internationalized/date";
@@ -362,7 +362,7 @@ const NewAppointment = (props:any) => {
                     {selectedAppointment?.taskStatus === "Pending" && <Button type="submit" size="lg" color="secondary" disabled={loading} variant="solid" className={`border-2 bg-${loading?"gray-200 text-dark":"teal-600 text-white"} text-xl`}> <ChairIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Check In"} </Button>}
                     {selectedAppointment?.taskStatus === "CheckedIn" && <Button type="submit" size="lg" color="secondary" disabled={loading} variant="solid" className={`border-2 bg-${loading?"gray-200 text-dark":"purple-600 text-white"} text-xl`}> <DoorOpenIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Check Out"} </Button>}
                     {selectedAppointment?.taskStatus === "CheckedOut" && <Button type="submit" size="lg" variant="solid" disabled={loading} className={`border-2 ${loading?"bg-gray-200":"bg-green-600"} text-xl text-white`}> <CheckIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Pay"} </Button>}
-                    {selectedAppointment?.taskStatus === "Completed" && <Button type="button" size="lg" variant="solid" disabled={loading} className={`border-2 ${loading?"bg-gray-200":"bg-green-600"} text-xl text-white`}> <CheckIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Complete"} </Button>}
+                    {selectedAppointment?.taskStatus === "Completed" && <a href={`/invoice?_id=${selectedAppointment._id}`} target="_blank" type="button" className={`border-2 ${loading?"bg-gray-200":"bg-green-600"} text-xl text-white flex items-center gap-2 px-3 py-1 rounded`}> <PrintIcon width="15" height="15" color="white" /> {loading ? "Loading...":"Print"} </a>}
                   </div>
                   
                 </DrawerHeader>
