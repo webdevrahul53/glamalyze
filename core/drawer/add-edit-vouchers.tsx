@@ -12,7 +12,7 @@ import AvatarSelect from "../common/avatar-select";
 
 const AddEditVouchers = (props: any) => {
   const user = useSelector((state: any) => state.user.value);
-  const { register, handleSubmit, control, reset, watch } = useForm({
+  const { register, handleSubmit, control, reset, setValue, watch } = useForm({
     defaultValues: {
       voucherName: "",
       voucherBalance: 10,
@@ -31,9 +31,10 @@ const AddEditVouchers = (props: any) => {
 
   const [serviceList, setServiceList] = React.useState<any>([]);
   const [loading, setLoading] = React.useState(false);
-  const [defaultPrice, setDefaultPrice] = React.useState<number>(0);
+  // const [defaultPrice, setDefaultPrice] = React.useState<number>(0);
 
   const quantity = watch(`quantity`);   
+  const defaultPrice = watch(`defaultPrice`);   
 
 
   React.useEffect(() => {
@@ -70,7 +71,7 @@ const AddEditVouchers = (props: any) => {
   const onSubmit = async (data: any) => {
     try {
       setLoading(true);
-      data.defaultPrice = defaultPrice;
+      data.defaultPrice = defaultPrice || 0;
       data.amountToPay = defaultPrice * data.quantity;
       const url = data._id ? `${VOUCHERS_API_URL}/${data._id}` : VOUCHERS_API_URL;
       const res = await fetch(url, {
@@ -141,7 +142,7 @@ const AddEditVouchers = (props: any) => {
                                   const id = e.target.options[e.target.selectedIndex].id;
                                   const selectedVariant = variants.find((v:any) => v._id === id);
                                   if (index === 0 && selectedVariant) {
-                                    setDefaultPrice(selectedVariant.defaultPrice);
+                                    setValue("defaultPrice",selectedVariant.defaultPrice);
                                   }
                                   field.onChange(e);
                                 }}
@@ -176,13 +177,15 @@ const AddEditVouchers = (props: any) => {
 
               <DrawerFooter style={{ display: "flex", flexDirection: "column", justifyContent: "start" }}>
                 <div className="flex justify-between items-center gap-2 my-2">
-                  <div className="w-1/4 text-3xl border-3 rounded p-2 px-4">{defaultPrice}</div>
+                  {/* <div className="w-1/4 text-3xl border-3 rounded p-2 px-4">{defaultPrice}</div> */}
+                  <input className="text-3xl border-3 border-gray-800 rounded p-2 px-4" {...register("defaultPrice", { required: true })} type="number" style={{width: "100%"}}  />
+
                   <div className="text-3xl">X</div>
-                  <div className="w-1/4 text-3xl border-3 rounded p-2 px-4">
-                    <input {...register("quantity", { required: true })} type="number" style={{width: "100%"}}  />
-                  </div>
+                    <input className="text-3xl border-3 border-gray-800 rounded p-2 px-4" {...register("quantity", { required: true })} type="number" style={{width: "100%"}}  />
+                  {/* <div className="w-1/4 text-3xl border-3 rounded p-2 px-4">
+                  </div> */}
                   <div className="text-3xl">=</div>
-                  <div className="w-1/4 text-3xl border-3 rounded p-2 px-4">{defaultPrice * quantity}</div>
+                  <div className="w-2/4 text-3xl border-3 rounded p-2 px-4">{defaultPrice * quantity}</div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button color="primary" type="submit" disabled={loading}>
