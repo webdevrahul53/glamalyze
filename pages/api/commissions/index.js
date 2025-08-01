@@ -7,16 +7,16 @@ export default async function handler(req, res) {
 
   if (req.method === "GET") {
     try {
-      const { employeeId, startDate, endDate } = req.query;
+      const { employeeId } = req.query;
 
-      const matchStage = {
-        ...(startDate && endDate && {
-          appointmentDate: {
-            $gte: new Date(startDate),
-            $lte: new Date(endDate)
-          }
-        })
-      };
+      // const matchStage = {
+      //   ...(startDate && endDate && {
+      //     appointmentDate: {
+      //       $gte: new Date(startDate),
+      //       $lte: new Date(endDate)
+      //     }
+      //   })
+      // };
 
       const pipeline = [
         // { $match: matchStage },

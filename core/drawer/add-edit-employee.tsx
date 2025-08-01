@@ -1,24 +1,25 @@
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import React from "react";
 import { imageDb } from "../utilities/firebaseConfig";
-import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Radio, RadioGroup } from "@heroui/react";
+import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Radio, RadioGroup, Select, SelectItem } from "@heroui/react";
 import { EyeFilledIcon, EyeSlashFilledIcon, ImageIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { v4 } from "uuid";
 import AvatarSelectMultiple from "../common/avatar-select-multiple";
-import { BRANCH_API_URL, EMPLOYEES_API_URL, SERVICES_API_URL } from "../utilities/api-url";
+import { BRANCH_API_URL, EMPLOYEES_API_URL, ROLES_API_URL, SERVICES_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
 import AvatarSelect from "../common/avatar-select";
 
 const AddEditEmployee = (props:any) => {
     const { register, handleSubmit, setValue, control, reset } = useForm({
-      defaultValues: {image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: null, defaultBranch: null,
+      defaultValues: {image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: null, defaultBranch: null, roleId: null,
         aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, isVisibleInCalendar: null, status: null}
     });
     const [branchList, setBranchList] = React.useState<any>([]);
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false);
     const [serviceList, setServiceList] = React.useState([]);
+    const [roleList, setRoleList] = React.useState([]);
     const [isVisible, setIsVisible] = React.useState(false);
 
     const gender = useWatch({ control, name: "gender" });
@@ -31,9 +32,10 @@ const AddEditEmployee = (props:any) => {
             setImagePreview(props.employees.image)
         }
         else {
-          reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: null, defaultBranch: null,
+          reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: null, defaultBranch: null, roleId: null,
             aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, isVisibleInCalendar: null, status: null})
         }
+        getRolesList();
         getServiceList();
         getBranchList();
     }, [props.employees])
@@ -56,6 +58,17 @@ const AddEditEmployee = (props:any) => {
       }
   
     }
+
+    const getRolesList = async () => {
+      try {
+        const roles = await fetch(ROLES_API_URL)
+        const parsed = await roles.json();
+        console.log(parsed);
+        
+        setRoleList(parsed);
+      }catch(err:any) { toast.error(err.error) }
+    }
+
 
     const getBranchList = async () => {
       try {
@@ -161,7 +174,14 @@ const AddEditEmployee = (props:any) => {
   
 
 
-                  <div style={{display: "grid", gridTemplateColumns: "2fr 2fr 4fr", rowGap: 10, gap: 10}}>
+                  <div style={{display: "grid", gridTemplateColumns: "2fr 2fr 2fr 2fr", rowGap: 10, gap: 10}}>
+                    <Select label="Role" {...register("roleId", {required: true})} isRequired>
+                      {roleList?.map((role:any) => (
+                        <SelectItem key={role._id} textValue={role.rolesName}>
+                          {role.rolesName}
+                        </SelectItem>
+                      ))}
+                    </Select>
                     <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="text" variant="flat" isRequired />
                     <Input {...register("email", {required: true})} label="Email" placeholder="Enter Email" type="email" variant="flat" isRequired />
                     <div style={{pointerEvents: props?.employees ? "none":"all"}}>
