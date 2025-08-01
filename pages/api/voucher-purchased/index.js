@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   
   if (req.method === "GET") {
     try {
-      // const searchQuery = req.query.search || "";
+      const searchQuery = req.query.search || "";
       const customerId = req.query.customerId || "";
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
@@ -32,6 +32,11 @@ export default async function handler(req, res) {
           { $lookup: { from: "vouchers", localField: "voucherId", foreignField: "_id", as: "voucher", },  },
           { $unwind: { path: "$customer", preserveNullAndEmptyArrays: true }, },
           { $unwind: { path: "$voucher", preserveNullAndEmptyArrays: true }, },
+          { $match: { $or: [ 
+            { "voucher.voucherName": { $regex: searchQuery, $options: "i" } },
+            { "customer.firstname": { $regex: searchQuery, $options: "i" } },
+            { "paymentMethod": { $regex: searchQuery, $options: "i" } },
+          ]} },
           { $project: { _id: 1, customer: 1, voucherName: "$voucher.voucherName", voucherId: 1, customerId: 1, voucherBalance: 1, remainingVoucher: 1, paymentMethod: 1, status:1, createdAt: 1, updatedAt: 1 } },
           { $skip: skip },
           { $limit: limit }

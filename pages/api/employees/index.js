@@ -34,10 +34,12 @@ export default async function handler(req, res) {
             ]
           }
         },
+        { $lookup: { from: "roles", localField: "roleId", foreignField: "_id", as: "roles" } },
+        { $unwind: { path: "$roles", preserveNullAndEmptyArrays: true } },
         { $project: { _id: 1, image: 1, employeeName: 1, firstname: 1, lastname: 1, 
           email: 1, password: 1, phonenumber: 1, gender: 1, servicesId: 1, defaultBranch: 1, 
           totalServices: {$size: "$servicesId"}, aboutself: 1, expert: 1, facebook: 1, instagram: 1, twitter: 1, 
-          dribble: 1, isVisibleInCalendar: 1, isManager: 1, role: { $cond: { if: "$isManager", then: "Manager", else: "Staff" } }, 
+          dribble: 1, isVisibleInCalendar: 1, isManager: 1, role: "$roles.rolesName", 
           status: 1, createdAt: 1, updatedAt: 1 } },
           { $skip: skip },
           { $limit: limit }
@@ -76,6 +78,7 @@ export default async function handler(req, res) {
       gender: req.body.gender,
       servicesId: req.body.servicesId,
       defaultBranch: req.body.defaultBranch,
+      rolesId: req.body.rolesId,
       aboutself: req.body.aboutself,
       expert: req.body.expert,
       facebook: req.body.facebook,

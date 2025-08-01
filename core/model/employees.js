@@ -21,6 +21,7 @@ const EmployeesSchema = mongoose.Schema({
     gender:{type:String,required:true},
     servicesId:[{type:mongoose.Schema.Types.ObjectId, required:true, ref: "Services"}],
     defaultBranch:{type:mongoose.Schema.Types.ObjectId, required:true, ref: "Branches"},
+    roleId:{type:mongoose.Schema.Types.ObjectId, required:true, ref: "Roles"},
     aboutself:{type:String},
     expert:{type:String},
     facebook:{type:String},

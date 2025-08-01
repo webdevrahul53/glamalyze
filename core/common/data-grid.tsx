@@ -16,7 +16,8 @@ const statusColorMap:any = {
 
 const roleCSS: any = {
   Manager: "bg-blue-100 text-blue-500",
-  Staff: "bg-red-100 text-red-800"
+  Staff: "bg-red-100 text-red-800",
+  Therapist: "bg-pink-100 text-pink-800",
 }
 
 export const taskStatusCSS: any = {

@@ -21,5 +21,6 @@ export const SETTINGS_API_URL = BASE_URL + "/api/settings"
 export const ROSTER_API_URL = BASE_URL + "/api/roster"
 export const TRANSFERRED_EMPLOYEES_API_URL = BASE_URL + "/api/transferred-employees"
 export const COMMISSIONS_API_URL = BASE_URL + "/api/commissions"
+export const ROLES_API_URL = BASE_URL + "/api/roles"
 
 
