@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import DataGrid from "@/core/common/data-grid";
-import { BRANCH_API_URL, COMMISSIONS_API_URL, DASHBOARD_API_URL, EMPLOYEES_API_URL } from "@/core/utilities/api-url";
+import { COMMISSIONS_API_URL, EMPLOYEES_API_URL } from "@/core/utilities/api-url";
 import { DateRangePicker, Progress, Select, SelectItem } from "@heroui/react";
 import React from "react";
 import { toast } from "react-toastify";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 // const COLORS = ["#00C49F", "#FFBB28", "#FF8042", "#0088FE"];
 
@@ -19,7 +18,7 @@ export default function Commissions() {
 
   const [loading, setLoading] = React.useState(false);
   const [employeeList, setEmployeeList] = React.useState<any>([]);
-  const [dashboardData, setDashboardData] = React.useState<any>(null);
+  // const [dashboardData, setDashboardData] = React.useState<any>(null);
   const [selectedEmployee, setSelectedEmployee] = React.useState<string | null>(null);
   const [startDate, setStartDate] = React.useState<Date | null>(new Date("2025-04-01"));
   const [endDate, setEndDate] = React.useState<Date | null>(new Date("2025-06-30")); // Default to current month
@@ -87,9 +86,9 @@ export default function Commissions() {
       {loading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
       {/* <h1 className="text-4xl">Dashboard</h1> */}
       <section className="flex gap-4 mt-2">
-        <CardLayout title="Net Sales" value={`฿ ${dashboardData?.netSales || 0}`}></CardLayout>
-        <CardLayout title="Gross Sales" value={`฿ ${dashboardData?.grossSales || 0}`}></CardLayout>
-        <CardLayout title="Transactions" value={`${dashboardData?.transactions || 0}`}></CardLayout>
+        <CardLayout title="Net Sales" value={`฿ 0`}></CardLayout>
+        <CardLayout title="Gross Sales" value={`฿ 0`}></CardLayout>
+        <CardLayout title="Transactions" value={`0`}></CardLayout>
         <CardLayout title="Returns & Refunds" value={"0"}></CardLayout>
       </section>
 
