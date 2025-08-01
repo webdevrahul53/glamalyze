@@ -30,6 +30,8 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
       setValue(`pax.${paxIndex}.${serviceIndex}.employeeList`, [])
       const service = serviceList?.find((item: any) => item._id === id)
       const duration = service?.variants[0]?.serviceDuration
+      const staffCommission = service?.variants[0]?.staffCommission
+      setValue(`pax.${paxIndex}.${serviceIndex}.staffCommission`, staffCommission || 0)
       setValue(`pax.${paxIndex}.${serviceIndex}.durationList`, service?.variants || [])
       setValue(`pax.${paxIndex}.${serviceIndex}.assetTypeId`, service?.assetTypeId)
       onDurationSelection({target:{value: duration}}, serviceIndex)

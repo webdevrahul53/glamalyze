@@ -17,7 +17,7 @@ export default async function handler(req, res) {
       const dataPromise = await Appointments.aggregate([
         { $project: { _id: 1, appointmentId: 1, bookingId: 1, start: "null", customer: "null", employee: "null", asset: "null", 
           serviceName: "null", taskStatus: "null", paymentStatus: "null", paymentMethod: "null",
-          duration: 1, price: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+          duration: 1, price: 1, staffCommission: 1, status: 1, createdAt: 1, updatedAt: 1 } },
 
         { $sort: { createdAt: -1 } },
         { $skip: skip },

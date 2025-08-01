@@ -16,6 +16,7 @@ const AppointmentServicesSchema = new mongoose.Schema({
     employeeId: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employees" }],
     couponUsed: { type: mongoose.Schema.Types.ObjectId, ref: "Coupons" },
     voucherUsed: { type: mongoose.Schema.Types.ObjectId, ref: "Vouchers" },
+    staffCommission: { type: Number, required: true },
     voucherDiscount: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
     duration: { type: Number, required: true },

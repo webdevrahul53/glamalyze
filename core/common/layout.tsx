@@ -113,7 +113,6 @@ export default function Layout(props:any) {
 
           <ListboxWrapper Icon={CodeBranch} href={"/branches"} title="Branches" />
           <ListboxWrapper Icon={CalendarIcon} href={"/bookings"} title="Bookings" />
-          <ListboxWrapper Icon={CalendarOutlinedIcon} href={"/shifts"} title="Shifts" />
 
           <Accordion className="accordian flex flex-col gap-1 p-0" showDivider={false} variant="bordered"
             selectedKeys={openAccordion ? [openAccordion] : []}
@@ -124,14 +123,31 @@ export default function Layout(props:any) {
             </AccordionItem>
           </Accordion>
 
-          <ListboxWrapper Icon={CouponIcon} href={"/coupons"} title="Coupons" />
-          <ListboxWrapper Icon={VoucherIcon} href={"/vouchers"} title="Vourchers" />
-          <ListboxWrapper Icon={VoucherPurchasedIcon} href={"/voucher-purchased"} title="Vourcher Purchased" />
-          <Divider />
-          <ListboxWrapper Icon={SettingIcon} href={"/roster"} title="Roster" />
-          <ListboxWrapper Icon={PeopleIcon} href={"/staffs"} title="Staffs" />
-          <ListboxWrapper Icon={UserGroupIcon} href={"/groups"} title="Groups" />
-          <Divider />
+          
+          <Accordion className="accordian flex flex-col gap-1 p-0" showDivider={false} variant="bordered"
+            selectedKeys={openAccordion ? [openAccordion] : []}
+            onSelectionChange={handleAccordionChange} >
+            <AccordionItem key="3" startContent={<GiftUnboxedIcon width={30} height={20} />} title="Discounts">
+              <ListboxWrapper Icon={CouponIcon} href={"/coupons"} title="Coupons" />
+              <ListboxWrapper Icon={VoucherIcon} href={"/vouchers"} title="Vourchers" />
+              <ListboxWrapper Icon={VoucherPurchasedIcon} href={"/voucher-purchased"} title="Vourcher Purchased" />
+            </AccordionItem>
+          </Accordion>
+
+          
+          
+          <Accordion className="accordian flex flex-col gap-1 p-0" showDivider={false} variant="bordered"
+            selectedKeys={openAccordion ? [openAccordion] : []}
+            onSelectionChange={handleAccordionChange} >
+            <AccordionItem key="4" startContent={<PeopleIcon width={30} height={20} />} title="Staff Management">
+              <ListboxWrapper Icon={SettingIcon} href={"/roster"} title="Roster" />
+              <ListboxWrapper Icon={PeopleIcon} href={"/staffs"} title="Staffs" />
+              <ListboxWrapper Icon={UserGroupIcon} href={"/groups"} title="Groups" />
+              <ListboxWrapper Icon={CalendarOutlinedIcon} href={"/shifts"} title="Shifts" />
+            </AccordionItem>
+          </Accordion>
+
+          <ListboxWrapper Icon={CalendarOutlinedIcon} href={"/commissions"} title="Commissions" />
           <ListboxWrapper Icon={ChairIcon} href={"/asset-management"} title="Asset Management" />
           <ListboxWrapper Icon={PersonIcon} href={"/customers"} title="Customers" />
 

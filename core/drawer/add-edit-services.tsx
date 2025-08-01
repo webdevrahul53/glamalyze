@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 
 const AddEditServices = (props:any) => {
     const { register, handleSubmit, setValue, control, reset } = useForm({
-      defaultValues: { image: null, categoryId: null, name: null, assetTypeId: null, variants: [{serviceDuration: null, defaultPrice: null}], description:null, status: false }
+      defaultValues: { image: null, categoryId: null, name: null, assetTypeId: null, variants: [{serviceDuration: null, defaultPrice: null, staffCommission: null}], description:null, status: false }
     });
     const { fields, append, remove } = useFieldArray({ control, name: "variants" });
 
@@ -31,7 +31,7 @@ const AddEditServices = (props:any) => {
             getSubCategoryList(props.services.categoryId)
         }
         else {
-          reset({categoryId: null, name: null, assetTypeId: null, status: false, image: null, variants: [{serviceDuration: null, defaultPrice: null}]})
+          reset({categoryId: null, name: null, assetTypeId: null, status: false, image: null, variants: [{serviceDuration: null, defaultPrice: null, staffCommission: null}]})
           getCategoryList();
           getAssetTypeList();
         }
@@ -177,11 +177,12 @@ const AddEditServices = (props:any) => {
                       <div key={field.id} className="flex items-center gap-2" >
                         <Input {...register(`variants.${index}.serviceDuration`, {required: true})} label="Duration (Mins)" placeholder="Enter Duration" type="number" variant="flat" isRequired />
                         <Input {...register(`variants.${index}.defaultPrice`, {required: true})} label="Price (฿)" placeholder="Enter Price" type="number" variant="flat" isRequired />
+                        <Input {...register(`variants.${index}.staffCommission`, {required: true})} label="Commission (฿)" placeholder="0.00" type="number" variant="flat" isRequired />
                         {fields.length > 1 && <button type="button" onClick={() => remove(index)}>❌</button>}
                       </div>
                     ))}
                     
-                    <div className="text-center cursor-pointer my-2" onClick={() => append({ serviceDuration: null, defaultPrice: null })}>Add Variants ➕ </div>
+                    <div className="text-center cursor-pointer my-2" onClick={() => append({ serviceDuration: null, defaultPrice: null, staffCommission: null })}>Add Variants ➕ </div>
                     
                     <Textarea {...register("description")} label="Description" placeholder="Enter description" />
 
