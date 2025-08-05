@@ -1,4 +1,4 @@
-import { useFieldArray } from "react-hook-form";
+import { useFieldArray, useWatch } from "react-hook-form";
 import { APPOINTMENT_SERVICES_API_URL, ASSETS_API_URL, COUPONS_API_URL } from "../utilities/api-url";
 import ServiceCard from "../common/servicd-card";
 import { Autocomplete, AutocompleteItem, Avatar, Card, CardHeader } from "@heroui/react";
@@ -13,11 +13,20 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
       control,
       name: `pax.${paxIndex}`,
     });
+    const pax = useWatch({ control, name: `pax.${paxIndex}` });
   
     React.useEffect(() => {
       const serviceId = watch(`pax.${0}.${0}.serviceId`)
       if(!serviceId && serviceList?.length) onServiceSelection("67fcbfc92e5d5efc267985b0", 0)
     }, [serviceList])
+
+    
+  
+    React.useEffect(() => {
+      pax.forEach((item:any, index:number) => {
+        calculatePriceDiscount(index)
+      })
+    }, [pax])
 
 
     const onServiceSelection = (id: string, serviceIndex: number) => {

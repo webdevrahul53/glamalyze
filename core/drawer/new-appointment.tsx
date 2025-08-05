@@ -11,6 +11,7 @@ import ServiceCard from "../common/servicd-card";
 import PaxServiceList from "./pax-service-list";
 import { useSelector } from "react-redux";
 const AddEditCustomer = lazy(() => import("@/core/drawer/add-edit-customer"));
+const ApplyVoucher = lazy(() => import("@/core/drawer/apply-voucher"));
 
 
 const statusCSS: any = {
@@ -51,6 +52,10 @@ const NewAppointment = (props:any) => {
 
     const {isOpen, onOpen, onOpenChange} = useDisclosure();
     const handleOpen = () => { onOpen(); };
+
+    const {isOpen: isOpenVoucher, onOpen: onOpenVoucher, onOpenChange: onOpenVoucherChange} = useDisclosure();
+    const handleOpenVoucher = () => { onOpenVoucher(); };
+
     const [loading, setLoading] = React.useState(false)
     const [selectedAppointment, setSelectedAppointment] = React.useState<any>();
     const [branchList, setBranchList] = React.useState<any>([]);
@@ -332,6 +337,20 @@ const NewAppointment = (props:any) => {
           toast.error(err)
         }
     }
+
+    const applyVoucher = (paxIndex:number, serviceIndex: number, availableVoucher: any) => {
+      pax.forEach((item, i) => {
+        item.forEach((service, j) => {
+          console.log(i,j, paxIndex, serviceIndex)
+          if(i === paxIndex && j === serviceIndex) {
+            setValue(`pax.${i}.${j}.voucherUsed`, availableVoucher)
+          }else{
+            setValue(`pax.${i}.${j}.voucherUsed`, null)
+          }
+        })
+      })
+
+    }
   
 
     const onDrawerClose = () => {
@@ -347,6 +366,14 @@ const NewAppointment = (props:any) => {
           <AddEditCustomer isOpen={isOpen} placement={"left"} onOpenChange={() => {onOpenChange(); getCustomerList()} }  />
         </Suspense>
         )}
+        
+        {isOpenVoucher && (
+        <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
+          <ApplyVoucher pax={pax} voucherList={voucherList} serviceList={serviceList}  applyVoucher={applyVoucher}
+          isOpen={isOpenVoucher} placement={"center"} onOpenChange={() => {onOpenVoucherChange();} }  />
+        </Suspense>
+        )}
+
         <form onSubmit={handleSubmit(onSubmit)} onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}>
           <DrawerContent>
             {(onClose) => (
@@ -474,10 +501,10 @@ const NewAppointment = (props:any) => {
                 </DrawerBody>
                 <DrawerFooter style={{justifyContent: "start", flexDirection: "column"}}>
                   {selectedAppointment?.taskStatus === "CheckedOut" && <section className="flex items-center gap-0">
-                    <small role="button" className={`w-1/3 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2 ${paymentMethod === "Cash" && "bg-gray-500 text-white"}`} onClick={() => setValue("paymentMethod", "Cash")}>CASH</small>
-                    <small role="button" className={`w-1/3 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2 ${paymentMethod === "Card" && "bg-gray-500 text-white"}`} onClick={() => setValue("paymentMethod", "Card")}>CARD</small>
-                    <small role="button" className={`w-1/3 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2 ${paymentMethod === "Transfer" && "bg-gray-500 text-white"}`} onClick={() => setValue("paymentMethod", "Transfer")}>TRANSFER</small>
-                    {/* <small role="button" className={`w-1/4 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2`}>VOUCHER</small> */}
+                    <small role="button" className={`w-1/4 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2 ${paymentMethod === "Cash" && "bg-gray-500 text-white"}`} onClick={() => setValue("paymentMethod", "Cash")}>CASH</small>
+                    <small role="button" className={`w-1/4 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2 ${paymentMethod === "Card" && "bg-gray-500 text-white"}`} onClick={() => setValue("paymentMethod", "Card")}>CARD</small>
+                    <small role="button" className={`w-1/4 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2 ${paymentMethod === "Transfer" && "bg-gray-500 text-white"}`} onClick={() => setValue("paymentMethod", "Transfer")}>TRANSFER</small>
+                    <small role="button" className={`w-1/4 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2`} onClick={() => handleOpenVoucher()}>VOUCHER</small>
                   </section>}
 
                   <Textarea {...register("note")} label="Note" placeholder="Enter Note" />
