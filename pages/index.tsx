@@ -77,7 +77,7 @@ export default function Home() {
       </select> */}
       
       <Select label="Select Branch" placeholder="Choose a branch" variant="faded" className="max-w-xs mb-4" onChange={(e) => getDashboardData(e.target.value)} >
-        {branchList.map((item:any) => (
+        {branchList?.map((item:any) => (
           <SelectItem key={item._id} value={item._id}>
             {item.branchname}
           </SelectItem>
