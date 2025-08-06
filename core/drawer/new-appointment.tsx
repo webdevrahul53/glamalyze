@@ -507,7 +507,7 @@ const NewAppointment = (props:any) => {
                     <small role="button" className={`w-1/4 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2`} onClick={() => handleOpenVoucher()}>VOUCHER</small>
                   </section>}
 
-                  <Textarea {...register("note")} label="Note" placeholder="Enter Note" />
+                  {/* <Textarea {...register("note")} label="Note" placeholder="Enter Note" /> */}
                   
                   <div className="flex items-center justify-between">
                     <h5 className="text-xl">Total Amount :</h5>

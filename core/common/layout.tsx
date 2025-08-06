@@ -1,5 +1,5 @@
 import { DashboardIcon, CalendarIcon, PeopleIcon, ServicesIcon, CodeBranch, CircleDotIcon, ListIcon, UserIcon, SettingIcon, UserGroupIcon, ChairIcon, CalendarOutlinedIcon, CouponIcon, VoucherIcon, VoucherPurchasedIcon, FinanceIcon, PersonIcon, SaleSummaryIcon, SaleTrendsIcon, TransactionIcon, GiftUnboxedIcon } from "@/core/utilities/svgIcons";
-import Logo from "@/public/logo.svg";
+import Logo from "@/public/glamalyze-gold.png";
 import Image from 'next/image'
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -47,7 +47,9 @@ export default function Layout(props:any) {
     <div style={{display: "grid", gridTemplateColumns: "1fr 5fr"}}>
       {/* Left Side */}
       <div className="sidebar">
-        <Image id="navbar" src={Logo} alt="Logo" height={100} className="bg-primary" style={{width: "100%", padding: "11px", marginBottom: "20px"}} />
+        <div className="bg-primary" style={{width: "100%", padding: "34px 11px", marginBottom: "20px"}}>
+          <Image id="navbar" src={Logo} alt="Logo" height={100} />
+        </div>
 
         <div style={{height: `calc(100vh - ${(navbarHeight + 30)}px)`, overflow: "auto"}}>
           
