@@ -322,8 +322,8 @@ export default function CalendarViewBookings(){
               views={['month', 'week', 'day', 'agenda']} // Ensure views are included
               defaultView="day"
               style={{ height: '100%' }}
-              min={new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), 9, 0)} // 10 AM
-              max={new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), 21, 0)} // 7 PM
+              min={new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), currentBranch?.openingAt - 1, 0)} // 10 AM
+              max={new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate(), currentBranch?.closingAt - (+currentBranch?.closingAt >  23 ? 1 : 0), 59)} // 7 PM
               step={30} // Minutes per time slot (default: 30)
               timeslots={2} // Number of slots per hour (default: 2)
               dayLayoutAlgorithm={"no-overlap"} // Ensures events are rendered in order

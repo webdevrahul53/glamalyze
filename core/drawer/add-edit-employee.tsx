@@ -13,7 +13,8 @@ import AvatarSelect from "../common/avatar-select";
 const AddEditEmployee = (props:any) => {
     const { register, handleSubmit, setValue, control, reset } = useForm({
       defaultValues: {image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: null, defaultBranch: null, roleId: null,
-        aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, isVisibleInCalendar: null, status: null}
+        // aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, 
+        isVisibleInCalendar: null, status: null}
     });
     const [branchList, setBranchList] = React.useState<any>([]);
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
@@ -33,7 +34,8 @@ const AddEditEmployee = (props:any) => {
         }
         else {
           reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: null, defaultBranch: null, roleId: null,
-            aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, isVisibleInCalendar: null, status: null})
+            // aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, 
+            isVisibleInCalendar: null, status: null})
         }
         getRolesList();
         getServiceList();
@@ -127,7 +129,7 @@ const AddEditEmployee = (props:any) => {
   
   
     return (
-      <Drawer isOpen={props.isOpen} size="5xl" placement={"right"} onOpenChange={props.onOpenChange}>
+      <Drawer isOpen={props.isOpen} size="3xl" placement={"right"} onOpenChange={props.onOpenChange}>
         <form onSubmit={handleSubmit(onSubmit)} onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}>
           <DrawerContent>
             {(onClose) => (
@@ -136,17 +138,18 @@ const AddEditEmployee = (props:any) => {
                 <DrawerBody> 
 
                   
-                  <div style={{display: "grid", gridTemplateColumns: "3fr 3fr", rowGap: 10, gap: 10, alignItems:"end"}}>
-                    <div>
-                      <div style={{display: "grid", gridTemplateColumns: "3fr 3fr", rowGap: 10, gap: 10}}>
-                        <Input {...register("firstname", {required: true})} label="First Name" placeholder="Enter First Name" type="text" variant="flat" isRequired />
-                        <Input {...register("lastname", {required: true})} label="Last Name" placeholder="Enter Last Name" type="text" variant="flat" isRequired />
-                      </div>
-                      <RadioGroup {...register("gender", {required: true})} className="my-3 mx-1" label="Gender" orientation="horizontal" defaultValue={props.employees?.gender || gender} isRequired>
-                        <Radio {...register("gender", {required: true})} value="male"className="border-3 border-gray-400 rounded px-4 mx-0">Male</Radio>
-                        <Radio {...register("gender", {required: true})} value="female"className="border-3 border-gray-400 rounded px-4 mx-0">Female</Radio>
-                        <Radio {...register("gender", {required: true})} value="intersex" className="border-3 border-gray-400 rounded px-4 mx-0">Intersex</Radio>
-                      </RadioGroup>
+                  <div style={{display: "grid", gridTemplateColumns: "3fr 3fr", rowGap: 10, gap: 10, alignItems:"start"}}>
+                    <div className="flex flex-col gap-3">
+                      <Input {...register("firstname", {required: true})} label="Full Name" placeholder="Enter Full Name" type="text" variant="flat" isRequired />
+                      {/* <Input {...register("lastname", {required: true})} label="Last Name" placeholder="Enter Last Name" type="text" variant="flat" isRequired /> */}
+                      <Select label="Role" {...register("roleId", {required: true})} isRequired>
+                        {roleList?.map((role:any) => (
+                          <SelectItem key={role._id} textValue={role.rolesName}>
+                            {role.rolesName}
+                          </SelectItem>
+                        ))}
+                      </Select>
+
                     </div>
                     <div>
                       <div className="flex items-end">
@@ -174,23 +177,22 @@ const AddEditEmployee = (props:any) => {
   
 
 
-                  <div style={{display: "grid", gridTemplateColumns: "2fr 2fr 2fr 2fr", rowGap: 10, gap: 10}}>
-                    <Select label="Role" {...register("roleId", {required: true})} isRequired>
-                      {roleList?.map((role:any) => (
-                        <SelectItem key={role._id} textValue={role.rolesName}>
-                          {role.rolesName}
-                        </SelectItem>
-                      ))}
-                    </Select>
+                  <RadioGroup {...register("gender", {required: true})} className="mb-3 mx-1" label="Gender" orientation="horizontal" defaultValue={props.employees?.gender || gender} isRequired>
+                    <Radio {...register("gender", {required: true})} value="male"className="border-3 border-gray-400 rounded px-4 mx-0">Male</Radio>
+                    <Radio {...register("gender", {required: true})} value="female"className="border-3 border-gray-400 rounded px-4 mx-0">Female</Radio>
+                    <Radio {...register("gender", {required: true})} value="intersex" className="border-3 border-gray-400 rounded px-4 mx-0">Intersex</Radio>
+                  </RadioGroup>
+                  
+                  <div style={{display: "grid", gridTemplateColumns: "2fr 2fr 2fr", rowGap: 10, gap: 10}}>
                     <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="text" variant="flat" isRequired />
-                    <Input {...register("email", {required: true})} label="Email" placeholder="Enter Email" type="email" variant="flat" isRequired />
+                    <Input {...register("email")} label="Email" placeholder="Enter Email" type="email" variant="flat" />
                     <div style={{pointerEvents: props?.employees ? "none":"all"}}>
                       <Input label="Password" placeholder="Enter Password" type={isVisible ? "text" : "password"} tabIndex={-1}
-                        {...register("password", {required: true})} variant="flat" disabled={props.employees} endContent={
+                        {...register("password")} variant="flat" disabled={props.employees} endContent={
                         <button tabIndex={-1} aria-label="toggle password visibility" className="focus:outline-none" type="button" onClick={toggleVisibility} >
                           {isVisible ? ( <EyeSlashFilledIcon className="text-2xl text-red-400 pointer-events-none" /> ) : ( <EyeFilledIcon className="text-2xl text-default-400 pointer-events-none " /> )}
                         </button>
-                      } isRequired />
+                      } />
                     </div>
                   </div>
 
@@ -208,14 +210,14 @@ const AddEditEmployee = (props:any) => {
                   </div>
                   
 
-                  <div style={{display: "grid", gridTemplateColumns: "3fr 3fr", rowGap: 10, gap: 10}}>
+                  {/* <div style={{display: "grid", gridTemplateColumns: "3fr 3fr", rowGap: 10, gap: 10}}>
                     <Input {...register("aboutself")} label="About Self" placeholder="Enter About Self" type="text" variant="flat" />
                     <Input {...register("expert")} label="Expert" placeholder="Enter Expert" type="text" variant="flat" />
                     <Input {...register("facebook")} label="Facebook" placeholder="Enter Facebook" type="text" variant="flat" />
                     <Input {...register("instagram")} label="Instagram" placeholder="Enter Instagram" type="text" variant="flat" />
                     <Input {...register("twitter")} label="Twitter" placeholder="Enter Twitter" type="text" variant="flat" />
                     <Input {...register("dribble")} label="Dribble" placeholder="Enter Dribble" type="text" variant="flat" />
-                  </div>
+                  </div> */}
                 
 
                   <Checkbox {...register("status")} color="primary"> Active </Checkbox>

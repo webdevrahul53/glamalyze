@@ -101,6 +101,14 @@ export default function Shifts() {
       setGroupList(parsed);
     }catch(err:any) { toast.error(err.error) }
   }
+
+  const onCardClicked = ({group, branch, shift, date}: any) => {     
+    setSelectedGroup(group)
+    setSelectedBranch(branch)
+    setSelectedShift(shift)
+    setSelectedDateFor(moment(date).format("YYYY-MM-DD"))
+    handleOpen();
+  }
   
   const creatUpdateRoster = async (dateFor: string,shift:any, groupId:string, type: string = "") => {
     const date = moment(new Date(dateFor)).format("YYYY-MM-DD")
@@ -166,19 +174,19 @@ export default function Shifts() {
 
   return (
     <section>
-      <div className="flex items-center justify-between px-5 my-3">
-
-        <div className="w-1/4 flex items-center gap-2">
-          <DatePicker label="From Date" variant="bordered" value={fromDate} onChange={(val) => setFromDate(val)} />
-          <DatePicker label="To Date" variant="bordered" value={toDate} onChange={(val) => setToDate(val)} />
-        </div>
-
-        <div className="w-2/4 text-center">
+      <div className="flex items-center justify-start gap-5 px-5 my-3">
+        <div>
           <h1 className="text-4xl">Roster Creation</h1>
           <div className="text-gray-500">Roster created till {latestRoster?.dateFor.split("T")[0]} </div>
         </div>
 
-        <div className="w-1/4 text-end">
+        <div className="flex items-center gap-2 ms-5 w-80">
+          <DatePicker label="From Date" variant="bordered" value={fromDate} onChange={(val) => setFromDate(val)} />
+          <DatePicker label="To Date" variant="bordered" value={toDate} onChange={(val) => setToDate(val)} />
+        </div>
+
+
+        <div className="text-end">
           <Button color="primary" variant="bordered" size="lg" type="button" onPress={() => cloneRoster()}> <SaveIcon width={20} height={20} /> Clone Roster</Button>
         </div>
         
@@ -196,8 +204,13 @@ export default function Shifts() {
       )}
       
       {isLoading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
-      <div className="flex items-start justify-between bg-white rounded shadow" style={{width: "calc(100vw - 300px)", height: "calc(100vh - 100px)", margin: "0 auto", overflow: "auto"}}>
-        {/* <PageTitle title="Roster Creation" /> */}
+
+
+      
+      <div className="flex items-start justify-between bg-white rounded shadow ms-4">
+
+
+        {/* Date Section */}
         {branchList.length ? <div className="text-center h-full" style={{minWidth: "220px"}}>
           <div className="w-full p-3 border-b-2 border-e-2 flex items-center justify-center gap-2">
             <div className="text-2xl">Dates</div>  
@@ -212,18 +225,20 @@ export default function Shifts() {
           </div>
         </div> : <></>}
         
+        {/* Branch SEction */}
         {branchList.map((branch:any) => <div key={branch._id} className="text-center h-full w-full">
           
           <div className="w-full p-3 border-b-2 border-e-2 flex items-center justify-center gap-2">
             <Avatar src={branch?.image} size="sm"/>
             <div className="text-2xl" style={{color: branch.colorcode}}>{branch.branchname}</div>  
           </div>
-          <div className="flex items-start justify-between" style={{height: "calc(100vh - 180px)"}}>
+
+          {/* Shift Section */}
+          <div className="flex items-start justify-between w-full" style={{height: "calc(100vh - 180px)"}}>
             {shiftList.map((shift:any) => shift.branchId === branch._id && <div key={shift._id} className="px-3 w-full h-full border-e-2">
               <div className="text-lg py-3">{shift.shiftname}</div>
 
               {selectedDate?.map((date:any) => {
-
                 const currentRoster = rosterData?.find((item:any) => item.shiftId === shift._id && moment(item?.dateFor).format("YYYY-MM-DD") === moment(date).format("YYYY-MM-DD"))
                 
                 return <section key={date} className="flex items-center gap-2" style={{height: "50px", minWidth: "300px"}}>
@@ -231,15 +246,7 @@ export default function Shifts() {
                   {currentRoster?.groups?.map((group:any) => {
 
                     return <Card key={group._id} className="shadow-sm border-2">
-                      <CardHeader className="justify-start" onClick={() => {
-                      console.log("clicked");
-                      
-                      setSelectedGroup(group)
-                      setSelectedBranch(branch)
-                      setSelectedShift(shift)
-                      setSelectedDateFor(moment(date).format("YYYY-MM-DD"))
-                      handleOpen();
-                    }}>
+                      <CardHeader className="justify-start" onClick={() => onCardClicked({group, branch, shift, date})}>
                         <div className="flex items-center px-4">
                           {group?.employeesData.map((employee:any) => <AvatarGroup key={employee._id} isBordered max={2}>
                             <Avatar size="sm" src={employee?.image} style={{marginLeft: "-15px", width: "20px", height: "20px"}} />
@@ -257,9 +264,9 @@ export default function Shifts() {
                   
                   <Dropdown placement="bottom">
                     <DropdownTrigger>
-                      <div className="p-2 border-2 rounded"> <PlusIcon width={15} height={15} /> </div>
+                      <div className="p-2 border-2 rounded cursor-pointer"> <PlusIcon width={15} height={15} /> </div>
                     </DropdownTrigger>
-                    <DropdownMenu aria-label="Profile Actions" variant="flat">
+                    <DropdownMenu aria-label="Profile Actions" variant="flat" style={{height: "300px", overflow: "auto"}}>
                       {groupList
                       // .filter((item:any) => !shift.groups.map((x:any) => x._id).includes(item._id))
                       .map((group:any) => <DropdownItem key={group.groupname} onPress={() => creatUpdateRoster(date, shift, group._id)}>
