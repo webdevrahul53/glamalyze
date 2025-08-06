@@ -1,6 +1,5 @@
 import { connectDB } from "@/core/db";
 import { AppointmentServices } from "../../../core/model/appointment-services";
-import mongoose from "mongoose";
 
 export default async function handler(req, res) {
   await connectDB();
