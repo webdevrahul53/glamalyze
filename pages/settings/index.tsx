@@ -2,7 +2,6 @@
 // import DataGrid from "@/core/common/data-grid";
 import { SETTINGS_API_URL } from "@/core/utilities/api-url";
 import { Button, Input, Progress } from "@heroui/react";
-import moment from "moment";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
