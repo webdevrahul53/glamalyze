@@ -6,10 +6,10 @@ export default async function handler(req, res) {
 
   if (req.method === "GET") {
     try {
-      const { startDate, endDate } = req.query;
+      const { startDate, endDate, selectedCommission } = req.query;
 
       const matchStage =
-        startDate && endDate
+        startDate != "null" && endDate != "null"
           ? {
               appointmentDate: {
                 $gte: new Date(startDate),
@@ -17,6 +17,8 @@ export default async function handler(req, res) {
               },
             }
           : null;
+
+          console.log(startDate, endDate, matchStage)
 
       const staffCommissions = await AppointmentServices.aggregate([
         // Conditionally include $match stage
@@ -36,6 +38,7 @@ export default async function handler(req, res) {
               },
             },
             totalCommission: { $sum: "$staffCommission" },
+            createdAt: { $first: "$createdAt" },
           },
         },
 
@@ -56,13 +59,26 @@ export default async function handler(req, res) {
             // employeeId: "$_id.employeeId",
             date: "$_id.date",
             totalCommission: 1,
+            createdAt: {
+              $dateToString: {
+                format: "%Y-%m-%d",
+                date: "$createdAt"
+              }
+            }
           },
         },
 
         { $sort: { date: 1, employeeName: 1 } },
       ]);
 
-      res.status(200).json(staffCommissions);
+      let result = []
+      if(selectedCommission === "Personal Booking Commission"){
+        result = staffCommissions.filter(item => item.createdAt != item.date)
+      }else {
+        result = staffCommissions
+      }
+
+      res.status(200).json(result);
     } catch (err) {
       console.error(err);
       res.status(500).json({

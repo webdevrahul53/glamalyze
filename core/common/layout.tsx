@@ -46,10 +46,10 @@ export default function Layout(props:any) {
   return (
     <div style={{display: "grid", gridTemplateColumns: "1fr 5fr"}}>
       {/* Left Side */}
-      <div className="sidebar" style={{minWidth: "260px"}}>
-        <Image id="navbar" src={Logo} alt="Logo" height={100} className="bg-primary" style={{width: "100%", padding: "11px", marginBottom: "30px"}} />
+      <div className="sidebar relative" style={{minWidth: "260px"}}>
+        <Image id="navbar" src={Logo} alt="Logo" height={100} className="bg-primary" style={{width: "100%", padding: "11px", marginBottom: "10px"}} />
 
-        <div style={{height: `calc(100vh - ${(navbarHeight + 90)}px)`, overflow: "auto"}}>
+        <div style={{height: `calc(100vh - ${(navbarHeight + 80)}px)`, overflow: "auto"}}>
           
           {/* <Accordion className="accordian flex flex-col gap-1 p-0" showDivider={false} variant="bordered"
             selectedKeys={openAccordion ? [openAccordion] : []}
@@ -151,6 +151,10 @@ export default function Layout(props:any) {
           <ListboxWrapper Icon={ChairIcon} href={"/asset-management"} title="Asset Management" />
           <ListboxWrapper Icon={PersonIcon} href={"/customers"} title="Customers" />
 
+        </div>
+        
+        <div className="absolute bottom-0 w-full py-1">
+
           <Dropdown placement="right-end">
             <DropdownTrigger>
               <div className={`flex items-center gap-3 p-2 px-3 hover:bg-gray-200 cursor-pointer`}>
@@ -165,7 +169,9 @@ export default function Layout(props:any) {
                 <p className="font-semibold">{user?.email}</p>
               </DropdownItem>
               <DropdownItem key="profile" startContent={<UserIcon width={20} height={15} />}>Profile</DropdownItem>
-              <DropdownItem key="settings" startContent={<SettingIcon width={20} height={15} />}>My Settings</DropdownItem>
+              <DropdownItem key="settings" startContent={<SettingIcon width={20} height={15} />}>
+                <Link href={"settings"}>My Settings</Link>
+              </DropdownItem>
               <DropdownItem key="logout" color="danger" onPress={() => {dispatch(setUser(null)); router.push("/auth/login")}}>
                 Log Out
               </DropdownItem>
