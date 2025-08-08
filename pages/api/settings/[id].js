@@ -1,30 +1,17 @@
 import { connectDB } from "@/core/db";
-import { Settings } from "../../../core/model/settings";
+import { GlobalSettings } from "../../../core/model/global-settings";
 
 export default async function handler(req, res) {
   await connectDB();
   
-  if(req.method === "GET") {    
-    try {
-      const result = await Settings.aggregate([
-        { $match: { _id: req.query["id"] } },
-        { $project: { _id: 1, rosterStartDate: 1, rosterEndDate: 1 } },
-      ])
-      res.status(200).json(result[0] || null) 
-    } catch (error) {
-      console.log(error)
-      res.status(500).json(error) 
-    } 
-  }
-
   if(req.method === "DELETE") {
-    Settings.deleteOne({_id:req.query['id']}).exec()
+    GlobalSettings.deleteOne({_id:req.query['id']}).exec()
     .then(()=>{ 
         res.status(200).json({
             status: 1,
-            message:"Shift deleted",
+            message:"Setting deleted",
             _id:req.params['id']
-        }) 
+        })  
     }).catch(err=>{ 
         res.status(500).json(err) 
 
@@ -38,11 +25,11 @@ export default async function handler(req, res) {
           updateOps[ops.propName] = ops.value;
       }
     } else updateOps = req.body;
-    Settings.updateOne({_id:req.query['id']},{$set:updateOps}).exec()
+    GlobalSettings.updateOne({_id:req.query['id']},{$set:updateOps}).exec()
     .then(()=>{ 
         res.status(200).json({
             status: 1,
-            message:"Shift data updated",
+            message:"Setting data updated",
             _id:req.query['id']
         }) 
     }).catch(err=>{ 

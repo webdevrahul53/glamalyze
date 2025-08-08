@@ -1,3 +1,4 @@
+import moment from "moment";
 import React from "react";
 
 type Employee = {
@@ -45,18 +46,17 @@ const TherapistCommissionTable: React.FC<Props> = ({ data }) => {
   const rows = Object.entries(employeeMap);
 
   return (
-    <div className="overflow-x-auto rounded shadow-sm border border-gray-200 bg-gradient-to-b from-white via-blue-50 to-purple-50" style={{ height: "calc(100vh - 150px)" }}>
+    <div className="overflow-auto rounded shadow-sm border border-gray-200 bg-gradient-to-b from-white via-blue-50 to-purple-50" style={{ height: "calc(100vh - 150px)", width: "calc(100vw - 350px)" }}>
       <table className="min-w-full text-sm text-gray-800">
         <thead className="bg-gradient-to-r from-indigo-200 to-purple-200 text-gray-700 text-xs uppercase sticky top-0 shadow z-10">
           <tr>
-            <th className="border px-3 py-3 text-center font-semibold">#</th>
-            <th className="border px-4 py-3 text-left font-semibold">Therapist</th>
+            <th className="border px-4 py-3 text-left font-semibold sticky left-0 bg-gradient-to-r from-indigo-200 to-purple-200" style={{minWidth: "180px"}}># Therapist</th>
             {allDates.map((date) => (
-              <th key={date} className="border px-2 py-3 text-center font-semibold">
-                {new Date(date).getDate()}
+              <th key={date} className="border px-2 py-3 text-center font-semibold" style={{minWidth: "90px"}}>
+                {moment(date).format("DD/MM")}
               </th>
             ))}
-            <th className="border px-4 py-3 text-center font-semibold">Total</th>
+            <th className="border px-4 py-3 text-center font-semibold sticky right-0 bg-gradient-to-r from-indigo-200 to-purple-200" style={{minWidth: "150px"}}>Total</th>
           </tr>
         </thead>
         <tbody>
@@ -69,11 +69,8 @@ const TherapistCommissionTable: React.FC<Props> = ({ data }) => {
                   : "bg-gray-50 hover:bg-indigo-50 transition"
               }
             >
-              <td className="border px-3 py-2 text-center text-gray-600 font-medium">
-                {index + 1}
-              </td>
-              <td className="border px-4 py-2 font-bold text-indigo-800 whitespace-nowrap">
-                {emp.name}
+              <td className="border px-4 py-2 font-bold text-indigo-800 whitespace-nowrap bg-white sticky left-0">
+              {index + 1}. {emp.name}
               </td>
               {allDates.map((date) => (
                 <td
@@ -85,7 +82,7 @@ const TherapistCommissionTable: React.FC<Props> = ({ data }) => {
                   {emp.daily[date] ?? "-"}
                 </td>
               ))}
-              <td className="border px-4 py-2 text-center font-bold text-purple-800 bg-purple-100">
+              <td className="border px-4 py-2 text-center font-bold text-purple-800 bg-purple-100 sticky right-0">
                 ฿ {emp.total.toLocaleString()}
               </td>
             </tr>
