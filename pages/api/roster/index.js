@@ -112,7 +112,7 @@ export default async function handler(req, res) {
   
     try {
       if (type === "delete") {
-        const result = await Roster.updateOne(
+        await Roster.updateOne(
           { shiftId, dateFor },
           { $pull: { groups: groupId } }
         );
