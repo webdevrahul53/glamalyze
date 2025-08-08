@@ -228,7 +228,7 @@ export default function Shifts() {
           </div> : <></>}
           
           {/* Branch SEction */}
-          {branchList.map((branch:any) => <div key={branch._id} className="text-center h-full w-full">
+          {branchList.map((branch:any) => <div key={branch._id} className="text-center h-full w-auto">
             
             <div className="w-full p-3 border-b-2 border-e-2 flex items-center justify-center gap-2">
               <Avatar src={branch?.image} size="sm"/>
