@@ -46,12 +46,10 @@ export default function Layout(props:any) {
   return (
     <div style={{display: "grid", gridTemplateColumns: "1fr 5fr"}}>
       {/* Left Side */}
-      <div className="sidebar">
-        <div className="bg-primary" style={{width: "100%", padding: "34px 11px", marginBottom: "20px"}}>
-          <Image id="navbar" src={Logo} alt="Logo" height={100} />
-        </div>
+      <div className="sidebar" style={{minWidth: "260px"}}>
+        <Image id="navbar" src={Logo} alt="Logo" height={100} className="bg-primary" style={{width: "100%", padding: "11px", marginBottom: "30px"}} />
 
-        <div style={{height: `calc(100vh - ${(navbarHeight + 30)}px)`, overflow: "auto"}}>
+        <div style={{height: `calc(100vh - ${(navbarHeight + 90)}px)`, overflow: "auto"}}>
           
           {/* <Accordion className="accordian flex flex-col gap-1 p-0" showDivider={false} variant="bordered"
             selectedKeys={openAccordion ? [openAccordion] : []}

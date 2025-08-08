@@ -8,6 +8,7 @@ export default async function handler(req, res) {
   if (req.method === "GET") {
     
     try {
+      const categoryId = req.query.categoryId || "";
       const searchQuery = req.query.search || "";
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
@@ -26,7 +27,11 @@ export default async function handler(req, res) {
           { 
             $match: { $or: [
               { name: { $regex: searchQuery, $options: "i" } },
-            ]}
+            ],
+            $and: [
+              categoryId ? { categoryId: new mongoose.Types.ObjectId(categoryId) } : {}
+            ]
+          }
           },
           { $lookup: { from: "assettypes", localField: "assetTypeId", foreignField: "_id", as: "assetTypes", },  },
           { $lookup: { from: "categories", localField: "categoryId", foreignField: "_id", as: "category", },  },

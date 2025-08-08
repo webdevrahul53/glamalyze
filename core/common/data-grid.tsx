@@ -62,7 +62,7 @@ export default function DataGrid(props:any) {
     setLoading(true);
     try {
       const response = await fetch(
-        `${props.api}?search=${props.search}&page=${page}&limit=${rowsPerPage}`
+        `${props.api}?page=${page}&limit=${rowsPerPage}&search=${props.search}`
       );
       const data = await response.json();
 
@@ -203,6 +203,9 @@ export default function DataGrid(props:any) {
         </div>
       );
 
+    }else if(columnKey === "gender") {
+      const capitalized = cellValue.charAt(0).toUpperCase() + cellValue.slice(1);
+      return capitalized;
     }else {
       return cellValue;
     }

@@ -71,6 +71,7 @@ export default function Staffs() {
 
 const columns = [
   {name: "EMPLOYEE NAME", uid: "employeeName"},
+  {name: "GENDER", uid: "gender"},
   {name: "TOTAL SERVICES", uid: "totalServices"},
   {name: "Role", uid: "role"},
   {name: "PHONE NUMBER", uid: "phonenumber"},

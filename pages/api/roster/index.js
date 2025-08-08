@@ -112,12 +112,17 @@ export default async function handler(req, res) {
   
     try {
       if (type === "delete") {
-        const result = await Roster.updateOne(
+        await Roster.updateOne(
           { shiftId, dateFor },
           { $pull: { groups: groupId } }
         );
         
-        console.log(result);
+        // Check if any document still has the same shiftId/dateFor and empty groups
+        const doc = await Roster.findOne({ shiftId, dateFor });
+        if (doc && (!doc.groups || doc.groups.length === 0)) {
+          await Roster.deleteOne({ _id: doc._id });
+        }
+
         return res.status(200).json({
           status: 1,
           message: "Roster removed",

@@ -343,12 +343,12 @@ const PaxServiceList = ({ control, paxIndex, register, errors, watch, setValue, 
             
             <div className="flex items-start justify-between gap-2 px-2">
               <div>
-                {availableVoucher && !voucherClaimed && <div className="flex items-center gap-2 cursor-pointer text-green-800" onClick={() => {
+                {/* {availableVoucher && !voucherClaimed && <div className="flex items-center gap-2 cursor-pointer text-green-800" onClick={() => {
                   setValue(`pax.${paxIndex}.${serviceIndex}.voucherUsed`, availableVoucher)
                   calculatePriceDiscount(serviceIndex)
                 }}><GiftIcon width={18} height={18} color={"darkgreen"} /> Redeem Voucher </div>}
 
-                {voucherUsed && <div className="flex items-center gap-2 text-gray-500"><GiftUnboxedIcon width={18} height={18} color={"gray"} /> Voucher Claimed </div>}
+                {voucherUsed && <div className="flex items-center gap-2 text-gray-500"><GiftUnboxedIcon width={18} height={18} color={"gray"} /> Voucher Claimed </div>} */}
 
                 <button type="button" className="my-2" onClick={() => onServiceRemoved(serviceIndex)}>❌ Remove </button>
               </div>

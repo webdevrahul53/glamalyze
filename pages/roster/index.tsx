@@ -20,7 +20,7 @@ export default function Shifts() {
   const [shiftList, setShiftList] = React.useState<any>([]);
   const [rosterData, setRosterData] = React.useState<any>([]);
   const [groupList, setGroupList] = React.useState<any>([]);
-  const [fromDate, setFromDate] = React.useState<any>(parseDate(new Date().toISOString().split("T")[0]));
+  const [fromDate, setFromDate] = React.useState<any>(parseDate(moment().add(0, 'days').format('YYYY-MM-DD')));
   const [toDate, setToDate] = React.useState<any>(parseDate(moment().add(5, 'days').format('YYYY-MM-DD')));
   const [selectedDate, setSelectedDates] = React.useState<any>([]);
   const [pageRefresh, setPageRefresh] = React.useState(false)
@@ -101,6 +101,14 @@ export default function Shifts() {
       setGroupList(parsed);
     }catch(err:any) { toast.error(err.error) }
   }
+
+  const onCardClicked = ({group, branch, shift, date}: any) => {     
+    setSelectedGroup(group)
+    setSelectedBranch(branch)
+    setSelectedShift(shift)
+    setSelectedDateFor(moment(date).format("YYYY-MM-DD"))
+    handleOpen();
+  }
   
   const creatUpdateRoster = async (dateFor: string,shift:any, groupId:string, type: string = "") => {
     const date = moment(new Date(dateFor)).format("YYYY-MM-DD")
@@ -166,19 +174,19 @@ export default function Shifts() {
 
   return (
     <section>
-      <div className="flex items-center justify-between px-5 my-3">
+      <div className="flex items-center justify-start gap-5 px-5 my-3">
+        <div>
+          <h1 className="text-4xl">Roster Creation</h1>
+          <div className="text-gray-500">Roster created till {moment(latestRoster?.dateFor).format("DD-MM-yyyy")} </div>
+        </div>
 
-        <div className="w-1/4 flex items-center gap-2">
+        <div className="flex items-center gap-2 ms-5 w-80">
           <DatePicker label="From Date" variant="bordered" value={fromDate} onChange={(val) => setFromDate(val)} />
           <DatePicker label="To Date" variant="bordered" value={toDate} onChange={(val) => setToDate(val)} />
         </div>
 
-        <div className="w-2/4 text-center">
-          <h1 className="text-4xl">Roster Creation</h1>
-          <div className="text-gray-500">Roster created till {latestRoster?.dateFor.split("T")[0]} </div>
-        </div>
 
-        <div className="w-1/4 text-end">
+        <div className="text-end">
           <Button color="primary" variant="bordered" size="lg" type="button" onPress={() => cloneRoster()}> <SaveIcon width={20} height={20} /> Clone Roster</Button>
         </div>
         
@@ -196,88 +204,90 @@ export default function Shifts() {
       )}
       
       {isLoading && <Progress isIndeterminate aria-label="Loading..." size="sm" />}
-      <div className="flex items-start justify-between bg-white rounded shadow" style={{width: "calc(100vw - 300px)", height: "calc(100vh - 100px)", margin: "0 auto", overflow: "auto"}}>
-        {/* <PageTitle title="Roster Creation" /> */}
-        {branchList.length ? <div className="text-center h-full" style={{minWidth: "220px"}}>
-          <div className="w-full p-3 border-b-2 border-e-2 flex items-center justify-center gap-2">
-            <div className="text-2xl">Dates</div>  
-          </div>
-          <div className="py-6 flex justify-center h-full border-e-2">
-            {/* <CheckboxGroup value={selectedDate} style={{marginTop: "35px"}}>
-            </CheckboxGroup> */}
-            <div className="flex flex-col" style={{marginTop: "40px"}}>
-              {selectedDate?.map((item: any) => <Checkbox key={item} value={item} isSelected={item} style={{height: "50px", margin: 0 , padding: 0, display: "inline-block"}}>{moment(item).format("MM-DD-yyyy")}</Checkbox>)}
+
+
+      <div style={{height: "calc(100vh - 120px)", width: "calc(100vw - 290px)", margin: "0 auto"}}>
+        <div className="flex items-start justify-start bg-white rounded shadow w-full h-full overflow-auto">
+
+
+          {/* Date Section */}
+          {branchList.length ? <div className="text-center h-full" style={{minWidth: "220px"}}>
+            <div className="w-full p-3 border-b-2 border-e-2 flex items-center justify-center gap-2">
+              <div className="text-2xl">Dates</div>  
+            </div>
+            <div className="py-6 flex justify-center h-auto border-e-2">
+              {/* <CheckboxGroup value={selectedDate} style={{marginTop: "35px"}}>
+              </CheckboxGroup> */}
+              <div className="flex flex-col" style={{marginTop: "40px"}}>
+                {selectedDate?.map((item: any) => <Checkbox key={item} value={item} isSelected={item} style={{minHeight: "50px", margin: 0 , padding: 0, display: "inline-block"}}>
+                  {moment(item).format("DD-MM-yyyy")}
+                </Checkbox>)}
+              </div>
+
+            </div>
+          </div> : <></>}
+          
+          {/* Branch SEction */}
+          {branchList.map((branch:any) => <div key={branch._id} className="text-center h-full w-auto">
+            
+            <div className="w-full p-3 border-b-2 border-e-2 flex items-center justify-center gap-2" style={{backgroundColor: hexToRGBA(branch.colorcode, 0.1)}}>
+              <Avatar src={branch?.image} size="sm"/>
+              <div className="text-2xl" style={{color: branch.colorcode}}>{branch.branchname}</div>  
             </div>
 
-          </div>
-        </div> : <></>}
-        
-        {branchList.map((branch:any) => <div key={branch._id} className="text-center h-full w-full">
-          
-          <div className="w-full p-3 border-b-2 border-e-2 flex items-center justify-center gap-2">
-            <Avatar src={branch?.image} size="sm"/>
-            <div className="text-2xl" style={{color: branch.colorcode}}>{branch.branchname}</div>  
-          </div>
-          <div className="flex items-start justify-between" style={{height: "calc(100vh - 180px)"}}>
-            {shiftList.map((shift:any) => shift.branchId === branch._id && <div key={shift._id} className="px-3 w-full h-full border-e-2">
-              <div className="text-lg py-3">{shift.shiftname}</div>
+            {/* Shift Section */}
+            <div className="flex items-start justify-center w-full h-full">
+              {shiftList.map((shift:any) => shift.branchId === branch._id && <div key={shift._id} className="px-3 w-full min-h-full h-auto border-e-2" style={{backgroundColor: hexToRGBA(branch.colorcode, 0.025) }}>
+                <div className="text-lg py-3">{shift.shiftname}</div>
 
-              {selectedDate?.map((date:any) => {
-
-                const currentRoster = rosterData?.find((item:any) => item.shiftId === shift._id && moment(item?.dateFor).format("YYYY-MM-DD") === moment(date).format("YYYY-MM-DD"))
-                
-                return <section key={date} className="flex items-center gap-2" style={{height: "50px", minWidth: "300px"}}>
-
-                  {currentRoster?.groups?.map((group:any) => {
-
-                    return <Card key={group._id} className="shadow-sm border-2">
-                      <CardHeader className="justify-start" onClick={() => {
-                      console.log("clicked");
-                      
-                      setSelectedGroup(group)
-                      setSelectedBranch(branch)
-                      setSelectedShift(shift)
-                      setSelectedDateFor(moment(date).format("YYYY-MM-DD"))
-                      handleOpen();
-                    }}>
-                        <div className="flex items-center px-4">
-                          {group?.employeesData.map((employee:any) => <AvatarGroup key={employee._id} isBordered max={2}>
-                            <Avatar size="sm" src={employee?.image} style={{marginLeft: "-15px", width: "20px", height: "20px"}} />
-                          </AvatarGroup>)}
-                        </div>
-                        <h4 className="text-small font-semibold leading-none text-default-600" style={{whiteSpace: "nowrap"}}>{group.groupname}</h4>
-                      </CardHeader>
-                    </Card>
-                  })}
+                {selectedDate?.map((date:any) => {
+                  const currentRoster = rosterData?.find((item:any) => item.shiftId === shift._id && moment(item?.dateFor).format("YYYY-MM-DD") === moment(date).format("YYYY-MM-DD"))
                   
+                  return <section key={date} className="flex items-center gap-2" style={{height: "50px", minWidth: "300px"}}>
+
+                    {currentRoster?.groups?.map((group:any) => {
+
+                      return <Card key={group._id} className="shadow-sm border-2">
+                        <CardHeader className="justify-start" onClick={() => onCardClicked({group, branch, shift, date})}>
+                          <div className="flex items-center px-4">
+                            {group?.employeesData.map((employee:any) => <AvatarGroup key={employee._id} isBordered max={2}>
+                              <Avatar size="sm" src={employee?.image} style={{marginLeft: "-15px", width: "20px", height: "20px"}} />
+                            </AvatarGroup>)}
+                          </div>
+                          <h4 className="text-small font-semibold leading-none text-default-600" style={{whiteSpace: "nowrap"}}>{group.groupname}</h4>
+                        </CardHeader>
+                      </Card>
+                    })}
+                    
+                    
+                    
+                    
+                    {/* <TransferComponent key={group._id} {...group} branchId={branch._id} dateFor={date} onDelete={() => creatUpdateRoster(date, shift, group._id, "delete")} />)} */}
+                    
+                    <Dropdown placement="bottom">
+                      <DropdownTrigger>
+                        <div className="p-2 border-2 rounded cursor-pointer"> <PlusIcon width={15} height={15} /> </div>
+                      </DropdownTrigger>
+                      <DropdownMenu aria-label="Profile Actions" variant="flat" style={{height: "300px", overflow: "auto"}}>
+                        {groupList
+                        // .filter((item:any) => !shift.groups.map((x:any) => x._id).includes(item._id))
+                        .map((group:any) => <DropdownItem key={group.groupname} onPress={() => creatUpdateRoster(date, shift, group._id)}>
+                          {group.groupname}
+                        </DropdownItem>)}
+                      </DropdownMenu>
+                    </Dropdown>
                   
-                  
-                  
-                  {/* <TransferComponent key={group._id} {...group} branchId={branch._id} dateFor={date} onDelete={() => creatUpdateRoster(date, shift, group._id, "delete")} />)} */}
-                  
-                  <Dropdown placement="bottom">
-                    <DropdownTrigger>
-                      <div className="p-2 border-2 rounded"> <PlusIcon width={15} height={15} /> </div>
-                    </DropdownTrigger>
-                    <DropdownMenu aria-label="Profile Actions" variant="flat">
-                      {groupList
-                      // .filter((item:any) => !shift.groups.map((x:any) => x._id).includes(item._id))
-                      .map((group:any) => <DropdownItem key={group.groupname} onPress={() => creatUpdateRoster(date, shift, group._id)}>
-                        {group.groupname}
-                      </DropdownItem>)}
-                    </DropdownMenu>
-                  </Dropdown>
-                
-                </section>
+                  </section>
 
 
-              })}
+                })}
 
-            </div>)}
-          </div>
-          
-        </div>)}
+              </div>)}
+            </div>
+            
+          </div>)}
 
+        </div>
       </div>
     </section>
   )
@@ -286,3 +296,19 @@ export default function Shifts() {
 
 
 
+function hexToRGBA(hex: string, alpha: number) {
+  let r = 0, g = 0, b = 0;
+
+  // Handle shorthand like "#f00"
+  if (hex.length === 4) {
+    r = parseInt(hex[1] + hex[1], 16);
+    g = parseInt(hex[2] + hex[2], 16);
+    b = parseInt(hex[3] + hex[3], 16);
+  } else if (hex.length === 7) {
+    r = parseInt(hex[1] + hex[2], 16);
+    g = parseInt(hex[3] + hex[4], 16);
+    b = parseInt(hex[5] + hex[6], 16);
+  }
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
