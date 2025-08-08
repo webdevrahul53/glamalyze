@@ -207,7 +207,7 @@ export default function Shifts() {
 
 
       <div style={{height: "calc(100vh - 120px)", width: "calc(100vw - 290px)", margin: "0 auto"}}>
-        <div className="flex items-start justify-between bg-white rounded shadow w-full h-full overflow-auto">
+        <div className="flex items-start justify-start bg-white rounded shadow w-full h-full overflow-auto">
 
 
           {/* Date Section */}
@@ -215,7 +215,7 @@ export default function Shifts() {
             <div className="w-full p-3 border-b-2 border-e-2 flex items-center justify-center gap-2">
               <div className="text-2xl">Dates</div>  
             </div>
-            <div className="py-6 flex justify-center h-full border-e-2">
+            <div className="py-6 flex justify-center h-auto border-e-2">
               {/* <CheckboxGroup value={selectedDate} style={{marginTop: "35px"}}>
               </CheckboxGroup> */}
               <div className="flex flex-col" style={{marginTop: "40px"}}>
@@ -230,14 +230,14 @@ export default function Shifts() {
           {/* Branch SEction */}
           {branchList.map((branch:any) => <div key={branch._id} className="text-center h-full w-auto">
             
-            <div className="w-full p-3 border-b-2 border-e-2 flex items-center justify-center gap-2">
+            <div className="w-full p-3 border-b-2 border-e-2 flex items-center justify-center gap-2" style={{backgroundColor: hexToRGBA(branch.colorcode, 0.1)}}>
               <Avatar src={branch?.image} size="sm"/>
               <div className="text-2xl" style={{color: branch.colorcode}}>{branch.branchname}</div>  
             </div>
 
             {/* Shift Section */}
-            <div className="flex items-start justify-center w-full" style={{height: "calc(100vh - 180px)"}}>
-              {shiftList.map((shift:any) => shift.branchId === branch._id && <div key={shift._id} className="px-3 w-full h-full border-e-2">
+            <div className="flex items-start justify-center w-full h-full">
+              {shiftList.map((shift:any) => shift.branchId === branch._id && <div key={shift._id} className="px-3 w-full min-h-full h-auto border-e-2" style={{backgroundColor: hexToRGBA(branch.colorcode, 0.025) }}>
                 <div className="text-lg py-3">{shift.shiftname}</div>
 
                 {selectedDate?.map((date:any) => {
@@ -296,3 +296,19 @@ export default function Shifts() {
 
 
 
+function hexToRGBA(hex: string, alpha: number) {
+  let r = 0, g = 0, b = 0;
+
+  // Handle shorthand like "#f00"
+  if (hex.length === 4) {
+    r = parseInt(hex[1] + hex[1], 16);
+    g = parseInt(hex[2] + hex[2], 16);
+    b = parseInt(hex[3] + hex[3], 16);
+  } else if (hex.length === 7) {
+    r = parseInt(hex[1] + hex[2], 16);
+    g = parseInt(hex[3] + hex[4], 16);
+    b = parseInt(hex[5] + hex[6], 16);
+  }
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
