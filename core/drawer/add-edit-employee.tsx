@@ -8,7 +8,7 @@ import { v4 } from "uuid";
 import AvatarSelectMultiple from "../common/avatar-select-multiple";
 import { BRANCH_API_URL, EMPLOYEES_API_URL, ROLES_API_URL, SERVICES_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
-import AvatarSelect from "../common/avatar-select";
+// import AvatarSelect from "../common/avatar-select";
 
 const AddEditEmployee = (props:any) => {
     const { register, handleSubmit, setValue, control, reset } = useForm({
@@ -196,18 +196,19 @@ const AddEditEmployee = (props:any) => {
                     </div>
                   </div>
 
-                  <div style={{display: "grid", gridTemplateColumns: "2fr 4fr", rowGap: 10, gap: 10}}>
+                  {/* <div style={{display: "grid", gridTemplateColumns: "2fr 4fr", rowGap: 10, gap: 10}}>
                     {branchList?.length ? <Controller name="defaultBranch" control={control}
                       render={({ field }) => (
                         <AvatarSelect field={field} data={branchList} label="Default Branch" keyName="branchname" />
                       )}
                     /> : <></>}
-                    {serviceList?.length ? <Controller name="servicesId" control={control} rules={{required: true}}
-                      render={({ field }) => (
-                        <AvatarSelectMultiple field={field} data={serviceList} label="Services" keyName="name" />
-                      )}
-                    /> : <></>}
-                  </div>
+                  </div> */}
+
+                  {serviceList?.length ? <Controller name="servicesId" control={control} rules={{required: true}}
+                    render={({ field }) => (
+                      <AvatarSelectMultiple field={field} data={serviceList} label="Services" keyName="name" />
+                    )}
+                  /> : <></>}
                   
 
                   {/* <div style={{display: "grid", gridTemplateColumns: "3fr 3fr", rowGap: 10, gap: 10}}>

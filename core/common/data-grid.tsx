@@ -6,6 +6,8 @@ import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, User, 
 import { BathIcon, BedIcon, ChairIcon, DeleteIcon, EditIcon, SofaIcon } from "../utilities/svgIcons";
 import { ArrayType, AvatarGroupType, AvatarType, AvatarType2, BoxButtonType, DateOnlyType, DateType, RoleType } from "../utilities/table-types";
 import moment from "moment";
+import { useDispatch, useSelector } from "react-redux";
+import { setPerPage } from "../redux/datagridSlice/datagridSlice";
 
 const statusColorMap:any = {
   Active: "success",
@@ -44,11 +46,11 @@ const formatDateTime = (date:string) => {
 
 
 export default function DataGrid(props:any) {
-  
+  const dispatch = useDispatch();
+  const perPage = useSelector((state:any) => state.datagrid.perPage) || "10"; // Default to 10 if not set in Redux store
   const [page, setPage] = React.useState(1);
   const [users, setUsers] = React.useState([]);
   const [totalPages, setTotalPages] = React.useState(1);
-  const [selectedRowsPerPage, setSelectedRowsPerPage] = React.useState("10");
   const [loading, setLoading] = React.useState(false);
 
 
@@ -57,8 +59,8 @@ export default function DataGrid(props:any) {
     fetchUsers();
   }, [page, props.search, props.pageRefresh]);
 
-  const fetchUsers = async (rowsPerPage: string = "10") => {
-    setSelectedRowsPerPage(rowsPerPage)
+  const fetchUsers = async (rowsPerPage: string = perPage) => {
+    dispatch(setPerPage(rowsPerPage)); // Update Redux store with selected rows per page
     setLoading(true);
     try {
       const response = await fetch(
@@ -236,19 +238,13 @@ export default function DataGrid(props:any) {
         </div>
         <div className="flex w-full justify-center gap-3 py-3">
           <div className="border-2 px-2">
-            <select className="py-2 pe-4 outline-none" value={selectedRowsPerPage} onChange={(event:any) => fetchUsers(event.target.value)}>
+            <select className="py-2 pe-4 outline-none" value={perPage} onChange={(event:any) => fetchUsers(event.target.value)}>
               <option value="10">10</option>
               <option value="20">20</option>
               <option value="50">50</option>
             </select>
           </div>
-          <Pagination
-            isCompact
-            showControls
-            showShadow
-            color="secondary"
-            page={page}
-            total={totalPages}
+          <Pagination isCompact showControls showShadow color="secondary" page={page} total={totalPages}
             onChange={(newPage) => setPage(newPage)}
           />
         </div>
