@@ -145,6 +145,12 @@ const AddEditBranch = (props:any) => {
                         <Radio {...register("gender", {required: true})} value="male" className="border-3 border-gray-400 rounded px-4 mx-0">Male</Radio>
                       </RadioGroup>
 
+                      {!!employeeList?.length && <Controller name="managerId" control={control}
+                        render={({ field }) => (
+                          <AvatarSelect field={field} data={employeeList} label="Manager" keyName="employeeName" />
+                        )}
+                      />}
+
                     </div>
                     <div className="flex items-end">
                       {imagePreview ? (
@@ -164,18 +170,14 @@ const AddEditBranch = (props:any) => {
                     </div>
                   </div>
 
-                  <div style={{display: "grid", gridTemplateColumns: "2fr 4fr", rowGap: 10, gap: 10}}>
-                    {employeeList?.length && <Controller name="managerId" control={control}
-                      render={({ field }) => (
-                        <AvatarSelect field={field} data={employeeList} label="Manager" keyName="firstname" />
-                      )}
-                    />}
-                    {serviceList?.length && <Controller name="servicesId" control={control} rules={{required: true}}
-                      render={({ field }) => (
-                        <AvatarSelectMultiple field={field} data={serviceList} label="Services" keyName="name" />
-                      )}
-                    />}
-                  </div>
+                  {/* <div style={{display: "grid", gridTemplateColumns: "2fr 4fr", rowGap: 10, gap: 10}}>
+                  </div> */}
+
+                  {!!serviceList?.length && <Controller name="servicesId" control={control} rules={{required: true}}
+                    render={({ field }) => (
+                      <AvatarSelectMultiple field={field} data={serviceList} label="Services" keyName="name" />
+                    )}
+                  />}
                   
 
                   <div style={{display: "grid", gridTemplateColumns: "3fr 3fr", rowGap: 10, gap: 10}}>

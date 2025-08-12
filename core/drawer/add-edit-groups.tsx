@@ -1,24 +1,25 @@
 import React from "react";
-import { Autocomplete, AutocompleteItem, Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input } from "@heroui/react";
+import { Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input } from "@heroui/react";
 import { SaveIcon } from "../utilities/svgIcons";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { BRANCH_API_URL, EMPLOYEES_API_URL, GROUP_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
-import ServiceCard from "../common/servicd-card";
+// import ServiceCard from "../common/servicd-card";
+import AvatarSelectMultiple from "../common/avatar-select-multiple";
 
 const AddEditGroup = (props:any) => {
-    const { register, handleSubmit, reset } = useForm({
-      defaultValues: {groupname: null, branchId: null, status: false}
+    const { register, handleSubmit, reset, control } = useForm({
+      defaultValues: {groupname: null, branchId: null, employeesId: [], status: false}
     });
     const [loading, setLoading] = React.useState(false)
     const [employeeList, setEmployeeList] = React.useState([]);
-    const [employeesId, setEmployeesId] = React.useState<any>([])
 
 
     React.useEffect(() => {
         if(props.group) {
-            reset(props.group)
-            setEmployeesId(props.group.employee)
+            let employeesId = props.group?.employee?.map((item:any) => item._id);
+            reset({...props.group, employeesId})
+            // setEmployeesId(props.group.employee)
         }
         else reset({groupname:null, branchId: null, status: false})
 
@@ -33,17 +34,18 @@ const AddEditGroup = (props:any) => {
         }catch(err:any) { toast.error(err.error) }
     }
 
-    const onServiceSelection = (value: any) => {
-      const item:any = employeeList.find((service:any) => service._id === value);
-      if(!item) return;
-      let array = employeesId;
-      const exists = array.some((obj:any) => obj["_id"] === item["_id"]);
-      setEmployeesId(exists ? array.filter((obj:any) => obj["_id"] !== item["_id"]) : [...array, item]);
-    };
+    // const onServiceSelection = (value: any) => {
+    //   const item:any = employeeList.find((service:any) => service._id === value);
+    //   if(!item) return;
+    //   let array = employeesId;
+    //   const exists = array.some((obj:any) => obj["_id"] === item["_id"]);
+    //   setEmployeesId(exists ? array.filter((obj:any) => obj["_id"] !== item["_id"]) : [...array, item]);
+    // };
 
     const onSubmit = async (data:any) => {
-      data.employeesId = employeesId.map((e:any) => e._id)
+      // data.employeesId = employeesId.map((e:any) => e._id)
       console.log(data);
+      // return;
       try {
         let url = data._id ? `${GROUP_API_URL}/${data._id}` : GROUP_API_URL
         const group = await fetch(url, {
@@ -106,7 +108,7 @@ const AddEditGroup = (props:any) => {
   
                     <Input {...register("groupname", {required: true})} label="Group Name" placeholder="Enter Group Name" type="text" variant="flat" isRequired />
                     
-                    <Autocomplete defaultItems={employeeList} placeholder="Add Staffs"
+                    {/* <Autocomplete defaultItems={employeeList} placeholder="Add Staffs"
                       onSelectionChange={onServiceSelection} disabledKeys={employeesId?.map((item:any) => item._id)} >
                       {(item:any) => <AutocompleteItem key={item._id}>{item.firstname} {item.lastname} </AutocompleteItem>}
                     </Autocomplete>
@@ -114,7 +116,13 @@ const AddEditGroup = (props:any) => {
                       {employeesId?.map((item:any) => (
                         <ServiceCard {...item} onDelete={() => onServiceSelection(item._id)} />
                       ))}
-                    </div>
+                    </div> */}
+                    
+                    {!!employeeList?.length && <Controller name="employeesId" control={control} rules={{required: true}}
+                      render={({ field }) => (
+                        <AvatarSelectMultiple field={field} data={employeeList} label="Staffs" keyName="employeeName" />
+                      )}
+                    />}
 
                     <Checkbox {...register("status")} color="primary"> Active </Checkbox>
   

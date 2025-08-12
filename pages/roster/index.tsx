@@ -6,6 +6,8 @@ import React, { lazy, Suspense } from 'react'
 import { toast } from 'react-toastify';
 import {parseDate} from "@internationalized/date";
 import moment from 'moment';
+import { I18nProvider } from "@react-aria/i18n";
+
 const GroupView = lazy(() => import("@/pages/roster/group-view"));
 
 
@@ -181,8 +183,10 @@ export default function Shifts() {
         </div>
 
         <div className="flex items-center gap-2 ms-5 w-80">
-          <DatePicker label="From Date" variant="bordered" value={fromDate} onChange={(val) => setFromDate(val)} />
-          <DatePicker label="To Date" variant="bordered" value={toDate} onChange={(val) => setToDate(val)} />
+          <I18nProvider locale="en-GB">
+            <DatePicker label="From Date" variant="bordered" value={fromDate} onChange={(val) => setFromDate(val)} />
+            <DatePicker label="To Date" variant="bordered" value={toDate} onChange={(val) => setToDate(val)} />
+          </I18nProvider>
         </div>
 
 

@@ -235,9 +235,11 @@ export default function CalendarViewBookings(){
                 {Object.keys(assets)?.map((item: any, index: number) => (
                   <div key={index} className="flex items-start"> 
                     {assets[item][0]?.assetTypeId?.image && <Image src={assets[item][0]?.assetTypeId?.image} width={20} height={20} alt="Asset Image" />}
-                    {item === "employees" && <AvatarGroup className="me-1" isBordered renderCount={() => <></>}>
+                    {item === "employees" && <AvatarGroup className="me-1 ms-2" isBordered renderCount={() => <></>}>
                       {assets[item].length ? assets[item]?.map((item:any) => (
-                        <Avatar key={item._id} src={item.image} size="sm" style={{width: "25px", height: "25px"}} />
+                        <Tooltip key={item._id} content={<span style={{whiteSpace: "nowrap"}}>{item.firstname + " " + item.lastname}</span>}>
+                          <Avatar src={item.image} size="sm" style={{width: "25px", height: "25px"}} />
+                        </Tooltip>
                       )) : <PersonIcon width={20} />}
                     </AvatarGroup>}
                     <small style={{fontSize: "18px"}} className="ms-1 rounded-full">{assets[item]?.length}</small> 
@@ -298,9 +300,11 @@ export default function CalendarViewBookings(){
                   <div key={index} className="flex items-start"> 
                     {assets2[item][0]?.assetTypeId?.image && <Image src={assets2[item][0]?.assetTypeId?.image} width={20} height={20} alt="Asset Image" />}
                     {item === "employees" && <AvatarGroup className="me-1" isBordered renderCount={() => <></>}>
-                      {assets2[item].length ? assets2[item]?.map((item:any) => (
-                        <Avatar key={item._id} src={item.image} size="sm" style={{width: "25px", height: "25px"}} />
-                      )) : <PersonIcon width={20} />}
+                      {assets2[item].length ? assets2[item]?.map((item:any) => {
+                        return <Tooltip key={item._id} content={<span style={{whiteSpace: "nowrap"}}>{item.firstname + " " + item.lastname}</span>}>
+                          <Avatar src={item.image} size="sm" style={{width: "25px", height: "25px"}} />
+                        </Tooltip>
+                      }) : <PersonIcon width={20} />}
                     </AvatarGroup>}
                     <small style={{fontSize: "18px"}} className="ms-1 rounded-full">{assets2[item]?.length}</small> 
                   </div>
