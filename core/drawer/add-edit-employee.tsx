@@ -12,7 +12,7 @@ import { toast } from "react-toastify";
 
 const AddEditEmployee = (props:any) => {
     const { register, handleSubmit, setValue, control, reset } = useForm({
-      defaultValues: {image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: null, defaultBranch: null, roleId: null,
+      defaultValues: {image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: [], defaultBranch: null, roleId: null,
         // aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, 
         isVisibleInCalendar: null, status: null}
     });
@@ -33,7 +33,7 @@ const AddEditEmployee = (props:any) => {
             setImagePreview(props.employees.image)
         }
         else {
-          reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: null, defaultBranch: null, roleId: null,
+          reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: [], defaultBranch: null, roleId: null,
             // aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, 
             isVisibleInCalendar: null, status: null})
         }
@@ -91,6 +91,8 @@ const AddEditEmployee = (props:any) => {
 
     const saveemployees = async (data:any) => {
       try {
+        console.log(data);  
+        
         let url = data._id ? `${EMPLOYEES_API_URL}/${data._id}` : EMPLOYEES_API_URL
         const employees = await fetch(url, {
             method: data._id ? "PATCH" : "POST",
@@ -142,13 +144,19 @@ const AddEditEmployee = (props:any) => {
                     <div className="flex flex-col gap-3">
                       <Input {...register("firstname", {required: true})} label="Full Name" placeholder="Enter Full Name" type="text" variant="flat" isRequired />
                       {/* <Input {...register("lastname", {required: true})} label="Last Name" placeholder="Enter Last Name" type="text" variant="flat" isRequired /> */}
-                      <Select label="Role" {...register("roleId", {required: true})} isRequired>
-                        {roleList?.map((role:any) => (
-                          <SelectItem key={role._id} textValue={role.rolesName}>
-                            {role.rolesName}
-                          </SelectItem>
-                        ))}
-                      </Select>
+                      
+                      <Controller name="roleId" control={control} rules={{ required: true }}
+                        render={({ field }) => (
+                          <Select label="Role" selectedKeys={field.value ? [field.value] : []} // prefill
+                            onSelectionChange={(keys) => field.onChange(Array.from(keys)[0])} isRequired >
+                            {roleList?.map((role: any) => (
+                              <SelectItem key={role._id} textValue={role.rolesName}>
+                                {role.rolesName}
+                              </SelectItem>
+                            ))}
+                          </Select>
+                        )}
+                      />
 
                     </div>
                     <div>
@@ -204,7 +212,7 @@ const AddEditEmployee = (props:any) => {
                     /> : <></>}
                   </div> */}
 
-                  {serviceList?.length ? <Controller name="servicesId" control={control} rules={{required: true}}
+                  {serviceList?.length ? <Controller name="servicesId" control={control} 
                     render={({ field }) => (
                       <AvatarSelectMultiple field={field} data={serviceList} label="Services" keyName="name" />
                     )}
