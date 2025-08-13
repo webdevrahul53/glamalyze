@@ -24,7 +24,11 @@ export default async function handler(req, res) {
         // Fetch total count WITHOUT lookup for performance
         const totalCountPromise = Employees.countDocuments();
         const dataPromise = Employees.aggregate([
-        { $addFields: { employeeName: { $concat: ["$firstname", " ", "$lastname"] } } },
+        { $addFields: { employeeName: { $concat: [
+          { $ifNull: ["$firstname", ""] },
+          " ",
+          { $ifNull: ["$lastname", ""] }
+        ] } } },
         {
           $match: {
             $or: [
@@ -41,7 +45,7 @@ export default async function handler(req, res) {
           email: 1, password: 1, phonenumber: 1, gender: 1, servicesId: 1, defaultBranch: 1, 
           totalServices: {$size: "$servicesId"}, 
           // aboutself: 1, expert: 1, facebook: 1, instagram: 1, twitter: 1, dribble: 1, 
-          isVisibleInCalendar: 1, isManager: 1, role: "$roles.rolesName", 
+          isVisibleInCalendar: 1, isManager: 1, roleId: 1, role: "$roles.rolesName", 
           status: 1, createdAt: 1, updatedAt: 1 } },
           { $skip: skip },
           { $limit: limit }
@@ -80,7 +84,7 @@ export default async function handler(req, res) {
       gender: req.body.gender,
       servicesId: req.body.servicesId,
       defaultBranch: req.body.defaultBranch,
-      rolesId: req.body.rolesId,
+      roleId: req.body.roleId,
       // aboutself: req.body.aboutself,
       // expert: req.body.expert,
       // facebook: req.body.facebook,
