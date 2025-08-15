@@ -5,7 +5,7 @@ import React, { lazy, Suspense } from 'react'
 import DataGrid from "@/core/common/data-grid";
 import { PageTitle } from '@/core/common/page-title';
 import { Button, Progress, useDisclosure } from '@heroui/react';
-import { DownloadIcon, PlusIcon } from '@/core/utilities/svgIcons';
+import { PlusIcon } from '@/core/utilities/svgIcons';
 
 import SearchComponent from '@/core/common/search';
 import { EMPLOYEES_API_URL } from '@/core/utilities/api-url';
@@ -41,8 +41,8 @@ export default function Staffs() {
 
         <div className="bg-white rounded" style={{margin: "-30px 40px"}}>
           <div className="flex items-center justify-between p-4">
-            <Button size="md" color="secondary"> <DownloadIcon color="white" width="25" height="25" /> Export</Button>
-            <div className="flex items-center gap-3">
+            {/* <Button size="md" color="secondary"> <DownloadIcon color="white" width="25" height="25" /> Export</Button> */}
+            <div className="flex items-center ms-auto gap-3">
               <SearchComponent onSearch={setSearch} />
               <Button size="md" variant="bordered" color="primary" onPress={() => handleOpenRoles()}> Roles</Button>
               <Button size="md" color="primary" onPress={() => handleOpen()}> <PlusIcon color="white" width="25" height="25" /> New</Button>

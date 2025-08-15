@@ -8,11 +8,12 @@ import { v4 } from "uuid";
 import AvatarSelectMultiple from "../common/avatar-select-multiple";
 import { BRANCH_API_URL, EMPLOYEES_API_URL, ROLES_API_URL, SERVICES_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
+import { handlePhoneNumberChange } from "../utilities/handlePhoneNumber";
 // import AvatarSelect from "../common/avatar-select";
 
 const AddEditEmployee = (props:any) => {
     const { register, handleSubmit, setValue, control, reset } = useForm({
-      defaultValues: {image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: [], defaultBranch: null, roleId: null,
+      defaultValues: {image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: "", gender: "male", servicesId: [], defaultBranch: null, roleId: null,
         // aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, 
         isVisibleInCalendar: null, status: null}
     });
@@ -24,6 +25,8 @@ const AddEditEmployee = (props:any) => {
     const [isVisible, setIsVisible] = React.useState(false);
 
     const gender = useWatch({ control, name: "gender" });
+    const phonenumber = useWatch({ control, name: "phonenumber" });
+
     const toggleVisibility = () => setIsVisible(!isVisible);
 
     React.useEffect(() => {
@@ -33,7 +36,7 @@ const AddEditEmployee = (props:any) => {
             setImagePreview(props.employees.image)
         }
         else {
-          reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: null, gender: "male", servicesId: [], defaultBranch: null, roleId: null,
+          reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: "", gender: "male", servicesId: [], defaultBranch: null, roleId: null,
             // aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, 
             isVisibleInCalendar: null, status: null})
         }
@@ -192,7 +195,7 @@ const AddEditEmployee = (props:any) => {
                   </RadioGroup>
                   
                   <div style={{display: "grid", gridTemplateColumns: "2fr 2fr 2fr", rowGap: 10, gap: 10}}>
-                    <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="text" variant="flat" isRequired />
+                    <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="tel" variant="flat"  isRequired value={phonenumber || "+"} onChange={e => handlePhoneNumberChange(e, setValue)} />
                     <Input {...register("email")} label="Email" placeholder="Enter Email" type="email" variant="flat" />
                     <div style={{pointerEvents: props?.employees ? "none":"all"}}>
                       <Input label="Password" placeholder="Enter Password" type={isVisible ? "text" : "password"} tabIndex={-1}

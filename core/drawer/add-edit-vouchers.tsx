@@ -106,7 +106,7 @@ const AddEditVouchers = (props: any) => {
           {(onClose) => (
             <>
               <DrawerHeader className="flex flex-col gap-1">
-                {props.voucher ? "Update" : "New"} Voucher
+                {props.voucher ? "Update" : "New"} Discount Promos
               </DrawerHeader>
 
               <DrawerBody>

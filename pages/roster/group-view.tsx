@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { TRANSFERRED_EMPLOYEES_API_URL } from "@/core/utilities/api-url";
-import { CloseIcon } from "@/core/utilities/svgIcons";
+import { DeleteIcon } from "@/core/utilities/svgIcons";
 import { Avatar, Button, Drawer, DrawerBody, DrawerContent, DrawerHeader, Progress, useDisclosure } from "@heroui/react";
 import moment from "moment";
 import React, { lazy, Suspense } from "react";
@@ -61,10 +61,6 @@ export default function GroupView(props:any) {
                         {transferredEmployee.map((item:any, index: number) => <div key={index}> {item?.groupEmployees[0]?.firstname} {item?.groupEmployees[0]?.lastname} ( {item?.openingAt} - {item?.closingAt} ) </div>)}
                     </div>
                     
-                    <div className="cursor-pointer flex items-center gap-2 py-2 ms-auto" onClick={props.onDelete}>
-                        Delete group from roster
-                        <CloseIcon width="20" height="20" />  
-                    </div> 
                     <div className="flex-1 px-4">
                         {props?.group?.employeesData.map((employee: any) => {
                             return (
@@ -84,6 +80,10 @@ export default function GroupView(props:any) {
 
                     </div>
 
+                    <div className="cursor-pointer flex items-center gap-2 py-2 ms-auto mb-3" onClick={props.onDelete}>
+                        Delete group from roster
+                        <DeleteIcon width="20" height="20" color="red" />  
+                    </div> 
                 </DrawerBody>
             </>
             )}
