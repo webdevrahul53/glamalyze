@@ -31,6 +31,9 @@ export default async function handler(req, res) {
         ] } } },
         {
           $match: {
+            $and: [
+              { status: true }, // Ensure we only get active employees
+            ],
             $or: [
               { employeeName: { $regex: searchQuery, $options: "i" } },
               { gender: { $regex: searchQuery, $options: "i" } },

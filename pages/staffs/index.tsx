@@ -75,6 +75,6 @@ const columns = [
   {name: "TOTAL SERVICES", uid: "totalServices"},
   {name: "Role", uid: "role"},
   {name: "PHONE NUMBER", uid: "phonenumber"},
-  {name: "STATUS", uid: "status"},
+  // {name: "STATUS", uid: "status"},
   {name: "ACTIONS", uid: "actions"},
 ];
