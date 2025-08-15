@@ -90,7 +90,7 @@ const AddEditCoupons = (props:any) => {
           <DrawerContent>
             {(onClose) => (
               <>
-                <DrawerHeader className="flex flex-col gap-1"> {props.coupon ? "Update":"New"} Gift Vouchers </DrawerHeader>
+                <DrawerHeader className="flex flex-col gap-1"> {props.coupon ? "Update":"New"} Coupon </DrawerHeader>
                 <DrawerBody> 
 
                     {branchList?.length && !isAllBranch ? <Controller name="branchId" control={control} rules={{required: true}}
