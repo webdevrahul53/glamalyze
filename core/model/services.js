@@ -5,7 +5,7 @@ const ServicesSchema = mongoose.Schema({
     _id:mongoose.Schema.Types.ObjectId,
     image:{type:String},
     name:{type:String,required:true},
-    assetTypeId:{type:mongoose.Schema.Types.ObjectId,required:true, ref: "AssetTypes"},
+    assetTypeId:[{type:mongoose.Schema.Types.ObjectId,required:true, ref: "AssetTypes"}],
     categoryId:{type:mongoose.Schema.Types.ObjectId,required:true, ref: "Categories"},
     subCategoryId:{type:mongoose.Schema.Types.ObjectId,required:false, ref: "SubCategories", default: null},
     variants: [{ 

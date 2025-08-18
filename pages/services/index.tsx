@@ -79,7 +79,7 @@ const columns = [
   {name: "DURATION (Mins)", uid: "variants:serviceDuration"},
   {name: "PRICE (฿)", uid: "variants:defaultPrice"},
   {name: "CATEGORY", uid: "categoryName"},
-  {name: "TYPE", uid: "assetTypes:assetTypeName"},
+  {name: "TYPE", uid: "assetTypes"},
   // {name: "CREATED AT", uid: "createdAt"},
   // {name: "UPDATED AT", uid: "updatedAt"},
   {name: "STATUS", uid: "status"},
