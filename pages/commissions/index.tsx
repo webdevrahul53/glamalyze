@@ -44,8 +44,8 @@ export default function Commissions() {
         <Select label="Select Commission" placeholder="Choose type of commission" variant="faded" className="max-w-xs mb-4"
           value={selectedCommission} onChange={e => setSelectedCommission(e.target.value)}>
           <SelectItem key={""}>Job Commission</SelectItem>
-          <SelectItem key={"Transfer Commission"}>Transfer Commission</SelectItem>
           <SelectItem key={"Personal Booking Commission"}>Personal Booking Commission</SelectItem>
+          <SelectItem key={"Transfer Commission"}>Transfer Commission</SelectItem>
         </Select>
       </section>
 

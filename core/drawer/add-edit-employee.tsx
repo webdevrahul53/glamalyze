@@ -15,7 +15,7 @@ const AddEditEmployee = (props:any) => {
     const { register, handleSubmit, setValue, control, reset } = useForm({
       defaultValues: {image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: "", gender: "male", servicesId: [], defaultBranch: null, roleId: null,
         // aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, 
-        isVisibleInCalendar: null, status: null}
+        isVisibleInCalendar: null, isSenior: false, status: null}
     });
     const [branchList, setBranchList] = React.useState<any>([]);
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
@@ -38,7 +38,7 @@ const AddEditEmployee = (props:any) => {
         else {
           reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: "", gender: "male", servicesId: [], defaultBranch: null, roleId: null,
             // aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, 
-            isVisibleInCalendar: null, status: null})
+            isVisibleInCalendar: null, isSenior: false, status: null})
         }
         getRolesList();
         getServiceList();
@@ -180,6 +180,8 @@ const AddEditEmployee = (props:any) => {
                       </div>
                       <div className="flex gap-3 my-2 mx-3">
                         <Checkbox {...register("isVisibleInCalendar")} color="primary"> Show In Calendar </Checkbox>
+                        <Checkbox {...register("isSenior")} color="primary"> Senior </Checkbox>
+                        
                         {/* <Checkbox {...register("isManager")} color="primary">Is Manager</Checkbox> */}
                       </div>
 

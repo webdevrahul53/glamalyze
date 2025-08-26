@@ -29,8 +29,8 @@ const TherapistCommissionTable: React.FC<Props> = ({ data }) => {
   > = {};
 
   data.forEach(({ employee, totalCommission, date }) => {
-    const empId = employee._id;
-    const empName = `${employee.firstname.trim()} ${employee.lastname.trim()}`;
+    const empId = employee?._id;
+    const empName = `${employee?.firstname.trim()} ${employee?.lastname.trim()}`;
     if (!employeeMap[empId]) {
       employeeMap[empId] = {
         name: empName,

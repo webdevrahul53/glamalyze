@@ -6,6 +6,7 @@ const VouchersSchema = mongoose.Schema({
     _id:mongoose.Schema.Types.ObjectId,
     voucherName:{type:String,required:true},
     voucherBalance: {type:Number,required:true},
+    voucherCommission: {type:Number,required:true},
     quantity: {type:Number,required:true},
     defaultPrice: {type:Number,required:true},
     amountToPay: {type:Number,required:true},

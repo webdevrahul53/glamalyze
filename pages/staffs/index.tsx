@@ -4,11 +4,11 @@ const Roles = lazy(() => import("@/pages/staffs/roles"));
 import React, { lazy, Suspense } from 'react'
 import DataGrid from "@/core/common/data-grid";
 import { PageTitle } from '@/core/common/page-title';
-import { Button, Progress, useDisclosure } from '@heroui/react';
+import { Button, Progress, Select, SelectItem, useDisclosure } from '@heroui/react';
 import { PlusIcon } from '@/core/utilities/svgIcons';
 
 import SearchComponent from '@/core/common/search';
-import { EMPLOYEES_API_URL } from '@/core/utilities/api-url';
+import { EMPLOYEES_API_URL, ROLES_API_URL } from '@/core/utilities/api-url';
 
 
 
@@ -23,6 +23,22 @@ export default function Staffs() {
   const [selectedEmployees, setSelectedEmployees] = React.useState(null)
   const [search, setSearch] = React.useState("")
   const [pageRefresh, setPageRefresh] = React.useState(false)
+  const [selectedRole, setSelectedRole] = React.useState<string | null>(null)
+  const [roleList, setRoleList] = React.useState([])
+
+
+  React.useEffect(() => {
+    getRoleList();
+  },[])
+
+  const getRoleList = async () => {
+    try {
+      const roles = await fetch(ROLES_API_URL)
+      const parsed = await roles.json();
+      setRoleList(parsed);
+    }catch(err:any) { console.error(err.error) }
+  
+  }
 
   const onDrawerClose = () => {
     setPageRefresh((val) => !val)
@@ -43,6 +59,14 @@ export default function Staffs() {
           <div className="flex items-center justify-between p-4">
             {/* <Button size="md" color="secondary"> <DownloadIcon color="white" width="25" height="25" /> Export</Button> */}
             <div className="flex items-center ms-auto gap-3">
+              <Select placeholder="Select Role" variant="bordered"
+                onChange={(e) => setSelectedRole(e.target.value)} >
+                  {roleList.map((item:any) => (
+                    <SelectItem key={item._id} value={item._id}>
+                      {item.rolesName}
+                    </SelectItem>
+                  ))}
+              </Select>
               <SearchComponent onSearch={setSearch} />
               <Button size="md" variant="bordered" color="primary" onPress={() => handleOpenRoles()}> Roles</Button>
               <Button size="md" color="primary" onPress={() => handleOpen()}> <PlusIcon color="white" width="25" height="25" /> New</Button>
@@ -61,7 +85,7 @@ export default function Staffs() {
             </Suspense>
             )}
 
-          <DataGrid columns={columns} api={EMPLOYEES_API_URL} search={search} pageRefresh={pageRefresh}
+          <DataGrid columns={columns} api={EMPLOYEES_API_URL} search={search + (selectedRole ? `&roleId=${selectedRole}`:'')} pageRefresh={pageRefresh}
           onEdit={(item:any)=> {setSelectedEmployees(item); handleOpen()}} />
           
         </div>

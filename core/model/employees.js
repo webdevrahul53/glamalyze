@@ -30,6 +30,7 @@ const EmployeesSchema = mongoose.Schema({
     // dribble:{type:String},
     isVisibleInCalendar:{type:Boolean},
     isManager:{type:Boolean},
+    isSenior:{type:Boolean},
     status:{type:Boolean},
 },{ timestamps: true })
 

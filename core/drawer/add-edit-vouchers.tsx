@@ -16,6 +16,7 @@ const AddEditVouchers = (props: any) => {
     defaultValues: {
       voucherName: "",
       voucherBalance: 10,
+      voucherCommission: 0,
       quantity: 0,
       defaultPrice: 0,
       amountToPay: 0,
@@ -49,6 +50,7 @@ const AddEditVouchers = (props: any) => {
       reset({
         voucherName: "",
         voucherBalance: 10,
+        voucherCommission: 0,
         quantity: 0,
         amountToPay: 10,
         services: [{ serviceId: "", duration: "" }],
@@ -112,7 +114,10 @@ const AddEditVouchers = (props: any) => {
               <DrawerBody>
 
                 <Input {...register("voucherName", { required: true })} label="Voucher Name" placeholder="Enter Voucher Name" type="text" variant="flat" isRequired />
-                <Input {...register("voucherBalance", { required: true })} label="Voucher Balance" placeholder="Enter Voucher Balance" type="number" variant="flat" isRequired />
+                <div className="flex items-center gap-3">
+                  <Input {...register("voucherBalance", { required: true })} label="Voucher Balance" placeholder="Enter Voucher Balance" type="number" variant="flat" isRequired />
+                  <Input {...register("voucherCommission", { required: true })} label="Voucher Commission" placeholder="Enter Voucher Commission" type="number" variant="flat" isRequired />
+                </div>
 
 
                 {fields.map((field, index) => {
