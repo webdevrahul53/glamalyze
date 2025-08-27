@@ -201,7 +201,7 @@ export default function Shifts() {
       {isOpen && (
         <Suspense fallback={<Progress isIndeterminate aria-label="Loading..." size="sm" />}>
           <GroupView isOpen={isOpen} placement={"right"} onOpenChange={() => onDrawerClose()}
-          group={selectedGroup} branchId={selectedBranch._id} dateFor={selectedDateFor}
+          group={selectedGroup} branch={selectedBranch} dateFor={selectedDateFor} shift={selectedShift}
           onDelete={() => creatUpdateRoster(selectedDateFor, selectedShift, selectedGroup._id, "delete")}
           />
         </Suspense>
