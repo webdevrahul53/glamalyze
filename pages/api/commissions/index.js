@@ -2,6 +2,7 @@ import { connectDB } from "@/core/db";
 import { AppointmentServices } from "../../../core/model/appointment-services";
 import { TransferredEmployees } from "../../../core/model/transferred-employees";
 import { GlobalSettings } from "../../../core/model/global-settings";
+import { VoucherPurchased } from "../../../core/model/voucher-purchased";
 
 export default async function handler(req, res) {
   await connectDB();
@@ -38,6 +39,56 @@ export default async function handler(req, res) {
               }
             },
           },
+          { $sort: { date: 1, employeeName: 1 } },
+        ]);
+        result = staffCommissions
+      }else if(selectedCommission === "Voucher Commission"){
+
+        const matchStage = startDate != "null" && endDate != "null" ? { updatedAt: { $gte: new Date(startDate), $lte: new Date(endDate), }, } : null;
+        
+        const staffCommissions = await VoucherPurchased.aggregate([
+          // Conditionally include $match stage
+          ...(matchStage ? [{ $match: matchStage }] : []),
+  
+          { $unwind: "$cssId" },
+  
+          { $lookup: { from: "vouchers", localField: "voucherId", foreignField: "_id", as: "voucher", }, },
+          { $unwind: "$voucher" },
+          {
+            $group: {
+              _id: {
+                employeeId: "$cssId",
+                date: {
+                  $dateToString: {
+                    format: "%Y-%m-%d",
+                    date: "$updatedAt",
+                  },
+                },
+              },
+              totalCommission: { $sum: "$voucher.voucherCommission" },
+              createdAt: { $first: "$createdAt" },
+            },
+          },
+  
+          { $lookup: { from: "employees", localField: "_id.employeeId", foreignField: "_id", as: "employee", }, },
+          { $unwind: "$employee" },
+  
+          {
+            $project: {
+              _id: 0,
+              employee: 1,
+              // employeeId: "$_id.employeeId",
+              date: "$_id.date",
+              totalCommission: 1,
+              createdAt: {
+                $dateToString: {
+                  format: "%Y-%m-%d",
+                  date: "$createdAt"
+                }
+              }
+            },
+          },
+  
           { $sort: { date: 1, employeeName: 1 } },
         ]);
         result = staffCommissions
