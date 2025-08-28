@@ -24,14 +24,13 @@ const AppointmentServicesSchema = new mongoose.Schema({
     status: { type: Boolean, required: true },
     
     // commissions
-    staffCommission: { type: Number, required: true },
-    transferCommission: { type: Number, required: true },
-    personalBookingCommission: { type: Number, required: true },
+    staffCommission: { type: Number },
+    personalBookingCommission: { type: Number },
     
     // useless but need to store for edit form
     durationList: {type: []},
     couponList: {type: []},
-    assetTypeId: { type: mongoose.Schema.Types.ObjectId, ref: "AssetTypes" },
+    assetTypeId: [{ type: mongoose.Schema.Types.ObjectId, ref: "AssetTypes" }],
     assetList: {type: []},
     busyEmployees: {type: []},
     employeeList: {type: []}, 

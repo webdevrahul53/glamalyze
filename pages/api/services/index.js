@@ -36,7 +36,7 @@ export default async function handler(req, res) {
           { $lookup: { from: "assettypes", localField: "assetTypeId", foreignField: "_id", as: "assetTypes", },  },
           { $lookup: { from: "categories", localField: "categoryId", foreignField: "_id", as: "category", },  },
           { $lookup: { from: "subcategories", localField: "subCategoryId", foreignField: "_id", as: "subCategory", } },
-          { $unwind: { path: "$assetTypes", preserveNullAndEmptyArrays: true }, },
+          // { $unwind: { path: "$assetTypes", preserveNullAndEmptyArrays: true }, },
           { $unwind: { path: "$category", preserveNullAndEmptyArrays: true }, },
           { $unwind: { path: "$subCategory", preserveNullAndEmptyArrays: true }, },
           { $project: { _id: 1, categoryId: 1, subCategoryId: 1, 

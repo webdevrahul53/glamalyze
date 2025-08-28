@@ -21,7 +21,7 @@ export default async function handler(req, res) {
           matchStage,
           { $lookup: { from: "vouchers", localField: "voucherId", foreignField: "_id", as: "voucher", }, },
           { $unwind: { path: "$voucher", preserveNullAndEmptyArrays: true }, },
-          { $project: { _id: 1, voucher: 1, voucherId: 1, customerId: 1, voucherBalance: 1, remainingVoucher: 1, paymentMethod: 1, status: 1 } },
+          { $project: { _id: 1, voucher: 1, voucherId: 1, customerId: 1, cssId: 1, voucherBalance: 1, remainingVoucher: 1, paymentMethod: 1, status: 1 } },
         ]);
         res.status(200).json(result)
       }else {
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
             { "customer.firstname": { $regex: searchQuery, $options: "i" } },
             { "paymentMethod": { $regex: searchQuery, $options: "i" } },
           ]} },
-          { $project: { _id: 1, customer: 1, voucherName: "$voucher.voucherName", voucherId: 1, customerId: 1, voucherBalance: 1, remainingVoucher: 1, paymentMethod: 1, status:1, createdAt: 1, updatedAt: 1 } },
+          { $project: { _id: 1, customer: 1, voucherName: "$voucher.voucherName", voucherId: 1, customerId: 1, cssId: 1, voucherBalance: 1, remainingVoucher: 1, paymentMethod: 1, status:1, createdAt: 1, updatedAt: 1 } },
           { $skip: skip },
           { $limit: limit }
         ])

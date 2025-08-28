@@ -2,10 +2,11 @@ import React, { lazy, Suspense } from "react";
 import { Autocomplete, AutocompleteItem, Avatar, Button, Checkbox, Drawer, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader, Input, Progress, useDisclosure } from "@heroui/react";
 import { PlusIcon, SaveIcon } from "../utilities/svgIcons";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { CUSTOMERS_API_URL, VOUCHER_PURCHASED_API_URL, VOUCHERS_API_URL } from "../utilities/api-url";
+import { CUSTOMERS_API_URL, EMPLOYEES_API_URL, VOUCHER_PURCHASED_API_URL, VOUCHERS_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
 import ServiceCard from "../common/servicd-card";
 import AvatarSelect from "../common/avatar-select";
+import AvatarSelectMultiple from "../common/avatar-select-multiple";
 const AddEditCustomer = lazy(() => import("@/core/drawer/add-edit-customer"));
 
 
@@ -15,11 +16,12 @@ const AddEditVoucherPurchased = (props:any) => {
     const handleOpen = () => { onOpen(); };
 
     const { register, handleSubmit, reset, control, setValue } = useForm({
-      defaultValues: {voucherId: null, customerId: null, voucherBalance: null, remainingVoucher: null, paymentMethod: "Cash", status: true}
+      defaultValues: {voucherId: null, customerId: null, cssId: [], voucherBalance: null, remainingVoucher: null, paymentMethod: "Cash", status: true}
     });
     const [loading, setLoading] = React.useState(false)
     const [customerList, setCustomerList] = React.useState([]);
     const [voucherList, setVoucherList] = React.useState([]);
+    const [cssList, setCSSList] = React.useState([]);
 
     const voucherId = useWatch({ control, name: "voucherId" });
     const customerId = useWatch({ control, name: "customerId" });
@@ -30,10 +32,11 @@ const AddEditVoucherPurchased = (props:any) => {
         if(props.voucherPurchased) {
             reset(props.voucherPurchased)
         }
-        else reset({voucherId: null, customerId: null, voucherBalance: null, remainingVoucher: null, paymentMethod: "Cash", status: true})
+        else reset({voucherId: null, customerId: null, cssId: [], voucherBalance: null, remainingVoucher: null, paymentMethod: "Cash", status: true})
 
         getCustomerList();
         getVoucherList();
+        getCSSList();
     }, [props.voucherPurchased])
 
     const getCustomerList = async () => {
@@ -49,6 +52,15 @@ const AddEditVoucherPurchased = (props:any) => {
           const voucher = await fetch(VOUCHERS_API_URL)
           const parsed = await voucher.json();
           setVoucherList(parsed);
+        }catch(err:any) { toast.error(err.error) }
+    }
+
+    
+    const getCSSList = async () => {
+      try {
+          const employees = await fetch(`${EMPLOYEES_API_URL}?role=CSS`)
+          const parsed = await employees.json();
+          setCSSList(parsed);
         }catch(err:any) { toast.error(err.error) }
     }
 
@@ -137,6 +149,13 @@ const AddEditVoucherPurchased = (props:any) => {
                     )}
                     
                   </Autocomplete>}
+
+                  
+                  {!!cssList?.length && <Controller name="cssId" control={control} rules={{required: true}}
+                    render={({ field }) => (
+                      <AvatarSelectMultiple field={field} data={cssList} label="CSS" keyName="employeeName" />
+                    )}
+                  />}
                   
                   <section className="flex items-center gap-0">
                     <small role="button" className={`w-1/3 text-center border-1 border-gray-500 flex items-center justify-center h-full p-2 ${paymentMethod === "Cash" && "bg-gray-500 text-white"}`} onClick={() => setValue("paymentMethod", "Cash")}>CASH</small>

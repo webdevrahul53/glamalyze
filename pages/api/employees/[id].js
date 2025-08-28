@@ -10,16 +10,20 @@ export default async function handler(req, res) {
     let employeeId = req.query['id'];
     await Branches.updateOne({ managerId: employeeId }, { managerId: null });
     // await Branches.updateOne({ employees: employeeId }, { $pull: { employees: employeeId } });
-    Employees.deleteOne({_id:employeeId}).exec()
-    .then(()=>{ 
-        res.status(200).json({
-          status: 1,
-          message:"Employee deleted"
-        }) 
-    }).catch(err=>{ 
-      console.log(err);
-      res.status(500).json(err) 
-    }) 
+    
+    // Soft delete instead of physical delete
+    Employees.updateOne( { _id: employeeId }, { $set: { status: false } } )
+    .exec()
+    .then(() => {
+      res.status(200).json({
+        status: 1,
+        message: "Employee soft deleted (status set to false)",
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).json(err);
+    });
   }
 
   if(req.method === "PATCH") {

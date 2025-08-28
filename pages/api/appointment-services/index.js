@@ -5,6 +5,7 @@ import { AppointmentServices } from "../../../core/model/appointment-services";
 import { AppointmentPax } from "../../../core/model/appointment-pax";
 import { randomUUID } from "crypto";
 import { VoucherPurchased } from "../../../core/model/voucher-purchased";
+import { GlobalSettings } from "../../../core/model/global-settings";
 
 export default async function handler(req, res) {
   await connectDB();
@@ -58,7 +59,7 @@ export default async function handler(req, res) {
         },
         { $project: { _id: 1, appointmentId: 1, bookingId: 1, start: 1, customer: 1, employee: 1, asset: 1, 
           serviceName: "$service.name", taskStatus: "$appointment.taskStatus", paymentStatus: "$appointment.paymentStatus", paymentMethod: "$appointment.paymentMethod",
-          duration: 1, price: 1, staffCommission: 1, voucherDiscount: 1, discount: 1, subTotal: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+          duration: 1, price: 1, staffCommission: 1, personalBookingCommission: 1, voucherDiscount: 1, discount: 1, subTotal: 1, status: 1, createdAt: 1, updatedAt: 1 } },
           
         { $sort: { createdAt: -1 } },
         { $skip: skip },
@@ -89,6 +90,11 @@ export default async function handler(req, res) {
     try {
         // 1. Create Appointment
         const bookingId = randomUUID(); // Generate a unique booking ID
+        const settings = await GlobalSettings.findOne({ settingType: "global" });
+        const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+        const date = new Date(appointmentData.appointmentDate).toISOString().split('T')[0];
+        const personalBookingCommission = (settings && date !== currentDate) ?  settings.personalBookingCommission : 0;
+
         const appointment = new Appointments({
             _id: new mongoose.Types.ObjectId(),
             bookingId,
@@ -155,7 +161,11 @@ export default async function handler(req, res) {
                     couponUsed: service.couponUsed ? service.couponUsed : null,
                     voucherUsed: service.voucherUsed ? service.voucherUsed : null,
                     price: service.price,
+
+                    // commissions
                     staffCommission: service.staffCommission,
+                    personalBookingCommission: personalBookingCommission,
+
                     voucherDiscount: service.voucherDiscount,
                     discount: service.discount,
                     subTotal: service.subTotal,

@@ -128,8 +128,8 @@ export default function Layout(props:any) {
             selectedKeys={openAccordion ? [openAccordion] : []}
             onSelectionChange={handleAccordionChange} >
             <AccordionItem key="3" startContent={<GiftUnboxedIcon width={30} height={20} />} title="Discounts">
-              <ListboxWrapper Icon={CouponIcon} href={"/coupons"} title="Coupons" />
-              <ListboxWrapper Icon={VoucherIcon} href={"/vouchers"} title="Vourchers" />
+              <ListboxWrapper Icon={CouponIcon} href={"/coupons"} title="Gift Vouchers" />
+              <ListboxWrapper Icon={VoucherIcon} href={"/vouchers"} title="Discount Promos" />
               <ListboxWrapper Icon={VoucherPurchasedIcon} href={"/voucher-purchased"} title="Vourcher Purchased" />
             </AccordionItem>
           </Accordion>

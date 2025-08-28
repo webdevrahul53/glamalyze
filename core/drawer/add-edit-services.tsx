@@ -8,6 +8,7 @@ import { v4 } from "uuid";
 import AvatarSelect from "../common/avatar-select";
 import { ASSET_TYPES_API_URL, CATEGORIES_API_URL, SERVICES_API_URL, SUBCATEGORIES_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
+import AvatarSelectMultiple from "../common/avatar-select-multiple";
 
 const AddEditServices = (props:any) => {
     const { register, handleSubmit, setValue, control, reset } = useForm({
@@ -159,7 +160,7 @@ const AddEditServices = (props:any) => {
                     
                     <Controller name="assetTypeId" control={control} rules={{required: true}}
                       render={({ field }) => (
-                        <AvatarSelect field={field} data={assetTypeList} label="Asset Type" keyName="assetTypeName" isRequired={true}
+                        <AvatarSelectMultiple field={field} data={assetTypeList} label="Asset Type" keyName="assetTypeName"
                         // endContent={<Button className="-mt-5" size="sm" onPress={() => handleAssignOpen()}><PlusIcon width={10} />ADD</Button>} 
                         />
                       )}

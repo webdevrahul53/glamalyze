@@ -10,6 +10,8 @@ import moment from "moment";
 import ServiceCard from "../common/servicd-card";
 import PaxServiceList from "./pax-service-list";
 import { useSelector } from "react-redux";
+import { I18nProvider } from "@react-aria/i18n";
+
 const AddEditCustomer = lazy(() => import("@/core/drawer/add-edit-customer"));
 const ApplyVoucher = lazy(() => import("@/core/drawer/apply-voucher"));
 
@@ -36,7 +38,8 @@ const NewAppointment = (props:any) => {
           durationList: [], duration: null, 
           couponList: [], couponUsed: null, 
           voucherUsed: null, 
-          voucherDiscount: 0, discount: 0, price: 0, staffCommission: 0, subTotal: 0, 
+          voucherDiscount: 0, discount: 0, price: 0, subTotal: 0, 
+          staffCommission: 0, personalBookingCommission: 0,
           assetId: null, assetTypeId: null, assetList: [], 
           busyEmployees: [], employeeList: [], employeeId: []
         }] ],
@@ -134,7 +137,8 @@ const NewAppointment = (props:any) => {
         durationList: [], duration: null, 
         couponList: [], couponUsed: null, 
         voucherUsed: null, 
-        voucherDiscount: 0, discount: 0, price: 0, staffCommission: 0, subTotal: 0, 
+        voucherDiscount: 0, discount: 0, price: 0, subTotal: 0, 
+        staffCommission: 0, personalBookingCommission: 0,
         assetId: null, assetTypeId: null, assetList: [], 
         busyEmployees: [], employeeList: [], employeeId: []
       }] ])
@@ -270,7 +274,8 @@ const NewAppointment = (props:any) => {
         while (updatedPax.length < value) {
           updatedPax.push([{ 
             serviceId: null, 
-            price: null, staffCommission: 0,
+            price: null,
+            staffCommission: 0, personalBookingCommission: 0,
             duration: null, durationList: [], 
             assetId: null, assetTypeId: null, assetList: [],
             employeeId: [], employeeList: [], busyEmployees: [],
@@ -307,7 +312,7 @@ const NewAppointment = (props:any) => {
           "serviceDuration": 60,
           "defaultPrice": 50,
           "_id": "67fcbfc92e5d5efc267985b1"
-      }], duration: "60", couponList: [], couponUsed: null, voucherUsed: null, voucherDiscount: 0, discount: 0, price: 0, staffCommission: 0, subTotal: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}]
+      }], duration: "60", couponList: [], couponUsed: null, voucherUsed: null, voucherDiscount: 0, discount: 0, price: 0, subTotal: 0, staffCommission: 0, personalBookingCommission: 0, assetId: null, assetTypeId: null, assetList: [], busyEmployees: [], employeeList: [], employeeId: []}]
       ]
       // console.log(data);
       // return;
@@ -338,12 +343,12 @@ const NewAppointment = (props:any) => {
         }
     }
 
-    const applyVoucher = (paxIndex:number, serviceIndex: number, availableVoucher: any) => {
+    const applyVoucher = (paxIndex:number, serviceIndex: number, voucher: any) => {
       pax.forEach((item, i) => {
         item.forEach((service, j) => {
           console.log(i,j, paxIndex, serviceIndex)
           if(i === paxIndex && j === serviceIndex) {
-            setValue(`pax.${i}.${j}.voucherUsed`, availableVoucher)
+            setValue(`pax.${i}.${j}.voucherUsed`, voucher._id)
           }else{
             setValue(`pax.${i}.${j}.voucherUsed`, null)
           }
@@ -439,18 +444,21 @@ const NewAppointment = (props:any) => {
                   {errors.customerId && <div className="text-danger text-sm -mt-2 ms-3">Customer is required</div>}
 
                   <div className="flex items-center gap-2" style={{pointerEvents: selectedAppointment?.taskStatus === "Completed" ? "none":"all"}}>
-                    <Controller name="appointmentDate" control={control}
-                      render={({ field }) => (
-                        <DatePicker
-                          {...field} hideTimeZone showMonthAndYearPickers label="Date & Time" variant="bordered"
-                          defaultValue={field.value} onChange={(date) => {
-                            if(selectedAppointment?.taskStatus === "Completed") return;
-                            field.onChange(date)
-                            resetPax();
-                          }} // Ensure React Hook Form updates the state
-                        />
-                      )}
-                    />
+                    <I18nProvider locale="en-GB">
+                      <Controller name="appointmentDate" control={control}
+                        render={({ field }) => (
+
+                          <DatePicker
+                            {...field} hideTimeZone showMonthAndYearPickers label="Date & Time" variant="bordered"
+                            defaultValue={field.value} onChange={(date) => {
+                              if(selectedAppointment?.taskStatus === "Completed") return;
+                              field.onChange(date)
+                              resetPax();
+                            }} // Ensure React Hook Form updates the state
+                          />
+                        )}
+                      />
+                    </I18nProvider>
                     <label htmlFor="startTime" className="w-1/4 border-2 p-0 px-4 rounded">
                       <input className="py-3 outline-none" type="time" {...register("startTime", {required: true})}
                         onChange={(event:any) => {

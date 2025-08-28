@@ -10,12 +10,17 @@ export default async function handler(req, res) {
     const appointmentDate = req.query["appointmentDate"]
     const startTime = req.query["startTime"];
     const duration = req.query["duration"];
-    const assetTypeId = req.query["assetTypeId"];
+    const assetTypeIds = req.query["assetTypeId"].split(","); // now an array
     const branchId = req.query["branchId"];
-
     const obj = { branchId: new mongoose.Types.ObjectId(branchId) };
-    if (assetTypeId) obj.assetTypeId = new mongoose.Types.ObjectId(assetTypeId);
-
+    
+    // if assetTypeIds array is provided
+    if (assetTypeIds && assetTypeIds.length > 0) {
+      obj.assetTypeId = {
+        $in: assetTypeIds.map((id) => new mongoose.Types.ObjectId(id)),
+      };
+    }
+    
     try {
       // Step 1: Get all assets
       // const allAssets = await Assets.find(obj, { _id: 1, assetTypeId: 1, assetNumber: 1 }).populate("assetTypeId");

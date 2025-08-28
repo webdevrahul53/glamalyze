@@ -25,6 +25,7 @@ export default async function handler(req, res) {
           { $addFields: { name: { $concat: ["$firstname", " ", "$lastname"] } } },
           { $match: { $or: [ 
             { name: { $regex: searchQuery, $options: "i" } }, 
+            { phonenumber: { $regex: searchQuery, $options: "i" } }, 
           ]} },
           { $project: { _id: 1, image:1, name: 1, firstname:1, lastname:1, gender: 1, email:1, phonenumber:1, note: 1, status:1, createdAt: 1, updatedAt: 1 } },
           { $skip: skip },

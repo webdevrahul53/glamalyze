@@ -71,7 +71,7 @@ const ApplyVoucher = (props:any) => {
                           </div>
     
                           <button
-                            onClick={() => props.applyVoucher(paxIndex, serviceIndex, voucher._id)}
+                            onClick={() => props.applyVoucher(paxIndex, serviceIndex, voucher)}
                             disabled={pax.voucherUsed}
                             className={`text-xs font-semibold px-3 py-1 
                               ${!pax.voucherUsed ? "border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white": "border border-gray-600 text-gray-600"} 

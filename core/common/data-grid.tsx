@@ -3,7 +3,7 @@
 import React from "react";
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, User, Tooltip, Chip, Button, AvatarGroup, Avatar, 
   Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Pagination, Progress} from "@heroui/react";
-import { BathIcon, BedIcon, ChairIcon, DeleteIcon, EditIcon, SofaIcon } from "../utilities/svgIcons";
+import { BathIcon, BedIcon, ChairIcon, DeleteIcon, DownloadIcon, EditIcon, SofaIcon } from "../utilities/svgIcons";
 import { ArrayType, AvatarGroupType, AvatarType, AvatarType2, BoxButtonType, DateOnlyType, DateType, RoleType } from "../utilities/table-types";
 import moment from "moment";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,6 +20,7 @@ const roleCSS: any = {
   Manager: "bg-blue-100 text-blue-500",
   Staff: "bg-red-100 text-red-800",
   Therapist: "bg-pink-100 text-pink-800",
+  CSS: "bg-orange-100 text-orange-800",
 }
 
 export const taskStatusCSS: any = {
@@ -236,17 +237,20 @@ export default function DataGrid(props:any) {
             </TableBody>
           </Table>
         </div>
-        <div className="flex w-full justify-center gap-3 py-3">
-          <div className="border-2 px-2">
-            <select className="py-2 pe-4 outline-none" value={perPage} onChange={(event:any) => fetchUsers(event.target.value)}>
-              <option value="10">10</option>
-              <option value="20">20</option>
-              <option value="50">50</option>
-            </select>
+        <div className="flex items-center">
+          <div className="flex w-full justify-center gap-3 py-3">
+            <div className="border-2 px-2">
+              <select className="py-2 pe-4 outline-none" value={perPage} onChange={(event:any) => fetchUsers(event.target.value)}>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+            <Pagination isCompact showControls showShadow color="secondary" page={page} total={totalPages}
+              onChange={(newPage) => setPage(newPage)}
+            />
           </div>
-          <Pagination isCompact showControls showShadow color="secondary" page={page} total={totalPages}
-            onChange={(newPage) => setPage(newPage)}
-          />
+          <Button className="me-5 bg-gray-500 text-white" size="md"> <DownloadIcon color="white" width="25" height="25" /> Export</Button>
         </div>
       </section>
     </>

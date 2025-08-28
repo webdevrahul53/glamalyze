@@ -3,7 +3,7 @@ import DataGrid from '@/core/common/data-grid'
 import { PageTitle } from '@/core/common/page-title'
 import SearchComponent from '@/core/common/search'
 import { CUSTOMERS_API_URL } from '@/core/utilities/api-url'
-import { DownloadIcon, PlusIcon } from '@/core/utilities/svgIcons'
+import { PlusIcon } from '@/core/utilities/svgIcons'
 import { Button, Progress, useDisclosure } from '@heroui/react'
 import React, { lazy, Suspense } from 'react'
 const AddEditCustomer = lazy(() => import("@/core/drawer/add-edit-customer"));
@@ -28,8 +28,8 @@ export default function Customers() {
 
         <div className="bg-white rounded" style={{margin: "-30px 40px"}}>
           <div className="flex items-center justify-between p-4">
-            <Button size="md" color="secondary"> <DownloadIcon color="white" width="25" height="25" /> Export</Button>
-            <div className="flex items-center gap-3">
+            {/* <Button size="md" color="secondary"> <DownloadIcon color="white" width="25" height="25" /> Export</Button> */}
+            <div className="flex items-center ms-auto gap-3">
               <SearchComponent onSearch={setSearch} />
               <Button size="md" color="primary" onPress={() => handleOpen()}> <PlusIcon color="white" width="25" height="25" /> New</Button>
             </div>
@@ -53,6 +53,7 @@ export default function Customers() {
 
 const columns = [
   {name: "NAME", uid: "name"},
+  {name: "PHONE NUMBER", uid: "phonenumber"},
   {name: "GENDER", uid: "gender"},
   {name: "CREATED AT", uid: "createdAt"},
   {name: "UPDATED AT", uid: "updatedAt"},

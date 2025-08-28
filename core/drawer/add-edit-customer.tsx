@@ -7,15 +7,17 @@ import { useForm, useWatch } from "react-hook-form";
 import { v4 } from "uuid";
 import { toast } from "react-toastify";
 import { CUSTOMERS_API_URL } from "../utilities/api-url";
+import { handlePhoneNumberChange } from "../utilities/handlePhoneNumber";
 
 const AddEditCustomer = (props:any) => {
     const { register, handleSubmit, setValue, control, reset } = useForm({
-      defaultValues: {image: null, firstname: "", lastname: "", gender: "male", email: null, phonenumber: null, note: null, status: true}
+      defaultValues: {image: null, firstname: "", lastname: "", gender: "male", email: null, phonenumber: "", note: null, status: true}
     });
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [loading, setLoading] = React.useState(false)
 
     const gender = useWatch({ control, name: "gender" });
+    const phonenumber = useWatch({ control, name: "phonenumber" });
 
 
     React.useEffect(() => {
@@ -23,7 +25,7 @@ const AddEditCustomer = (props:any) => {
             reset(props.customer)
             setImagePreview(props.customer.image)
         }
-        else reset({image: null, firstname:"", lastname: "", email: null, phonenumber: null, note: null, gender: "male", status: true})
+        else reset({image: null, firstname:"", lastname: "", email: null, phonenumber: "", note: null, gender: "male", status: true})
     }, [props.customer])
 
     const onSubmit = async (data:any) => {
@@ -110,7 +112,7 @@ const AddEditCustomer = (props:any) => {
                     <Input id="image" {...register("image")} type="file" variant="flat" onChange={handleImageChange} />
                     <Input {...register("firstname", {required: true})} label="First Name" placeholder="Enter First Name" type="text" variant="flat" isRequired />
                     <Input {...register("lastname")} label="Last Name" placeholder="Enter Last Name" type="text" variant="flat" />
-                    <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="tel" variant="flat" isRequired />
+                    <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="tel" variant="flat"  isRequired value={phonenumber || "+"} onChange={e => handlePhoneNumberChange(e, setValue)} />
 
                     <Input {...register("email")} label="Email" placeholder="Enter Email" type="email" variant="flat" />
                     <RadioGroup {...register("gender")} className="my-3 mx-1" label="Gender" orientation="horizontal" defaultValue={props.customer?.gender || gender}>

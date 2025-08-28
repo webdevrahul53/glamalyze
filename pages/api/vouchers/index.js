@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       if(!req.query.page || !req.query.limit) {      
         const result = await Vouchers.aggregate([
           { $lookup: { from: "services", localField: "services.serviceId", foreignField: "_id", as: "serviceId", },  },
-          { $project: { _id: 1, voucherName: 1, voucherBalance: 1, quantity: 1, defaultPrice: 1, amountToPay: 1, services: 1, serviceId: 1, status:1, createdAt: 1, updatedAt: 1 } },
+          { $project: { _id: 1, voucherName: 1, voucherBalance: 1, voucherCommission: 1, quantity: 1, defaultPrice: 1, amountToPay: 1, services: 1, serviceId: 1, status:1, createdAt: 1, updatedAt: 1 } },
         ])
         res.status(200).json(result)
       }else {
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
             { voucherName: { $regex: searchQuery, $options: "i" } }, 
           ]} },
           { $lookup: { from: "services", localField: "services.serviceId", foreignField: "_id", as: "serviceId", },  },
-          { $project: { _id: 1, voucherName: 1, voucherBalance: 1, quantity: 1, defaultPrice: 1, amountToPay: 1, services: 1, serviceId: 1, status:1, createdAt: 1, updatedAt: 1 } },
+          { $project: { _id: 1, voucherName: 1, voucherBalance: 1, voucherCommission: 1, quantity: 1, defaultPrice: 1, amountToPay: 1, services: 1, serviceId: 1, status:1, createdAt: 1, updatedAt: 1 } },
           { $skip: skip },
           { $limit: limit }
         ])
@@ -51,6 +51,7 @@ export default async function handler(req, res) {
       _id:new mongoose.Types.ObjectId(),
       voucherName:req.body.voucherName,
       voucherBalance:Number(req.body.voucherBalance),
+      voucherCommission:Number(req.body.voucherCommission),
       quantity:Number(req.body.quantity),
       defaultPrice:Number(req.body.defaultPrice),
       amountToPay:Number(req.body.amountToPay),
@@ -65,6 +66,7 @@ export default async function handler(req, res) {
                 _id:voucher._id, 
                 voucherName:voucher.voucherName,
                 voucherBalance:Number(voucher.voucherBalance),
+                voucherCommission:Number(voucher.voucherCommission),
                 quantity:Number(voucher.quantity),
                 defaultPrice:Number(voucher.defaultPrice),
                 amountToPay:Number(voucher.amountToPay),
