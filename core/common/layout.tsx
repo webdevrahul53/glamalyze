@@ -140,10 +140,10 @@ export default function Layout(props:any) {
             selectedKeys={openAccordion ? [openAccordion] : []}
             onSelectionChange={handleAccordionChange} >
             <AccordionItem key="4" startContent={<PeopleIcon width={30} height={20} />} title="Staff Management">
-              <ListboxWrapper Icon={SettingIcon} href={"/roster"} title="Roster" />
+              <ListboxWrapper Icon={CalendarOutlinedIcon} href={"/shifts"} title="Shifts" />
               <ListboxWrapper Icon={PeopleIcon} href={"/staffs"} title="Staffs" />
               <ListboxWrapper Icon={UserGroupIcon} href={"/groups"} title="Groups" />
-              <ListboxWrapper Icon={CalendarOutlinedIcon} href={"/shifts"} title="Shifts" />
+              <ListboxWrapper Icon={SettingIcon} href={"/roster"} title="Roster" />
             </AccordionItem>
           </Accordion>
 

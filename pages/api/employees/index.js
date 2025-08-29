@@ -76,10 +76,12 @@ export default async function handler(req, res) {
 
   if(req.method === "POST") {
     // Check if the email is already registered
-    const existingUser = await Users.findOne({ email: req.body.email });
-    if (existingUser) return res.status(400).json({ status: 0, message: "Email address is already taken. Please use another one.", });
+    if(req.body.email) {
+      const existingUser = await Users.findOne({ email: req.body.email });
+      if (existingUser) return res.status(400).json({ status: 0, message: "Email address is already taken. Please use another one.", });
+    }
 
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const hashedPassword = req.body.password ? await bcrypt.hash(req.body.password, 10) : null;
     const employee = new Employees({
       _id:new mongoose.Types.ObjectId(),
       image: req.body.image,
