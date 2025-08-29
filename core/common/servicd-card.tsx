@@ -12,9 +12,9 @@ const ServiceCard = (props:any) => {
             <div className="flex flex-col gap-1 items-start justify-center">
               <h4 className="text-small font-semibold leading-none text-default-600 flex items-center">
                 {name}
-                <Tooltip content={`Note: ${props.note}`} placement="right" color="primary" showArrow={true}>
+                {/* <Tooltip content={`Note: ${props.note}`} placement="right" color="primary" showArrow={true}>
                   <div><InfoIcon width={30} height={20} color="gray" /></div>
-                </Tooltip>
+                </Tooltip> */}
               </h4>
               <h5 className="text-small tracking-tight text-default-400"> <strong> {props.email || props.createdAt}</strong> </h5>
             </div>

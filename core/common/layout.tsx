@@ -47,7 +47,7 @@ export default function Layout(props:any) {
     <div style={{display: "grid", gridTemplateColumns: "1fr 5fr"}}>
       {/* Left Side */}
       <div className="sidebar relative" style={{minWidth: "260px"}}>
-        <Image id="navbar" src={Logo} alt="Logo" height={100} className="bg-primary" style={{width: "100%", padding: "11px", marginBottom: "10px"}} />
+        <Image id="navbar" src={Logo} alt="Logo" height={100} className="bg-primary" style={{width: "100%", padding: "33px 11px", marginBottom: "10px"}} />
 
         <div style={{height: `calc(100vh - ${(navbarHeight + 80)}px)`, overflow: "auto"}}>
           

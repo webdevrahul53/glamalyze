@@ -129,18 +129,21 @@ export default function SalesSummary() {
         </section>
 
         {loading ? <Progress isIndeterminate aria-label="Loading..." size="sm" /> : <>
-          <h2 className="text-xl text-center">Gross Sale By Date</h2>
-          <LineChartComponent data={dashboardData?.revenueByDate || []} />
+          {!!dashboardData?.revenueByDate.length && <>
+            <h2 className="text-xl text-center">Gross Sale By Date</h2>
+            <LineChartComponent data={dashboardData?.revenueByDate || []} />
+          </>}
 
           <section className="flex my-5">
-            <div className="w-1/3">
+            {!!dashboardData?.revenueByWeek.length && <div className="w-1/3">
               <h2 className="text-xl text-center">Gross Sale By Week</h2>
               <BarChartComponent data={dashboardData?.revenueByWeek || []} />
-            </div>
-            <div className="w-2/3">
+            </div>}
+
+            {!!dashboardData?.revenueByHour.length && <div className="w-2/3">
               <h2 className="text-xl text-center">Gross Sale By Hour</h2>
               <LineChartComponent data={dashboardData?.revenueByHour || []} />
-            </div>
+            </div>}
           </section>
 
           <section className="">
@@ -148,12 +151,12 @@ export default function SalesSummary() {
 
             <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
               <strong className="text-lg">Gross Sales</strong>
-              <span className="text-2xl"> ฿ {dashboardData?.totalSummary[0].grossSales.toFixed(2)} </span>
+              <span className="text-2xl"> ฿ {dashboardData?.totalSummary[0]?.grossSales.toFixed(2)} </span>
             </div>
             <ul className="ms-4">
               <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
                 <span className="text-lg text-gray-400">Items</span>
-                <span className="text-2xl text-gray-400"> ฿ {dashboardData?.totalSummary[0].grossSales.toFixed(2)} </span>
+                <span className="text-2xl text-gray-400"> ฿ {dashboardData?.totalSummary[0]?.grossSales.toFixed(2)} </span>
               </div>
               <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
                 <span className="text-lg text-gray-400">Service Charge</span>
@@ -166,11 +169,11 @@ export default function SalesSummary() {
             </div>
             <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
               <span className="text-lg">Discounts & Coupons</span>
-              <span className="text-2xl"> - ฿ {(dashboardData?.totalSummary[0].discount + dashboardData?.totalSummary[0].voucherDiscount).toFixed(2)} </span>
+              <span className="text-2xl"> - ฿ {(dashboardData?.totalSummary[0]?.discount + dashboardData?.totalSummary[0]?.voucherDiscount).toFixed(2)} </span>
             </div>
             <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
               <strong className="text-lg">Net Sales</strong>
-              <span className="text-2xl"> ฿ {dashboardData?.totalSummary[0].netSales.toFixed(2)} </span>
+              <span className="text-2xl"> ฿ {dashboardData?.totalSummary[0]?.netSales.toFixed(2)} </span>
             </div>
             <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
               <span className="text-lg">Taxes</span>
@@ -178,7 +181,7 @@ export default function SalesSummary() {
             </div>
             <div className="flex justify-between items-center p-2 border-b-2 border-gray-200">
               <strong className="text-lg">Total Sales</strong>
-              <span className="text-2xl"> ฿ {dashboardData?.totalSummary[0].grossSales.toFixed(2)} </span>
+              <span className="text-2xl"> ฿ {dashboardData?.totalSummary[0]?.grossSales.toFixed(2)} </span>
             </div>
           </section>
 
