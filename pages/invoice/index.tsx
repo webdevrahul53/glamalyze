@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { APPOINTMENTS_API_URL, SERVICES_API_URL } from '@/core/utilities/api-url';
 import { useRouter } from 'next/router';
 import React, { useRef } from 'react';
@@ -27,7 +29,9 @@ const InvoicePage: React.FC = () => {
             const services = await fetch(SERVICES_API_URL)
             const parsed = await services.json();
             setServiceList(parsed)
-          }catch(err:any) {  }
+        }catch(err:any) {
+            console.log(err)
+        }
     }
     
       
@@ -35,7 +39,7 @@ const InvoicePage: React.FC = () => {
         if(!id) return;
         try {
             const branches = await fetch(`${APPOINTMENTS_API_URL}/${id}`)
-            let parsed = await branches.json();
+            const parsed = await branches.json();
           
             let discount = 0;
             let voucher = 0;
@@ -58,7 +62,9 @@ const InvoicePage: React.FC = () => {
   
             setSelectedAppointment(parsed)
           
-        }catch(err:any) {  }
+        }catch(err:any) { 
+            console.log(err)
+        }
   
     }
     const handlePrint = () => {
@@ -139,8 +145,8 @@ const InvoicePage: React.FC = () => {
                             </thead>
                             <tbody>
                                 {pax?.map((service:any, sIdx:number) => {
-                                    let asset = service?.assetList?.find((i:any) => i._id === service?.assetId);
-                                    let serv = serviceList.find((i:any) => i._id === service?.serviceId);
+                                    const asset = service?.assetList?.find((i:any) => i._id === service?.assetId);
+                                    const serv = serviceList.find((i:any) => i._id === service?.serviceId);
                                     return (
                                         <tr key={sIdx}>
                                             <td style={tdStyle}>{serv.name}</td>
@@ -149,7 +155,7 @@ const InvoicePage: React.FC = () => {
                                             <td style={tdStyle}> {asset?.assetType} #{asset?.assetNumber}</td>
                                             <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
                                                 {service?.employeeId?.map((emp: any, eIdx: number) => {
-                                                    let employee = service.employeeList.find((i: any) => i._id === emp);
+                                                    const employee = service.employeeList.find((i: any) => i._id === emp);
                                                     return (
                                                         <span key={eIdx} style={{ display: 'inline-flex', alignItems: 'center', marginRight: 8 }}>
                                                             {/* <img src={employee.image} alt={employee.name} style={{ width: 20, height: 20, borderRadius: '50%', marginRight: 4 }} /> */}
