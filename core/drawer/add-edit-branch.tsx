@@ -77,7 +77,7 @@ const AddEditBranch = (props:any) => {
 
     const getEmployeeList = async () => {
       try {
-          const employees = await fetch(EMPLOYEES_API_URL)
+          const employees = await fetch(`${EMPLOYEES_API_URL}?role=Manager`)
           const parsed = await employees.json();
           setEmployeeList(parsed);
         }catch(err:any) { toast.error(err.error) }
