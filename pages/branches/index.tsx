@@ -52,7 +52,7 @@ export default function Branches() {
 }
 
 const columns = [
-  {name: "Branch NAME", uid: "branchname"},
+  {name: "BRANCH   NAME", uid: "branchname"},
   {name: "CONTACT NUMBER", uid: "contactnumber"},
   {name: "MANAGER", uid: "manager:firstname"},
   {name: "CITY", uid: "city"},
