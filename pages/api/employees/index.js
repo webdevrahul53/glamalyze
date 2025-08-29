@@ -31,11 +31,7 @@ export default async function handler(req, res) {
         // Fetch total count WITHOUT lookup for performance
         const totalCountPromise = Employees.countDocuments();
         const dataPromise = Employees.aggregate([
-        { $addFields: { employeeName: { $concat: [
-          { $ifNull: ["$firstname", ""] },
-          " ",
-          { $ifNull: ["$lastname", ""] }
-        ] } } },
+        { $addFields: { employeeName: { $concat: ["$firstname", " ", "$lastname"] } } },
         {
           $match: {
             $and: [

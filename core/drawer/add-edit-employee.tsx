@@ -13,7 +13,7 @@ import { handlePhoneNumberChange91 } from "../utilities/handlePhoneNumber";
 
 const AddEditEmployee = (props:any) => {
     const { register, handleSubmit, setValue, control, reset } = useForm({
-      defaultValues: {image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: "", gender: "male", servicesId: [], defaultBranch: null, roleId: null,
+      defaultValues: {image: null, firstname: "", lastname: "", email: null, password: null, phonenumber: "", gender: "male", servicesId: [], defaultBranch: null, roleId: null,
         // aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, 
         isVisibleInCalendar: null, isSenior: false, status: null}
     });
@@ -36,7 +36,7 @@ const AddEditEmployee = (props:any) => {
             setImagePreview(props.employees.image)
         }
         else {
-          reset({image: null, firstname: null, lastname: null, email: null, password: null, phonenumber: "", gender: "male", servicesId: [], defaultBranch: null, roleId: null,
+          reset({image: null, firstname: "", lastname: "", email: null, password: null, phonenumber: "", gender: "male", servicesId: [], defaultBranch: null, roleId: null,
             // aboutself: null, expert: null, facebook: null, instagram: null, twitter: null, dribble: null, 
             isVisibleInCalendar: null, isSenior: false, status: null})
         }
