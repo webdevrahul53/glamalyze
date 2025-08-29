@@ -127,20 +127,17 @@ const AddEditServices = (props:any) => {
                 <DrawerHeader className="flex flex-col gap-1"> {props.services ? "Update":"New"} Service</DrawerHeader>
                 <DrawerBody> 
   
-                    <div className="flex items-end">
-                      {imagePreview ? (
-                        <label htmlFor="image" className="cursor-pointer"><img src={imagePreview} alt="Preview" width="120" height="100" /></label>
-                      ) : (
-                          <label htmlFor="image" className="cursor-pointer">
-                            <ImageIcon width="120" height="100" />
-                          </label>
-                        )}
-                      <div className="flex items-center gap-1 ms-2 mb-3">
-                        <Button type="button" color="primary"><label htmlFor="image" className="cursor-pointer">Upload</label></Button>
-                        <Button type="button" color="danger" variant="bordered" onPress={() => {setValue("image", null); setImagePreview(null)}}>Remove</Button>
-                      </div>
-                      <input id="image" {...register("image")} type="file" onChange={handleImageChange} style={{width:"0", height:"0"}} />
-
+               
+                    {imagePreview ? (
+                      <label htmlFor="image" className="cursor-pointer"><img src={imagePreview} alt="Preview" width="120" height="100" /></label>
+                    ) : (
+                        <label htmlFor="image" className="cursor-pointer">
+                          <ImageIcon width="120" height="100" />
+                        </label>
+                      )}
+                    <div className="flex items-center gap-1 ms-2 mb-3">
+                      <Button type="button" color="primary"><label htmlFor="image" className="cursor-pointer">Upload</label></Button>
+                      <Button type="button" color="danger" variant="bordered" onPress={() => {setValue("image", null); setImagePreview(null)}}>Remove</Button>
                     </div>
   
                     <Input id="image" {...register("image")} type="file" variant="flat" onChange={handleImageChange} />
