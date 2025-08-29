@@ -7,7 +7,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { v4 } from "uuid";
 import { toast } from "react-toastify";
 import { CUSTOMERS_API_URL } from "../utilities/api-url";
-import { handlePhoneNumberChange } from "../utilities/handlePhoneNumber";
+import { handlePhoneNumberChange91 } from "../utilities/handlePhoneNumber";
 
 const AddEditCustomer = (props:any) => {
     const { register, handleSubmit, setValue, control, reset } = useForm({
@@ -35,7 +35,7 @@ const AddEditCustomer = (props:any) => {
       let file = data?.image?.[0]
       if(!file || typeof data.image === "string") saveCustomer(data)
         else {
-            const imageRef = ref(imageDb, `spa-management-system/customers/${v4()}`)
+            const imageRef = ref(imageDb, `glamalyze/customers/${v4()}`)
             uploadBytes(imageRef, file).then(() => {
                 getDownloadURL(imageRef).then( async (image) => {
                 data.image = image;
@@ -112,7 +112,7 @@ const AddEditCustomer = (props:any) => {
                     <Input id="image" {...register("image")} type="file" variant="flat" onChange={handleImageChange} />
                     <Input {...register("firstname", {required: true})} label="First Name" placeholder="Enter First Name" type="text" variant="flat" isRequired />
                     <Input {...register("lastname")} label="Last Name" placeholder="Enter Last Name" type="text" variant="flat" />
-                    <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="tel" variant="flat"  isRequired value={phonenumber || "+"} onChange={e => handlePhoneNumberChange(e, setValue)} />
+                    <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="tel" variant="flat"  isRequired value={phonenumber || "+91"} onChange={e => handlePhoneNumberChange91(e, setValue)} />
 
                     <Input {...register("email")} label="Email" placeholder="Enter Email" type="email" variant="flat" />
                     <RadioGroup {...register("gender")} className="my-3 mx-1" label="Gender" orientation="horizontal" defaultValue={props.customer?.gender || gender}>

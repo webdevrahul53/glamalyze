@@ -26,7 +26,7 @@ const AddEditCategory = (props:any) => {
         let file = data?.image?.[0]
         if(!file || typeof data.image === "string") saveCategory(data)
         else {
-            const imageRef = ref(imageDb, `spa-management-system/categories/${v4()}`)
+            const imageRef = ref(imageDb, `glamalyze/categories/${v4()}`)
             uploadBytes(imageRef, file).then(() => {
                 getDownloadURL(imageRef).then( async (image) => {
                 data.image = image;

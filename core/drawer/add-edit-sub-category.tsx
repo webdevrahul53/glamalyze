@@ -36,7 +36,7 @@ const AddEditSubCategory = (props:any) => {
 
         if(typeof data.image === "string") saveSubCategory(data);
         else {
-            const imageRef = ref(imageDb, `spa-management-system/sub-categories/${v4()}`)
+            const imageRef = ref(imageDb, `glamalyze/sub-categories/${v4()}`)
             uploadBytes(imageRef, file).then(() => {
                 getDownloadURL(imageRef).then( async (image) => {
                 data.image = image;

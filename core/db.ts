@@ -13,7 +13,7 @@ export async function connectDB() {
 
   if (!cached.promise) {
     cached.promise = mongoose.connect(MONGODB_URI, {
-      dbName: "spa-management-system", // Change this to your DB name
+      dbName: "glamalyze", // Change this to your DB name
       bufferCommands: false,
       autoIndex: false
     }).then((mongoose) => mongoose);

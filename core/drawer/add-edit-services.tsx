@@ -45,7 +45,7 @@ const AddEditServices = (props:any) => {
       if(!file || typeof data.image === "string") saveServices(data)
       else {
           let file = data?.image[0]
-          const imageRef = ref(imageDb, `spa-management-system/services/${v4()}`)
+          const imageRef = ref(imageDb, `glamalyze/services/${v4()}`)
           uploadBytes(imageRef, file).then(() => {
               getDownloadURL(imageRef).then( async (image) => {
               data.image = image;

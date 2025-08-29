@@ -56,7 +56,7 @@ const AddEditBranch = (props:any) => {
           return;
         }
         let file = data?.image[0]
-        const imageRef = ref(imageDb, `spa-management-system/branches/${v4()}`)
+        const imageRef = ref(imageDb, `glamalyze/branches/${v4()}`)
         uploadBytes(imageRef, file).then(() => {
             getDownloadURL(imageRef).then( async (image) => {
             data.image = image;

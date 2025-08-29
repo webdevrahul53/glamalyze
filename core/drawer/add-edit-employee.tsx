@@ -8,7 +8,7 @@ import { v4 } from "uuid";
 import AvatarSelectMultiple from "../common/avatar-select-multiple";
 import { BRANCH_API_URL, EMPLOYEES_API_URL, ROLES_API_URL, SERVICES_API_URL } from "../utilities/api-url";
 import { toast } from "react-toastify";
-import { handlePhoneNumberChange } from "../utilities/handlePhoneNumber";
+import { handlePhoneNumberChange91 } from "../utilities/handlePhoneNumber";
 // import AvatarSelect from "../common/avatar-select";
 
 const AddEditEmployee = (props:any) => {
@@ -53,7 +53,7 @@ const AddEditEmployee = (props:any) => {
       let file = data?.image?.[0]
       if(!file || typeof data.image === "string") saveemployees(data)
       else {
-        const imageRef = ref(imageDb, `spa-management-system/employees/${v4()}`)
+        const imageRef = ref(imageDb, `glamalyze/employees/${v4()}`)
         uploadBytes(imageRef, file).then(() => {
             getDownloadURL(imageRef).then( async (image) => {
             data.image = image;
@@ -197,7 +197,7 @@ const AddEditEmployee = (props:any) => {
                   </RadioGroup>
                   
                   <div style={{display: "grid", gridTemplateColumns: "2fr 2fr 2fr", rowGap: 10, gap: 10}}>
-                    <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="tel" variant="flat"  isRequired value={phonenumber || "+"} onChange={e => handlePhoneNumberChange(e, setValue)} />
+                    <Input {...register("phonenumber", {required: true})} label="Phone Number" placeholder="Enter Phone Number" type="tel" variant="flat"  isRequired value={phonenumber || "+91"} onChange={e => handlePhoneNumberChange91(e, setValue)} />
                     <Input {...register("email")} label="Email" placeholder="Enter Email" type="email" variant="flat" />
                     <div style={{pointerEvents: props?.employees ? "none":"all"}}>
                       <Input label="Password" placeholder="Enter Password" type={isVisible ? "text" : "password"} tabIndex={-1}

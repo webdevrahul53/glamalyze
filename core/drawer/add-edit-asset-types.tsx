@@ -32,7 +32,7 @@ const AddEditAssetTypes = (props:any) => {
       let file = data?.image?.[0]
       if(!file || typeof data.image === "string") saveAssetType(data)
         else {
-            const imageRef = ref(imageDb, `spa-management-system/asset-types/${v4()}`)
+            const imageRef = ref(imageDb, `glamalyze/asset-types/${v4()}`)
             uploadBytes(imageRef, file).then(() => {
                 getDownloadURL(imageRef).then( async (image) => {
                 data.image = image;
