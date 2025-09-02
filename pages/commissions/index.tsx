@@ -47,6 +47,7 @@ export default function Commissions() {
           <SelectItem key={"Personal Booking Commission"}>Personal Booking Commission</SelectItem>
           <SelectItem key={"Transfer Commission"}>Transfer Commission</SelectItem>
           <SelectItem key={"Voucher Commission"}>Voucher Commission</SelectItem>
+          <SelectItem key={"Salary"}>Salary</SelectItem>
         </Select>
       </section>
 

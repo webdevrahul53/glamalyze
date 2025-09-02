@@ -92,6 +92,106 @@ export default async function handler(req, res) {
           { $sort: { date: 1, employeeName: 1 } },
         ]);
         result = staffCommissions
+      }else if(selectedCommission === "Salary"){
+        const staffCommissions = await AppointmentServices.aggregate([
+          // -------- Salary Pipeline --------
+          ...(startDate != "null" && endDate != "null"
+            ? [{ $match: { appointmentDate: { $gte: new Date(startDate), $lte: new Date(endDate) } } }]
+            : []),
+        
+          { $unwind: "$employeeId" },
+        
+          {
+            $project: {
+              employeeId: "$employeeId",
+              date: {
+                $dateToString: { format: "%Y-%m-%d", date: "$appointmentDate" },
+              },
+              staffCommission: "$staffCommission",
+              personalBookingCommission: "$personalBookingCommission",
+              transferCommission: { $literal: 0 },
+              createdAt: 1,
+            },
+          },
+        
+          // -------- Add Transfer Pipeline --------
+          {
+            $unionWith: {
+              coll: "transferredemployees",
+              pipeline: [
+                ...(startDate != "null" && endDate != "null"
+                  ? [{ $match: { dateFor: { $gte: startDate, $lte: endDate } } }]
+                  : []),
+        
+                {
+                  $project: {
+                    employeeId: "$employeeId",
+                    date: "$dateFor",
+                    staffCommission: { $literal: 0 },
+                    personalBookingCommission: { $literal: 0 },
+                    transferCommission: { $literal: transferCommission },
+                    createdAt: 1,
+                  },
+                },
+              ],
+            },
+          },
+        
+          // -------- Merge Both --------
+          {
+            $group: {
+              _id: { employeeId: "$employeeId", date: "$date" },
+              staffCommission: { $sum: "$staffCommission" },
+              personalBookingCommission: { $sum: "$personalBookingCommission" },
+              transferCommission: { $sum: "$transferCommission" },
+              createdAt: { $first: "$createdAt" },
+            },
+          },
+        
+          // -------- Lookup Employee --------
+          {
+            $lookup: {
+              from: "employees",
+              localField: "_id.employeeId",
+              foreignField: "_id",
+              as: "employee",
+            },
+          },
+          { $unwind: "$employee" },
+        
+          // -------- Final Projection with Formula --------
+          {
+            $project: {
+              _id: 0,
+              employee: 1,
+              date: "$_id.date",
+              staffCommission: 1,
+              personalBookingCommission: 1,
+              transferCommission: 1,
+              totalCommission: {
+                $add: [
+                  "$staffCommission",
+                  {
+                    $cond: {
+                      if: { $gt: ["$personalBookingCommission", 0] },
+                      then: "$personalBookingCommission",
+                      else: "$transferCommission",
+                    },
+                  },
+                ],
+              },
+              createdAt: {
+                $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+              },
+            },
+          },
+        
+          { $sort: { date: 1, "employee.name": 1 } },
+        ]);
+        
+        result = staffCommissions;
+        
+        
       }else {
         const matchStage = startDate != "null" && endDate != "null" ? { appointmentDate: { $gte: new Date(startDate), $lte: new Date(endDate), }, } : null;
         
